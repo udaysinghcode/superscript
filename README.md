@@ -1,11 +1,11 @@
 # Superscript
 
+![Build
+Passing](https://circleci.com/gh/udaysinghcode/superscript.svg?style=shield&circle-token=c4a7fd27027a5be7c2f8d8295c088c97a8946692)
+![Build
+Passing](https://circleci.com/gh/udaysinghcode/superscript.svg?circle-token=c4a7fd27027a5be7c2f8d8295c088c97a8946692)
 
 ### Motivation
-[![Build
-Passing](https://circleci.com/gh/udaysinghcode/superscript.svg?style=shield&circle-token=c4a7fd27027a5be7c2f8d8295c088c97a8946692)]
-[![Build
-Passing](https://circleci.com/gh/udaysinghcode/superscript.svg?circle-token=c4a7fd27027a5be7c2f8d8295c088c97a8946692)]
 >"JS is the x86 of the web" - Brandon Eich
 
 Why compile to Javascript? As Brandon Eich said, [“JS is the x86 of the web”][0] . 
