@@ -8,5 +8,5 @@ dependencies:
     - opam install -y ounit
 
 test:
-  override:
+  post:
     - ./run-tests.sh
