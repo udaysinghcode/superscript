@@ -6,3 +6,4 @@ dependencies:
     - yes '' | opam init
     - eval `opam config env`
     - opam install -y ounit
+    - ocamlfind test
