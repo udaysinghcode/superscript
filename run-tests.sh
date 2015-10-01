@@ -1,4 +1,4 @@
 #!/bin/bash
 
-ocamlfind ocamlc -package oUnit -linkpkg -o test test.ml
+`opam config env`; ocamlfind ocamlc -package oUnit -linkpkg -o test test.ml
 ./test
