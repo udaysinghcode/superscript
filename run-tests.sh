@@ -1,4 +1,4 @@
 #!/bin/bash
-
-eval `opam config env`; ocamlfind ocamlc -package oUnit -linkpkg -o test test.ml
-./test
+mkdir build
+eval `opam config env`; ocamlfind ocamlc -package oUnit -linkpkg -o build/test src/test.ml
+./build/test
