@@ -12,4 +12,5 @@ dependencies:
     - echo ";;" >> ~/.ocamlinit
     - eval `opam config env`
     - opam install -y ounit
+    - eval `opam config env`
     - ocamlfind test
