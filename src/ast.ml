@@ -7,3 +7,5 @@ type sexpr =
   | Nil
   | Cons of sexpr * sexpr
 
+(* must write something for evaluating cons *) 
+(* must write let rec string_of_s function *)
