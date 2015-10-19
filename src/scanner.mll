@@ -2,7 +2,7 @@
 
 rule token = parse
 [' ' '\t' '\r' '\n'] { token lexbuf } (* Whitespace *)
-| ';'       { comment lexbuf }        (* Comments *)
+| "(*"      { comment lexbuf }        (* Comments *)
 | '('       { LPAREN }
 | ')'       { RPAREN }
 | '+'       { PLUS }
@@ -15,4 +15,5 @@ rule token = parse
 | eof { EOF }
 
 and comment = parse
-
+"*)"        { token lexbuf }
+| _         { comment lexbuf }
