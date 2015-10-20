@@ -3,8 +3,9 @@
 %token PLUS MINUS TIMES DIVIDE EOF
 %token ASSIGN
 %token LPAREN RPAREN LBRACE RBRACE
-%token <int> LITERAL
-%token <int> ID
+%token <int> INT
+%token <string> ID
+%token <string> STRING
 
 %right ASSIGN
 %left PLUS MINUS
@@ -15,6 +16,7 @@
 
 %%
 sexpr: 
-| LITERAL		{ Literal($1) }
-| ID		        { Id($1) }
+| INT		        { Int($1) }
 | LPAREN sexpr RPAREN	{ $2 }
+| ID			{ Symbol($1) }
+| STRING		{ String($1) }
