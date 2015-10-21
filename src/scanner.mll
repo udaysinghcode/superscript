@@ -8,25 +8,25 @@ rule token = parse
 | '{'      { LBRACE }
 | '}'      { RBRACE }
 | ';'      { SEMI }
-| '+'      { PLUSINT }
-| '-'      { MINUSINT }
-| '*'      { TIMESINT }
-| '/'      { DIVIDEINT }
-| "+."     { PLUSFLOAT }
-| "-."     { MINUSFLOAT }
-| "*."     { TIMESFLOAT }
-| "/."     { DIVIDEFLOAT }
+| '+'      { PLUS }
+| '-'      { MINUS }
+| '*'      { TIMES }
+| '/'      { DIVIDE }
+| "+."     { PLUSF }
+| "-."     { MINUSF }
+| "*."     { TIMESF }
+| "/."     { DIVIDEF }
 | '\''     { QUOTE }
 | '='      { ASSIGN }
-| "=="     { EQ }
-| "!="     { NEQ }
+| "is"     { EQ }
+| "isnot"     { NEQ }
 | '<'      { LT }
 | "<="     { LEQ }
 | ">"      { GT }
 | ">="     { GEQ }
 | "if"     { IF }
-| ['0'-'9']*'.'['0'-'9']+  as lxm { FLOAT(float_of_string lxm) }
-| ['0'-'9']+'.'['0'-'9']*  as lxm { FLOAT(float_of_string lxm) }
+| ['0'-'9']*.['0'-'9']+  as lxm { FLOAT(float_of_string lxm) }
+| ['0'-'9']+.['0'-'9']*  as lxm { FLOAT(float_of_string lxm) }
 | ['0'-'9']+ as lxm { INT(int_of_string lxm) }
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_' '-']* as lxm { ID(lxm) }
 | eof { EOF }
