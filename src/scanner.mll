@@ -2,12 +2,12 @@
 
 rule token = parse
   [' ' '\t' '\r'] { token lexbuf } (* Whitespace *)
-| ';'     { comment lexbuf }           (* Comments *)
+| ';'      { comment lexbuf }      (* Comments *)
 | '('      { LPAREN }
 | ')'      { RPAREN }
 | '{'      { LBRACE }
 | '}'      { RBRACE }
-| '\n'      { NL }
+| '\n'     { NL }
 | '+'      { PLUS }
 | '-'      { MINUS }
 | '*'      { TIMES }
@@ -16,6 +16,9 @@ rule token = parse
 | "-."     { MINUSF }
 | "*."     { TIMESF }
 | "/."     { DIVIDEF }
+| "and"	   { AND }
+| "or"     { OR }
+| "not"    { NOT }
 | '\''     { QUOTE }
 | '='      { ASSIGN }
 | "is"     { EQ }
