@@ -1,11 +1,14 @@
-type sexpr =
+type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq
+
+type expr =
   Int of int
   | Float of float
-  | Symbol of string
+  | Boolean of int
   | String of string
-  | Quote
   | Nil
-  | Cons of sexpr * sexpr
+  | Id of string
+  | Assign of string * expr
+  | Binop of expr * op * expr
+  | Script of string * expr list
 
-(* must write something for evaluating cons *) 
-(* must write let rec string_of_s function *)
+
