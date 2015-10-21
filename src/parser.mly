@@ -2,24 +2,23 @@
 
 %token PLUS MINUS TIMES DIVIDE EOF
 %token ASSIGN
-%token <int> LITERAL
-%token <int> ID
+%token LPAREN RPAREN LBRACE RBRACE
+%token <int> INT
+%token <string> ID
+%token <string> STRING
+%token <float> FLOAT
 
-%left COMMA
 %right ASSIGN
 %left PLUS MINUS
 %left TIMES DIVIDE
 
-%start expr
-%type < Ast.expr> expr
+%start sexpr
+%type < Ast.sexpr> sexpr
 
 %%
-expr: 
-  expr PLUS expr     	{ Binop($1, Add, $3)  }
-| expr MINUS expr	{ Binop($1, Sub, $3)  }
-| expr TIMES expr	{ Binop($1, Mult, $3) }
-| expr DIVIDE expr	{ Binop($1, Div, $3)  }
-| ID assign expr	{ Assign($1, $3) }
-| LITERAL		{ Literal($1) }
-| ID		        { Id($1) }
-| LPAREN expr RPAREN	{ $2 }
+sexpr: 
+| INT		        { Int($1) }
+| FLOAT			{ Float($1) }
+| LPAREN sexpr RPAREN	{ $2 }
+| ID			{ Symbol($1) }
+| STRING		{ String($1) }
