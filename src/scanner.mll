@@ -1,13 +1,13 @@
 { open Parser }
 
 rule token = parse
-  [' ' '\t' '\r' '\n'] { token lexbuf } (* Whitespace *)
+  [' ' '\t' '\r'] { token lexbuf } (* Whitespace *)
 | ';'     { comment lexbuf }           (* Comments *)
 | '('      { LPAREN }
 | ')'      { RPAREN }
 | '{'      { LBRACE }
 | '}'      { RBRACE }
-| ';'      { SEMI }
+| '\n'      { NL }
 | '+'      { PLUS }
 | '-'      { MINUS }
 | '*'      { TIMES }
