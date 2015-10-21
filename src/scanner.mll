@@ -19,7 +19,7 @@ rule token = parse
 | '\''     { QUOTE }
 | '='      { ASSIGN }
 | "is"     { EQ }
-| "isnot"     { NEQ }
+| "isnt"   { NEQ }
 | '<'      { LT }
 | "<="     { LEQ }
 | ">"      { GT }
