@@ -11,4 +11,8 @@ type expr =
   | Binop of expr * op * expr
   | Script of string * expr list
 
-
+type stmt = 				(* Statements *)
+   Block of stmt list			(* newline-separated stmts *)
+ | Expr of expr				(* x = 5 *)
+ | Return of expr			(* automatically return last evaluated value *)
+ | If of expr * stmt * stmt
