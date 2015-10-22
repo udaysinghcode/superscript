@@ -8,6 +8,7 @@
 %token <string> STRING
 %token <float> FLOAT
 %token <string> BOOL
+%token NIL
 
 %right ASSIGN
 %left OR
@@ -22,16 +23,16 @@
 
 %%
 expr: 
-  LPAREN expr RPAREN    	{ $2 }
+  LPAREN expr RPAREN		{ $2 }
 | INT		        	{ Int($1) }
 | FLOAT				{ Float($1) }
 | BOOL				{ Boolean($1) }
 | STRING			{ String($1) }
 | ID				{ Id($1) }
+| NIL				{ Nil }
 
 (* infix operations *)
 | LSQBRACE ID ASSIGN expr RSQBRACE 	{ Assign($1, $3) }
-
 | LSQBRACE expr PLUS expr RSQBRACE	{ Binop($1, Add, $3) }
 | LSQBRACE expr MINUS expr RSQBRACE	{ Binop($1, Sub, $3) }
 | LSQBRACE expr TIMES expr RSQBRACE	{ Binop($1, Mult, $3) }
