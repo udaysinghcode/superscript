@@ -1,7 +1,7 @@
 %{ open Ast %}
 
-%token PLUS MINUS TIMES DIVIDE EOF
-%token ASSIGN
+%token PLUS MINUS TIMES DIVIDE PLUSF MINUSF TIMESF DIVIDEF EOF
+%token ASSIGN QUOTE AND OR NOT TRUE FALSE EQ NEQ LT LEQ GT GEQ IF
 %token LPAREN RPAREN LBRACE RBRACE
 %token <int> INT
 %token <string> ID
@@ -9,8 +9,12 @@
 %token <float> FLOAT
 
 %right ASSIGN
-%left PLUS MINUS
-%left TIMES DIVIDE
+%left OR
+%left AND
+%left EQ NEQ
+%left LT GT LEQ GEQ
+%left PLUS MINUS PLUSF MINUSF
+%left TIMES DIVIDE TIMESF DIVIDEF
 
 %start sexpr
 %type < Ast.sexpr> sexpr
