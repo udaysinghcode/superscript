@@ -26,10 +26,12 @@ expr:
   LPAREN expr RPAREN		{ $2 }
 | num_expr			{ $1 }	
 | BOOL				{ Boolean($1) }
-| LSQBRACE infix_expr RSQBRACE	{ $2 }
 | STRING			{ String($1) }
 | ID				{ Id($1) }
-| LPAREN expr_list RPAREN	{ List(List.rev $2) }
+| NIL				{ Nil }
+| LPAREN expr expr expr_list RPAREN  { List($2::$3::List.rev($4)) } /* list must have 2+ elems */
+| LSQBRACE infix_expr RSQBRACE	{ $2 } /* infix expr must be surrounded by square braces */
+
 
 num_expr: 
   INT		        	{ Int($1) }
@@ -41,6 +43,7 @@ infix_expr:
 
 infix_num_expr:
   num_expr			{ $1 }
+| LPAREN infix_num_expr RPAREN	{ $2  }
 | ID ASSIGN infix_num_expr		{ Assign($1, $3) }
 | infix_num_expr PLUS infix_num_expr	{ Binop($1, Add, $3) }
 | infix_num_expr MINUS infix_num_expr	{ Binop($1, Sub, $3) }
@@ -59,9 +62,11 @@ infix_num_expr:
 
 infix_bool_expr:
   BOOL					{ Boolean($1) }
+| LPAREN infix_bool_expr RPAREN		{ $2 }
 | ID ASSIGN infix_bool_expr		{ Assign($1, $3) }
 | infix_bool_expr AND infix_bool_expr	{ Binop($1, And, $3) }
 | infix_bool_expr OR infix_bool_expr	{ Binop($1, Or, $3) }
 
 expr_list:
-  expr_list expr	{ $2 :: $1 }
+/* nothing */		{ [] }
+| expr_list expr	{ $2 :: $1 }
