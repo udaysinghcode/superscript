@@ -1,25 +1,27 @@
 { open Parser }
 
 rule token = parse
-  [' ' '\t' '\r' '\n'] { token lexbuf } (* Whitespace *)
-| ';'     { comment lexbuf }           (* Comments *)
+  [' ' '\t' '\n' '\r'] { token lexbuf } (* Whitespace *)
+| ';'      { comment lexbuf }      (* Comments *)
 | '('      { LPAREN }
 | ')'      { RPAREN }
 | '{'      { LBRACE }
 | '}'      { RBRACE }
-| ';'      { SEMI }
-| '+'      { PLUSINT }
-| '-'      { MINUSINT }
-| '*'      { TIMESINT }
-| '/'      { DIVIDEINT }
-| "+."     { PLUSFLOAT }
-| "-."     { MINUSFLOAT }
-| "*."     { TIMESFLOAT }
-| "/."     { DIVIDEFLOAT }
+| '+'      { PLUS }
+| '-'      { MINUS }
+| '*'      { TIMES }
+| '/'      { DIVIDE }
+| "+."     { PLUSF }
+| "-."     { MINUSF }
+| "*."     { TIMESF }
+| "/."     { DIVIDEF }
+| "and"	   { AND }
+| "or"     { OR }
+| "not"    { NOT }
 | '\''     { QUOTE }
 | '='      { ASSIGN }
-| "=="     { EQ }
-| "!="     { NEQ }
+| "is"     { EQ }
+| "isnt"   { NEQ }
 | '<'      { LT }
 | "<="     { LEQ }
 | ">"      { GT }
