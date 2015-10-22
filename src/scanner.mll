@@ -1,13 +1,14 @@
 { open Parser }
 
 rule token = parse
-  [' ' '\t' '\r' '\n'] { token lexbuf } (* Whitespace *)
-| ';'     { comment lexbuf }           (* Comments *)
+  [' ' '\t' '\n' '\r'] { token lexbuf } (* Whitespace *)
+| ';'      { comment lexbuf }      (* Comments *)
 | '('      { LPAREN }
 | ')'      { RPAREN }
 | '{'      { LBRACE }
 | '}'      { RBRACE }
-| ';'      { SEMI }
+| '['      { LSQBRACE }
+| ']'      { RSQBRACE }
 | '+'      { PLUS }
 | '-'      { MINUS }
 | '*'      { TIMES }
@@ -16,19 +17,24 @@ rule token = parse
 | "-."     { MINUSF }
 | "*."     { TIMESF }
 | "/."     { DIVIDEF }
+| "and"	   { AND }
+| "or"     { OR }
 | '\''     { QUOTE }
 | '='      { ASSIGN }
 | "is"     { EQ }
-| "isnot"     { NEQ }
+| "isnt"   { NEQ }
+| "true"   as lxm { BOOLEAN(bool_of_string lxm) }
+| "false"  as lxm { BOOLEAN(bool_of_string lxm) }
 | '<'      { LT }
 | "<="     { LEQ }
 | ">"      { GT }
 | ">="     { GEQ }
 | "if"     { IF }
-| ['0'-'9']*.['0'-'9']+  as lxm { FLOAT(float_of_string lxm) }
-| ['0'-'9']+.['0'-'9']*  as lxm { FLOAT(float_of_string lxm) }
-| ['0'-'9']+ as lxm { INT(int_of_string lxm) }
-| ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_' '-']* as lxm { ID(lxm) }
+| '\"'_*'\"' as lxm { STRING(String.sub lxm 1 (String.length lxm - 2)) } 	(* String *)
+| ['0'-'9']*'.'['0'-'9']+  as lxm { FLOAT(float_of_string lxm) }		(* Float *)
+| ['0'-'9']+'.'['0'-'9']*  as lxm { FLOAT(float_of_string lxm) }		(* Float *)
+| ['0'-'9']+ as lxm { INT(int_of_string lxm) }					(* Int *)
+| ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_' '-']* as lxm { ID(lxm) }	(* Identifier *)
 | eof { EOF }
 | _ as char { raise (Failure("illegal input " ^ Char.escaped char)) }
 
