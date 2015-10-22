@@ -10,9 +10,4 @@ type expr =				(* Expressions *)
   | Assign of string * expr		(* x = 5 *)
   | Binop of expr * op * expr		(* x + 10 *)
   | Script of string * expr list	(* foo 5 21 *)
-
-type stmt = 				(* Statements *)
-   Block of stmt list			(* newline-separated stmts *)
- | Expr of expr				(* x = 5 *)
- | Return of expr			(* automatically return last evaluated value *)
- | If of expr * stmt * stmt
+  | Cond of expr * expr * expr		(* (if a) b c, equivalent to (if a then b else c) *)
