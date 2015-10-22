@@ -7,6 +7,8 @@ rule token = parse
 | ')'      { RPAREN }
 | '{'      { LBRACE }
 | '}'      { RBRACE }
+| '['      { LSQBRACE }
+| ']'      { RSQBRACE }
 | '+'      { PLUS }
 | '-'      { MINUS }
 | '*'      { TIMES }
