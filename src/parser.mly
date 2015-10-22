@@ -1,7 +1,7 @@
 %{ open Ast %}
 
 %token PLUS MINUS TIMES DIVIDE PLUSF MINUSF TIMESF DIVIDEF EOF
-%token ASSIGN QUOTE AND OR NOT EQ NEQ LT LEQ GT GEQ IF
+%token ASSIGN QUOTE AND OR EQ NEQ LT LEQ GT GEQ IF
 %token LPAREN RPAREN LBRACE RBRACE LSQBRACE RSQBRACE
 %token <int> INT
 %token <string> ID
@@ -31,10 +31,18 @@ expr:
 
 (* infix operations *)
 | LSQBRACE ID ASSIGN expr RSQBRACE 	{ Assign($1, $3) }
+
 | LSQBRACE expr PLUS expr RSQBRACE	{ Binop($1, Add, $3) }
 | LSQBRACE expr MINUS expr RSQBRACE	{ Binop($1, Sub, $3) }
 | LSQBRACE expr TIMES expr RSQBRACE	{ Binop($1, Mult, $3) }
 | LSQBRACE expr DIVIDE expr RSQBRACE	{ Binop($1, Div, $3) }
+| LSQBRACE expr PLUSF expr RSQBRACE     { Binop($1, Addf, $3) }
+| LSQBRACE expr MINUSF expr RSQBRACE    { Binop($1, Subf, $3) }
+| LSQBRACE expr TIMESF expr RSQBRACE    { Binop($1, Multf, $3) }
+| LSQBRACE expr DIVIDEF expr RSQBRACE   { Binop($1, Divf, $3) }
+
+| LSQBRACE expr AND expr RSQBRACE	{ Binop($1, And, $3) }
+| LSQBRACE expr OR expr RSQBRACE	{ Binop($1, Or, $3) }
 | LSQBRACE expr EQ expr	RSQBRACE	{ Binop($1, Equal, $3) }
 | LSQBRACE expr NEQ expr RSQBRACE	{ Binop($1, Neq, $3) }
 | LSQBRACE expr LT expr	RSQBRACE	{ Binop($1, Less, $3) }
