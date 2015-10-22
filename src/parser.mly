@@ -7,7 +7,7 @@
 %token <string> ID
 %token <string> STRING
 %token <float> FLOAT
-%token <string> BOOL
+%token <bool> BOOL
 %token NIL
 
 %right ASSIGN
@@ -23,36 +23,44 @@
 
 %%
 expr:
-  LPAREN expr RPAREN		{$2}
-| num_expr	
-| bool_expr
+  LPAREN expr RPAREN		{ $2 }
+| num_expr			{ $1 }	
+| BOOL				{ Boolean($1) }
+| LSQBRACE infix_expr RSQBRACE	{ $2 }
 | STRING			{ String($1) }
 | ID				{ Id($1) }
-| LPAREN expr_list RPAREN	{ List(List.rev $2) }
-| LSQBRACE ID ASSIGN expr RSQBRACE { Assign($2, $4) }
+| LPAREN expr_list RPAREN	{ List(List.rev $1) }
 
 num_expr: 
   INT		        	{ Int($1) }
 | FLOAT				{ Float($1) }
-| LSQBRACE num_expr PLUS expr RSQBRACE	    { Binop($2, Add, $4) }
-| LSQBRACE num_expr MINUS expr RSQBRACE	    { Binop($2, Sub, $4) }
-| LSQBRACE num_expr TIMES expr RSQBRACE	    { Binop($2, Mult, $4) }
-| LSQBRACE num_expr DIVIDE expr RSQBRACE    { Binop($2, Div, $4) }
-| LSQBRACE num_expr PLUSF expr RSQBRACE	    { Binop($2, Addf, $4) }
-| LSQBRACE num_expr MINUSF expr RSQBRACE    { Binop($2, Subf, $4) }
-| LSQBRACE num_expr TIMESF expr RSQBRACE    { Binop($2, Multf, $4) }
-| LSQBRACE num_expr DIVIDEF expr RSQBRACE   { Binop($2, Divf, $4) }
-| LSQBRACE num_expr EQ expr RSQBRACE	{ Binop($2, Equal, $4) }
-| LSQBRACE num_expr NEQ expr RSQBRACE	{ Binop($2, Neq, $4) }
-| LSQBRACE num_expr LT expr RSQBRACE	{ Binop($2, Less, $4) }
-| LSQBRACE num_expr LEQ expr RSQBRACE	{ Binop($2, Leq, $4) }
-| LSQBRACE num_expr GT expr RSQBRACE	{ Binop($2, Greater, $4) }
-| LSQBRACE num_expr GEQ expr RSQBRACE	{ Binop($2, Geq, $4) }
 
-bool_expr:
-  BOOL		{ Boolean($1) }
-| LSQBRACE bool_expr AND bool_expr RSQBRACE 	{ Binop($2, And, $4) }
-| LSQBRACE bool_expr OR bool_expr RSQBRACE	{ Binop($2, Or, $4) }
+infix_expr:
+  infix_num_expr		{ $1 }
+| infix_bool_expr		{ $1 }
+
+infix_num_expr:
+  num_expr			{ $1 }
+| ID ASSIGN infix_num_expr		{ Assign($1, $3) }
+| infix_num_expr PLUS infix_num_expr	{ Binop($1, Add, $3) }
+| infix_num_expr MINUS infix_num_expr	{ Binop($1, Sub, $3) }
+| infix_num_expr TIMES infix_num_expr	{ Binop($1, Mult, $3) }
+| infix_num_expr DIVIDE infix_num_expr	{ Binop($1, Div, $3) }
+| infix_num_expr PLUSF infix_num_expr	{ Binop($1, Addf, $3) }
+| infix_num_expr MINUSF infix_num_expr	{ Binop($1, Subf, $3) }
+| infix_num_expr TIMESF infix_num_expr	{ Binop($1, Multf, $3) }
+| infix_num_expr DIVIDEF infix_num_expr	{ Binop($1, Divf, $3) }
+| infix_num_expr EQ infix_num_expr	{ Binop($1, Equal, $3) }
+| infix_num_expr NEQ infix_num_expr	{ Binop($1, Neq, $3) }
+| infix_num_expr LT infix_num_expr	{ Binop($1, Less, $3) }
+| infix_num_expr LEQ infix_num_expr	{ Binop($1, Leq, $3) }
+| infix_num_expr GT infix_num_expr	{ Binop($1, Greater, $3) }
+| infix_num_expr GEQ infix_num_expr	{ Binop($1, Geq, $3) }
+
+infix_bool_expr:
+  BOOL					{ Boolean($1) }
+| infix_bool_expr AND infix_bool_expr	{ Binop($1, And, $3) }
+| infix_bool_expr OR infix_bool_expr	{ Binop($1, Or, $3) }
 
 expr_list:
-  expr_list expr	{ $2 :: $1 }
+|  expr_list expr	{ $2 :: $1 }
