@@ -29,7 +29,7 @@ expr:
 | LSQBRACE infix_expr RSQBRACE	{ $2 }
 | STRING			{ String($1) }
 | ID				{ Id($1) }
-| LPAREN expr_list RPAREN	{ List(List.rev $1) }
+| LPAREN expr_list RPAREN	{ List(List.rev $2) }
 
 num_expr: 
   INT		        	{ Int($1) }
@@ -63,4 +63,4 @@ infix_bool_expr:
 | infix_bool_expr OR infix_bool_expr	{ Binop($1, Or, $3) }
 
 expr_list:
-|  expr_list expr	{ $2 :: $1 }
+  expr_list expr	{ $2 :: $1 }
