@@ -59,6 +59,7 @@ infix_num_expr:
 
 infix_bool_expr:
   BOOL					{ Boolean($1) }
+| ID ASSIGN infix_bool_expr		{ Assign($1, $3) }
 | infix_bool_expr AND infix_bool_expr	{ Binop($1, And, $3) }
 | infix_bool_expr OR infix_bool_expr	{ Binop($1, Or, $3) }
 
