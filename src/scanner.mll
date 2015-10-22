@@ -22,8 +22,8 @@ rule token = parse
 | '='      { ASSIGN }
 | "is"     { EQ }
 | "isnt"   { NEQ }
-| "true"   as lxm { BOOLEAN(boolean_of_string lxm) }
-| "false"  as lxm { BOOLEAN(boolean_of_string lxm) }
+| "true"   as lxm { BOOLEAN(bool_of_string lxm) }
+| "false"  as lxm { BOOLEAN(bool_of_string lxm) }
 | '<'      { LT }
 | "<="     { LEQ }
 | ">"      { GT }
