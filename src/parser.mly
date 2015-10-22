@@ -29,7 +29,7 @@ expr:
 | BOOL				{ Boolean($1) }
 | STRING			{ String($1) }
 | ID				{ Id($1) }
-| NIL				{ Nil }
+| LPAREN RPAREN			{ Nil }
 
 (* infix operations *)
 | LSQBRACE ID ASSIGN expr RSQBRACE 	{ Assign($1, $3) }
