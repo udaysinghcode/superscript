@@ -29,9 +29,12 @@ expr:
 | STRING			{ String($1) }
 | ID				{ Id($1) }
 | NIL				{ Nil }
-| LPAREN expr expr expr_list RPAREN  { List($2::$3::List.rev($4)) } /* list must have 2+ elems */
-| LSQBRACE infix_expr RSQBRACE	{ $2 } /* infix expr must be surrounded by square braces */
-
+/* list of at least 2 elems: */
+| LPAREN expr expr expr_list RPAREN  { List($2 :: $3 :: List.rev($4)) }
+/* infix expression - must be surrounded by square braces */
+| LSQBRACE infix_expr RSQBRACE	{ $2 }
+/* function call */
+| LPAREN ID expr_list RPAREN	{ Func($1, $3) }
 
 num_expr: 
   INT		        	{ Int($1) }
