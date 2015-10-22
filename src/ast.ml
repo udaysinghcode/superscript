@@ -1,4 +1,6 @@
-type op = Add | Sub | Mult | Div | Addf | Subf | Multf | Divf | Equal | Neq | Less | Leq | Greater | Geq
+type op = Add | Sub | Mult | Div | Addf | Subf | Multf | Divf 
+	| Equal | Neq | Less | Leq | Greater | Geq | And | Or
+ 
 type bool = true | false
 
 type expr =				(* Expressions *)
