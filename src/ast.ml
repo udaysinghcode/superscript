@@ -1,11 +1,15 @@
-type sexpr =
-  Int of int
-  | Float of float
-  | Symbol of string
-  | String of string
-  | Quote
-  | Nil
-  | Cons of sexpr * sexpr
+type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq
+type bool = true | false
 
-(* must write something for evaluating cons *) 
-(* must write let rec string_of_s function *)
+type expr =				(* Expressions *)
+  Int of int				(* 4 *)
+  | Float of float			(* 4.444 *)
+  | Boolean of bool	 		(* true, false *)
+  | String of string			(* "hello world" *)
+  | Id of string			(* caml_riders *)
+  | Assign of string * expr		(* x = 5 *)
+  | Binop of expr * op * expr		(* x + 10 *)
+  | Script of string * expr list	(* foo 5 21 *)
+  | Nil					(* null datatype *)
+  | List of expr list			(* list, mixed datatypes allowed in same list *)
+  | Cond of expr * expr * expr		(* (if a) b c, equivalent to (if a then b else c) *)
