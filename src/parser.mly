@@ -32,6 +32,7 @@ expr:
 | LPAREN expr expr expr_list RPAREN  { List($2 :: $3 :: List.rev($4)) }
 | LSQBRACE infix_expr RSQBRACE	{ $2 }
 | ID LBRACE expr_list RBRACE    { Func($1, $3) }
+| IF expr expr expr		{ If($2, $3, $4) }
 
 num_expr: 
   INT		        	{ Int($1) }
