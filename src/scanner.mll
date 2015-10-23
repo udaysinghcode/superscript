@@ -25,6 +25,7 @@ rule token = parse
 | "isnt"   { NEQ }
 | "true"   as lxm { BOOLEAN(bool_of_string lxm) }
 | "false"  as lxm { BOOLEAN(bool_of_string lxm) }
+| "()"     { NIL }
 | '<'      { LT }
 | "<="     { LEQ }
 | ">"      { GT }
