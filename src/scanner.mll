@@ -29,6 +29,7 @@ rule token = parse
 | "<="     { LEQ }
 | ">"      { GT }
 | ">="     { GEQ }
+| "fn"     { FUNC }
 | "if"     { IF }
 | "for"    { FOR }
 | "let"    { LET }

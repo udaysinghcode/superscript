@@ -4,7 +4,7 @@
 %token ASSIGN QUOTE AND OR EQ NEQ LT LEQ GT GEQ
 %token SEMI LPAREN RPAREN LBRACE RBRACE
 %token <int> INT
-%token LET IN IF FOR WHILE
+%token FUNC LET IN IF FOR WHILE
 %token <string> ID
 %token <string> STRING
 %token <float> FLOAT
@@ -30,7 +30,7 @@ program:
 expr_list:
 /* nothing */		{ [] }
 | expr			{ [$1] }
-| expr SEMI expr_list	{ $1 :: $2 }
+| expr SEMI expr_list	{ $1 :: $3 }
 
 expr:
   LET ID expr IN expr   { Let($2, $3, $5) }
@@ -40,6 +40,11 @@ expr:
 | atom			{ $1 }
 | list			{ $1 }
 | LBRACE infix_expr RBRACE { $2 }
+| FUNC ID formal_args LPAREN expr_list RPAREN { Fdecl($2, List.rev $3, $5) }
+
+formal_args:
+  ID		{ $1 }
+| ID formal_args { $1 :: $2 }
 
 atom:
   constant		{ $1 }

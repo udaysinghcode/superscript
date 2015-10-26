@@ -11,9 +11,13 @@ type expr =				(* Expressions *)
   | Id of string			(* caml_riders *)
   | Assign of string * expr		(* x = 5 *)
   | Binop of expr * op * expr		(* x + 10 *)
-  | Func of string * expr list		(* foo 5 21 *)
+  | Eval of string * expr list		(* foo 5 21 *)
   | Nil					(* null datatype *)
   | List of expr list			(* list, mixed datatypes allowed in same list *)
+  | Fdecl of string * string list * expr list (* foo a b (a + b) *)
+  | If of expr * expr * expr
+  | For of expr * expr * expr
+  | While of expr * expr
 
 let rec stringify e = 
   let stringify_op o = match o with
