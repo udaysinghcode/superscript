@@ -41,6 +41,7 @@ expr:
 | list			{ $1 }
 | LBRACE infix_expr RBRACE { $2 }
 | FUNC ID formal_args LPAREN expr_list RPAREN { Fdecl($2, List.rev $3, $5) }
+| LPAREN expr RPAREN	{ $2 }
 
 formal_args:
   ID		{ $1 }
