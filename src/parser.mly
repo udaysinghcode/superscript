@@ -71,6 +71,7 @@ args:
   
 infix_expr:
   atom				{ $1 }
+| LPAREN infix_expr RPAREN	{ $2 }
 | ID ASSIGN infix_expr		{ Assign($1, $3) }
 | infix_expr PLUS infix_expr	{ Binop($1, Add, $3) }
 | infix_expr MINUS infix_expr	{ Binop($1, Sub, $3) }
