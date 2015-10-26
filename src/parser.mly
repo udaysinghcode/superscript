@@ -25,7 +25,7 @@
 %%
 
 stmt:
-  LET ID expr IN expr	{ LetIn($2, $3, $5) }
+  LET ID expr IN expr	{ Let($2, $3, $5) }
 | expr			{ $1 }
 | IF expr expr expr	{ If($2, $3, $4) }
 | FOR expr expr expr	{ For($2, $3, $4) }
@@ -40,10 +40,10 @@ atom:
   constant		{ $1 }
 | ID			{ Id($1) }
 | NIL			{ Nil }
-| call			{ $1 }
 
 list:
   QUOTE LPAREN args RPAREN { List.rev $3 }
+| call			   { $1 }
 
 constant: 
   INT			{ Int($1) }
