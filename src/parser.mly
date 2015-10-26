@@ -40,12 +40,16 @@ expr:
 | atom			{ $1 }
 | list			{ $1 }
 | LBRACE infix_expr RBRACE { $2 }
-| FUNC ID formal_args LPAREN expr_list RPAREN { Fdecl($2, List.rev $3, $5) }
+| FUNC formals_opt LPAREN expr_list RPAREN { Fdecl(List.rev $2, $4) }
 | LPAREN expr RPAREN	{ $2 }
 
-formal_args:
-  ID		{ $1 }
-| ID formal_args { $1 :: $2 }
+formals_opt:
+/* nothing */ 	{ [] }
+| formal_list	{ List.rev $1 }
+
+formal_list:
+  ID		  { $1 }
+| formal_list ID  { $2 :: $1 }
 
 atom:
   constant		{ $1 }
