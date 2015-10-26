@@ -2,7 +2,7 @@
 
 %token PLUS MINUS TIMES DIVIDE PLUSF MINUSF TIMESF DIVIDEF EOF
 %token ASSIGN QUOTE AND OR EQ NEQ LT LEQ GT GEQ
-%token LPAREN RPAREN LBRACE RBRACE LSQBRACE RSQBRACE
+%token SEMI LPAREN RPAREN LBRACE RBRACE
 %token <int> INT
 %token LET IN IF FOR WHILE
 %token <string> ID
@@ -19,20 +19,25 @@
 %left PLUS MINUS PLUSF MINUSF
 %left TIMES DIVIDE TIMESF DIVIDEF
 
-%start stmt
-%type < Ast.stmt> stmt
+%start program
+%type < Ast.program> program
 
 %%
 
-stmt:
-  LET ID expr IN expr	{ Let($2, $3, $5) }
-| expr			{ $1 }
+program:
+ expr_list EOF		{ List.rev $1 }
+
+expr_list:
+/* nothing */		{ [] }
+| expr			{ [$1] }
+| expr SEMI expr_list	{ $1 :: $2 }
+
+expr:
+  LET ID expr IN expr   { Let($2, $3, $5) }
 | IF expr expr expr	{ If($2, $3, $4) }
 | FOR expr expr expr	{ For($2, $3, $4) }
 | WHILE expr expr	{ While($2, $3) }
-
-expr:
-  atom			{ $1 }
+| atom			{ $1 }
 | list			{ $1 }
 | LBRACE infix_expr RBRACE { $2 }
 
@@ -60,7 +65,7 @@ args:
 | expr args		{ $1 :: $2 }
   
 infix_expr:
-  expr				{ $1 }
+  atom				{ $1 }
 | ID ASSIGN infix_expr		{ Assign($1, $3) }
 | infix_expr PLUS infix_expr	{ Binop($1, Add, $3) }
 | infix_expr MINUS infix_expr	{ Binop($1, Sub, $3) }
