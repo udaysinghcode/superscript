@@ -1,13 +1,15 @@
 %{ open Ast %}
 
 %token PLUS MINUS TIMES DIVIDE PLUSF MINUSF TIMESF DIVIDEF EOF
-%token ASSIGN QUOTE AND OR EQ NEQ LT LEQ GT GEQ IF
+%token ASSIGN QUOTE AND OR EQ NEQ LT LEQ GT GEQ
 %token LPAREN RPAREN LBRACE RBRACE LSQBRACE RSQBRACE
 %token <int> INT
+%token LET IN IF FOR WHILE
 %token <string> ID
 %token <string> STRING
 %token <float> FLOAT
 %token <bool> BOOL
+%token NIL
 
 %right ASSIGN
 %left OR
@@ -17,23 +19,46 @@
 %left PLUS MINUS PLUSF MINUSF
 %left TIMES DIVIDE TIMESF DIVIDEF
 
-%start expr
-%type < Ast.expr> expr
+%start stmt
+%type < Ast.stmt> stmt
 
 %%
-expr:
-  LPAREN expr RPAREN		{ $2 }
-| INT				{ Int($1) }
-| FLOAT				{ Float($1) }
-| BOOL				{ Boolean($1) }
-| STRING			{ String($1) }
-| ID				{ Id($1) }
-| LPAREN RPAREN			{ Nil }
-| LPAREN expr expr expr_list RPAREN  { List($2 :: $3 :: List.rev($4)) }
-| LSQBRACE infix_expr RSQBRACE	{ $2 }
-| ID LBRACE expr_list RBRACE    { Func($1, $3) }
-| IF expr expr expr		{ If($2, $3, $4) }
 
+stmt:
+  LET ID expr IN expr	{ LetIn($2, $3, $5) }
+| expr			{ $1 }
+| IF expr expr expr	{ If($2, $3, $4) }
+| FOR expr expr expr	{ For($2, $3, $4) }
+| WHILE expr expr	{ While($2, $3) }
+
+expr:
+  atom			{ $1 }
+| list			{ $1 }
+| LBRACE infix_expr RBRACE { $2 }
+
+atom:
+  constant		{ $1 }
+| ID			{ Id($1) }
+| NIL			{ Nil }
+| call			{ $1 }
+
+list:
+  QUOTE LPAREN args RPAREN { List.rev $3 }
+
+constant: 
+  INT			{ Int($1) }
+| FLOAT			{ Float($1) }
+| BOOL			{ Bool($1) }
+| STRING		{ String($1) }
+
+call:
+  LPAREN ID args RPAREN	{ Eval($2, List.rev $3) }
+| LPAREN PLUS args RPAREN { Eval(Add, List.rev $3) }
+
+args:
+  expr			{ $1 }
+| expr args		{ $1 :: $2 }
+  
 infix_expr:
   expr				{ $1 }
 | ID ASSIGN infix_expr		{ Assign($1, $3) }
@@ -52,8 +77,4 @@ infix_expr:
 | infix_expr GT infix_expr	{ Binop($1, Greater, $3) }
 | infix_expr GEQ infix_expr	{ Binop($1, Geq, $3) }
 | infix_expr AND infix_expr	{ Binop($1, And, $3) }
-| infix_expr OR infix_expr	{ Binop($1, Or, $3) }
-
-expr_list:
-/* nothing */		{ [] }
-| expr_list expr	{ $2 :: $1 }
+| infix_expr OR infix_expr	{ Binop($1, Or, $3) } 
