@@ -59,7 +59,7 @@ atom:
 | NIL			{ Nil }
 
 list:
-  QUOTE LPAREN args RPAREN { List.rev $3 }
+  QUOTE LPAREN args_opt RPAREN { List.rev $3 }
 
 constant: 
   INT			{ Int($1) }
