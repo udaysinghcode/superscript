@@ -31,16 +31,19 @@ expr_list:
 /* nothing */		{ [] }
 | expr_list expr SEMI	{ $2 :: $1 }
 
+sexpr:
+  LET ID expr IN expr   	{ Let($2, $3, $5) }
+| IF expr expr expr		{ If($2, $3, $4) }
+| FOR expr expr expr		{ For($2, $3, $4) }
+| WHILE expr expr		{ While($2, $3) }
+| FUNC LPAREN formals_opt RPAREN LPAREN expr RPAREN { Fdecl(List.rev $3, $6) }
+| call				{ $1 }
+
 expr:
-  LPAREN LET ID expr IN expr RPAREN   	{ Let($3, $4, $6) }
-| LPAREN IF expr expr expr RPAREN	{ If($3, $4, $5) }
-| LPAREN FOR expr expr expr RPAREN	{ For($3, $4, $5) }
-| LPAREN WHILE expr expr RPAREN		{ While($3, $4) }
-| atom					{ $1 }
-| list					{ $1 }
-| LBRACE infix_expr RBRACE 		{ $2 }
-| LPAREN FUNC LPAREN formals_opt RPAREN LPAREN expr RPAREN RPAREN { Fdecl(List.rev $4, $7) }
-| LPAREN call RPAREN			{ $2 }
+  atom				{ $1 }
+| list				{ $1 }
+| LBRACE infix_expr RBRACE	{ $2 }
+| LPAREN sexpr RPAREN		{ $2 }
 
 formals_opt:
 /* nothing */ 	{ [] }
