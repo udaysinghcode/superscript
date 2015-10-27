@@ -32,14 +32,15 @@ expr_list:
 | expr_list expr SEMI	{ $2 :: $1 }
 
 expr:
-  LET ID expr IN expr   { Let($2, $3, $5) }
-| IF expr expr expr	{ If($2, $3, $4) }
-| FOR expr expr expr	{ For($2, $3, $4) }
-| WHILE expr expr	{ While($2, $3) }
-| atom			{ $1 }
-| list			{ $1 }
-| LBRACE infix_expr RBRACE { $2 }
-| FUNC LPAREN formals_opt RPAREN LPAREN expr RPAREN { Fdecl(List.rev $3, $6) }
+  LPAREN LET ID expr IN expr RPAREN   	{ Let($3, $4, $6) }
+| LPAREN IF expr expr expr RPAREN	{ If($3, $4, $5) }
+| LPAREN FOR expr expr expr RPAREN	{ For($3, $4, $5) }
+| LPAREN WHILE expr expr RPAREN		{ While($3, $4) }
+| atom					{ $1 }
+| list					{ $1 }
+| LBRACE infix_expr RBRACE 		{ $2 }
+| LPAREN FUNC LPAREN formals_opt RPAREN LPAREN expr RPAREN RPAREN { Fdecl(List.rev $4, $7) }
+| LPAREN call RPAREN			{ $2 }
 
 formals_opt:
 /* nothing */ 	{ [] }
@@ -56,7 +57,6 @@ atom:
 
 list:
   QUOTE LPAREN args RPAREN { List.rev $3 }
-| call			   { $1 }
 
 constant: 
   INT			{ Int($1) }
@@ -65,8 +65,8 @@ constant:
 | STRING		{ String($1) }
 
 call:
-  LPAREN ID args_opt RPAREN	{ Eval($1, List.rev $3) }
-| PLUS LPAREN args_opt RPAREN { Eval(Add, List.rev $3) }
+  ID args_opt		{ Eval($1, List.rev $2) }
+| PLUS args_opt 	{ Eval(Add, List.rev $2) }
 
 args_opt:
 /* nothing */ 		{ [] }
