@@ -29,8 +29,7 @@ program:
 
 expr_list:
 /* nothing */		{ [] }
-| expr			{ [$1] }
-| expr SEMI expr_list	{ $1 :: $3 }
+| expr_list expr SEMI	{ $2 :: $1 }
 
 expr:
   LET ID expr IN expr   { Let($2, $3, $5) }
@@ -40,8 +39,7 @@ expr:
 | atom			{ $1 }
 | list			{ $1 }
 | LBRACE infix_expr RBRACE { $2 }
-| FUNC formals_opt LPAREN expr_list RPAREN { Fdecl(List.rev $2, $4) }
-| LPAREN expr RPAREN	{ $2 }
+| FUNC LPAREN formals_opt RPAREN LPAREN expr RPAREN { Fdecl(List.rev $3, $6) }
 
 formals_opt:
 /* nothing */ 	{ [] }
@@ -67,11 +65,15 @@ constant:
 | STRING		{ String($1) }
 
 call:
-  LPAREN ID args RPAREN	{ Eval($2, List.rev $3) }
-| LPAREN PLUS args RPAREN { Eval(Add, List.rev $3) }
+  LPAREN ID args_opt RPAREN	{ Eval($1, List.rev $3) }
+| PLUS LPAREN args_opt RPAREN { Eval(Add, List.rev $3) }
+
+args_opt:
+/* nothing */ 		{ [] }
+| args			{ List.rev $1 }
 
 args:
-  expr			{ $1 }
+  expr			{ [$1] }
 | expr args		{ $1 :: $2 }
   
 infix_expr:

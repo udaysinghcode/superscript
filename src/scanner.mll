@@ -1,7 +1,7 @@
 { open Parser }
 
 rule token = parse
-  [' ' '\t' '\n' '\r'] { token lexbuf } (* Whitespace *)
+  [' ' '\t' '\\''\\''\n' '\r'] { token lexbuf } (* Whitespace *)
 | ';'      { comment lexbuf }      (* Comments *)
 | ";;"     { SEMI }
 | '('      { LPAREN }
@@ -24,7 +24,7 @@ rule token = parse
 | "isnt"   { NEQ }
 | "true"   as lxm { BOOL(bool_of_string lxm) }
 | "false"  as lxm { BOOL(bool_of_string lxm) }
-| "()"     { NIL }
+| "nil"     { NIL }
 | '<'      { LT }
 | "<="     { LEQ }
 | ">"      { GT }
