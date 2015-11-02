@@ -1,23 +1,24 @@
 open Ast
 
-let generate_op o =
+let op_name o =
   match o with
-    Add -> " + "
-  | Sub -> " - "
-  | Mult -> " * "
-  | Div -> " / "
-  | Addf -> " + "
-  | Subf -> " - "
-  | Multf -> " * "
-  | Divf -> " / "
-  | Equal -> " === "
-  | Neq -> " !== "
-  | Less -> " < "
-  | Leq -> " <= "
-  | Greater -> " > "
-  | Geq -> " >= "
-  | And -> " && "
-  | Or -> " || "
+    Add -> "__add"
+  | Sub -> "__sub"
+  | Mult -> "__mult"
+  | Div -> "__div"
+  | Addf -> "__addf"
+  | Subf -> "__subf"
+  | Multf -> "__multf"
+  | Divf -> "__divf"
+  | Equal -> "__equal"
+  | Neq -> "__neq"
+  | Less -> "__less"
+  | Leq -> "__leq"
+  | Greater -> "__greater"
+  | Geq -> "__geq"
+  | And -> "__and"
+  | Or -> "__or"
+
 
 let rec generate e = 
   let concat l = String.concat "" l in
@@ -28,8 +29,7 @@ let rec generate e =
   | String(s) -> concat ["'"; s; "'"]
   | Id(s) -> s
   | Assign(s, exp) -> concat ["var "; s; " = "; generate exp]
-  | Binop(e1, o, e2) -> concat [generate e1; generate_op o; generate e2]
+  | Binop(e1, o, e2) -> generate (Func(op_name o, [e1; e2]))
   | Func(fname, el) -> concat [fname; ".apply(null, "; generate (List(el)); ")"]
   | Nil -> "{ type: 'Nil' }"
   | List(el) -> concat ["["; (String.concat ", " (List.map generate el)); "]"]
-
