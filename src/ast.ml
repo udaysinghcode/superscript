@@ -30,5 +30,6 @@ let rec stringify e =
   | Id(x) -> concat ["Id("; x; ")"]
   | Assign(str, exp) -> concat ["Assign("; str; ", "; stringify exp; ""]
   | Binop(exp1, op, exp2) -> concat ["Binop("; stringify exp1; ", "; stringify_op op; ", "; stringify exp2; ")"]
+  | Func(fname, expl) -> concat ["Func("; fname; stringify (List(expl)); ")"]
   | Nil -> "Nil"
   | List(expl) -> concat ["List("; (String.concat ", " (List.map (fun x -> stringify x) expl)); ")"]
