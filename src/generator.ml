@@ -30,6 +30,6 @@ let rec generate e =
   | Id(s) -> s
   | Assign(s, exp) -> concat ["var "; s; " = "; generate exp]
   | Binop(e1, o, e2) -> generate (Func(op_name o, [e1; e2]))
-  | Func(fname, el) -> concat [fname; ".apply(null, "; generate (List(el)); ")"]
+  | Func(fname, el) -> concat [fname; ".apply(null, __unbox("; generate (List(el)); "))"]
   | Nil -> "{ type: 'Nil' }"
-  | List(el) -> concat ["["; (String.concat ", " (List.map generate el)); "]"]
+  | List(el) -> concat ["{ type: 'List', value: ["; (String.concat ", " (List.map generate el)); "] }"]
