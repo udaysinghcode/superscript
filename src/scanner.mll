@@ -1,14 +1,13 @@
 { open Parser }
 
 rule token = parse
-  [' ' '\t' '\n' '\r'] { token lexbuf } (* Whitespace *)
+  [' ' '\t' '\\''\\''\n' '\r'] { token lexbuf } (* Whitespace *)
 | ';'      { comment lexbuf }      (* Comments *)
+| ";;"     { SEMI }
 | '('      { LPAREN }
 | ')'      { RPAREN }
 | '{'      { LBRACE }
 | '}'      { RBRACE }
-| '['      { LSQBRACE }
-| ']'      { RSQBRACE }
 | '+'      { PLUS }
 | '-'      { MINUS }
 | '*'      { TIMES }
@@ -23,14 +22,19 @@ rule token = parse
 | '='      { ASSIGN }
 | "is"     { EQ }
 | "isnt"   { NEQ }
-| "true"   as lxm { BOOLEAN(bool_of_string lxm) }
-| "false"  as lxm { BOOLEAN(bool_of_string lxm) }
-| "()"     { NIL }
+| "true"   as lxm { BOOL(bool_of_string lxm) }
+| "false"  as lxm { BOOL(bool_of_string lxm) }
+| "nil"     { NIL }
 | '<'      { LT }
 | "<="     { LEQ }
 | ">"      { GT }
 | ">="     { GEQ }
+| "fn"     { FUNC }
 | "if"     { IF }
+| "for"    { FOR }
+| "let"    { LET }
+| "in"     { IN }
+| "while"  { WHILE }
 | '\"'_*'\"' as lxm { STRING(String.sub lxm 1 (String.length lxm - 2)) } 	(* String *)
 | ['0'-'9']*'.'['0'-'9']+  as lxm { FLOAT(float_of_string lxm) }		(* Float *)
 | ['0'-'9']+'.'['0'-'9']*  as lxm { FLOAT(float_of_string lxm) }		(* Float *)
