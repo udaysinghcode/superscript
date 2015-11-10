@@ -12,12 +12,16 @@ type expr =				(* Expressions *)
   | Assign of string * expr		(* x = 5 *)
   | Binop of expr * op * expr		(* x + 10 *)
   | Eval of string * expr list		(* foo 5 21 *)
+  | Evalarith of op * expr list   (* + 1 2 3*)
   | Nil					(* null datatype *)
   | List of expr list			(* list, mixed datatypes allowed in same list *)
   | Fdecl of string list * expr 	(* fn (a b) (a + b) *)
   | If of expr * expr * expr
-  | For of expr * expr * expr
+  | For of expr * expr * expr * expr
   | While of expr * expr
+  | Let of string * expr * expr
+
+type program = expr list
 
 let rec stringify e = 
   let stringify_op o = match o with
