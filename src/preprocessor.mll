@@ -1,11 +1,12 @@
-{ type token = EOF | Fparen of string | Fdecl of string }
+{ type token = EOF | Fparen of string | Fdecl of string | Word of string }
 
 rule token = parse
-	| eof { EOF }
+	| eof { EOF }	
+	| [' ' '\t' '\r' '\n'] as lxm { Word(String.make 1 lxm) }
+	| _ as lxm { Word(String.make 1 lxm) }
 	| "fn"' '*'('	as lxm { Fdecl(lxm) }
 	| "def"' '*['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_' '-']*' '*'(' as lxm { Fdecl(lxm) }
 	| ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_' '-']*' '*'(' as lxm { Fparen(lxm) }
-	| _ { token lexbuf }
 {
 	(* f{ a b c d e } *)
 	(* def fac(n) (hihihi) *)
@@ -20,24 +21,31 @@ rule token = parse
 	let () = 
 	let oc = open_out "program.ss" in	
 	let lexbuf = Lexing.from_channel stdin in
-	let wordlist =
-	  let rec next l  = match token lexbuf with
-		EOF -> l
-		| Fdecl(s) -> next(s :: l)
+	let (wordlist, charBuff)  =
+	  let rec next l buff  = match token lexbuf with
+		EOF -> (l, buff)
+		| Word(s) -> next l (s::buff)
+		| Fdecl(s) -> let prevChars = (String.concat "" (List.rev buff)) in
+				next((prevChars ^ s) :: l)[]
 		| Fparen(s) -> 
 			let args = String.index s '(' + 1 in
-			let s = "(" ^ (String.sub s 0 (args - 1)) ^ " "
-    			(* let lenToEnd = (String.length s - args) in *)     
-  			(* let s = "(" ^ (String.sub s 0 (args - 1)) ^ " " ^ (String.sub s args lenToEnd) *)
-			in next(s :: l)
-		in next []
+			let s = "(" ^ (String.sub s 0 (args - 1)) ^ " " in
+			let prevChars = (String.concat "" (List.rev buff)) in
+				next((prevChars ^ s) :: l) []
+		in next [][]
 	in
-	(* List.iter print_endline wordlist *)
-	let rec print_program oc = function
+
+	let program = String.concat "" (List.rev wordlist) in
+(*	let rec print_program oc = function
 	| [] -> ()
 	| hd::tl -> Printf.fprintf oc "%s\n" (hd); print_program oc tl
 	
 	in
-	print_program oc wordlist; List.iter print_endline wordlist;
+	print_program oc program; 
+*)
+	Printf.fprintf oc "%s\n" program;
+	close_out oc;
+
+	(* List.iter print_endline (List.rev wordlist) *);
 }
 
