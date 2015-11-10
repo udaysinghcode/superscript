@@ -36,7 +36,7 @@ sexpr:
 | IF expr expr expr		{ If($2, $3, $4) }
 | FOR expr expr expr		{ For($2, $3, $4) }
 | WHILE expr expr		{ While($2, $3) }
-| FUNC LPAREN formals_opt RPAREN LPAREN expr RPAREN { Fdecl(List.rev $3, $6) }
+| FUNC LPAREN formals_opt RPAREN expr { Fdecl(List.rev $3, $5) }
 | call				{ $1 }
 
 expr:
