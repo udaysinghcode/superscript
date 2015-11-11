@@ -1,6 +1,6 @@
 	; To test the preprocessor:
 ; ocamllex preprocessor.mll
-   ; ocamlc -o preprocessor preprocessor.ml
+; ocamlc -o preprocessor str.cma preprocessor.ml
 ; ./preprocessor < test_pre.c
 ; output is in "program.ss" 
 def fac(n)
