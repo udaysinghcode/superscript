@@ -1,7 +1,7 @@
 { 
 type token = EOF | Fparen of string | Fdecl of string | Word of string | Comment | StdFn of string | LineBreak
 let curIndent = Stack.create();;
-Stack.push (-1) curIndent;;
+Stack.push (-1) curIndent;;  (* mark bottom of stack with -1 *)
 let rec countSp s count index = 
 	 let len = (String.length s - 1) in
 		if index > len then count
@@ -16,7 +16,7 @@ rule token = parse
 	| "\n\n" { let parens = 
 			let rec closeParens s stack = 
 				let top = Stack.top stack in
-					if (top == -1) then (s ^ ";;\n")  
+					if (top == -1) then (s ^ ";;\n")  (* keep -1 as bottom-of-stack marker *)
 					else (ignore (Stack.pop stack); closeParens (")" ^ s) stack)
 		in closeParens "" curIndent
 		in Word(parens) }
@@ -27,8 +27,7 @@ rule token = parse
 	| '\n'[' ' '\t']* as ws { let spaces = 
 					countSp ws 0 0 in
 				if(spaces > Stack.top curIndent) then ( Word(ws))
-				else if (spaces < Stack.top curIndent) then (ignore(Stack.pop curIndent); Word(")" ^ ws))
-				else Word(");;" ^ ws) }
+				else (ignore(Stack.pop curIndent); Word(")\n" ^ ws)) } (*same or less indentation than lparen *)
 	| "fn"' '*'('	as lxm { Fdecl(lxm) }
 	| "def"' '*['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_' '-']*' '*'(' as lxm { let spaces = countSp lxm 0 0 in
 										ignore(Stack.push spaces curIndent); Fdecl(lxm) }
@@ -44,8 +43,8 @@ rule token = parse
 		| Comment -> next(l)
 		| LineBreak -> next("\n" :: l)
 		| Word(s) -> next(s::l)
-		| Fdecl(s) -> next( ("( " ^ s) :: l)
-		| StdFn(s) -> next( ("( " ^ s) :: l)
+		| Fdecl(s) -> next( ("\n(" ^ s) :: l)
+		| StdFn(s) -> next( ("\n(" ^ s) :: l)
 		| Fparen(s) -> 
 			let args = String.index s '(' + 1 in
 			let s = "(" ^ (String.sub s 0 (args - 1)) ^ " " in
