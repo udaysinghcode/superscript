@@ -3,7 +3,6 @@
    ; ocamlc -o preprocessor preprocessor.ml
 ; ./preprocessor < test_pre.c
 ; output is in "program.ss" 
-
 def fac(n)
      if {n <= 1}
           1

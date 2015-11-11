@@ -2,7 +2,6 @@
 type token = EOF | Fparen of string | Fdecl of string | Word of string | Comment | StdFn of string | LineBreak
 let curIndent = Stack.create();;
 Stack.push (-1) curIndent;;
-print_endline (string_of_int (Stack.top curIndent));;
 let rec countSp s count index = 
 	 let len = (String.length s - 1) in
 		if index > len then count
@@ -17,20 +16,19 @@ rule token = parse
 	| "\n\n" { let parens = 
 			let rec closeParens s stack = 
 				let top = Stack.top stack in
-					if (top == -1) then (s ^ string_of_int (Stack.top stack) ^ ";;\n")  
+					if (top == -1) then (s ^ ";;\n")  
 					else (ignore (Stack.pop stack); closeParens (")" ^ s) stack)
 		in closeParens "" curIndent
 		in Word(parens) }
 	| ['\n' ' ' '\t']*';'[^'\n''\r']* { Comment } (* Comments will be ignored *)
 	| '\n'[' ' '\t']*("if" | "for" | "do" | "while" ) as lxm { let spaces = countSp lxm 0 0 in
-									   ignore(Stack.push spaces curIndent); StdFn(string_of_int (Stack.top curIndent) ^ lxm) }
+									   ignore(Stack.push spaces curIndent); StdFn(lxm) }
 	| _ as lxm { Word(String.make 1 lxm) }
 	| '\n'[' ' '\t']* as ws { let spaces = 
 					countSp ws 0 0 in
-				if(spaces > Stack.top curIndent) then ( Word(ws ^ ">" ^ string_of_int (Stack.top curIndent)))
-				else if (spaces < Stack.top curIndent) then (ignore(Stack.pop curIndent); Word(")" ^ ws ^ "HELLO?"))
-				else Word(");;SUCK" ^ ws)
-				(* else Word(ws ^ string_of_int spaces ^ "\n!" ^ string_of_int (Stack.top curIndent)) *) }
+				if(spaces > Stack.top curIndent) then ( Word(ws))
+				else if (spaces < Stack.top curIndent) then (ignore(Stack.pop curIndent); Word(")" ^ ws))
+				else Word(");;" ^ ws) }
 	| "fn"' '*'('	as lxm { Fdecl(lxm) }
 	| "def"' '*['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_' '-']*' '*'(' as lxm { let spaces = countSp lxm 0 0 in
 										ignore(Stack.push spaces curIndent); Fdecl(lxm) }
