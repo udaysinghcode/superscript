@@ -2,6 +2,7 @@
 
 rule token = parse
   [' ' '\t' '\\''\\''\n' '\r'] { token lexbuf } (* Whitespace *)
+| "\n;;\n"  { token lexbuf }	    (* ;; on a line by itself - ignore *)
 | "(*"      { comment lexbuf }      (* Comments *)
 | ";;"     { SEMI }
 | '('      { LPAREN }
