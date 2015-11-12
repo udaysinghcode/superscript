@@ -1,7 +1,7 @@
 %{ open Ast %}
 
 %token PLUS MINUS TIMES DIVIDE PLUSF MINUSF TIMESF DIVIDEF EOF
-%token ASSIGN QUOTE AND OR EQ NEQ LT LEQ GT GEQ
+%token ASSIGN QUOTE AND OR NOT EQ NEQ LT LEQ GT GEQ
 %token SEMI LPAREN RPAREN LBRACE RBRACE
 %token <int> INT
 %token FUNC LET IN IF FOR WHILE
@@ -12,6 +12,7 @@
 %token NIL
 
 %right ASSIGN
+%right NOT
 %left OR
 %left AND
 %left EQ NEQ
@@ -88,7 +89,7 @@ arith_call:
 | GEQ args 		{ Evalarith(Geq, List.rev $2) }
 | AND args 		{ Evalarith(And, List.rev $2) }
 | OR args 		{ Evalarith(Or, List.rev $2) }
-
+| NOT args		{ Evalarith(Not, List.rev $2) }
 
 args_opt:
 /* nothing */ 		{ [] }
@@ -118,3 +119,4 @@ infix_expr:
 | infix_expr GEQ infix_expr	{ Binop($1, Geq, $3) }
 | infix_expr AND infix_expr	{ Binop($1, And, $3) }
 | infix_expr OR infix_expr	{ Binop($1, Or, $3) } 
+| NOT infix_expr		{ Unary(Not, $2) }
