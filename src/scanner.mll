@@ -35,7 +35,7 @@ rule token = parse
 | "let"    { LET }
 | "in"     { IN }
 | "while"  { WHILE }
-| '\"'_*'\"' as lxm { STRING(String.sub lxm 1 (String.length lxm - 2)) } 	(* String *)
+| '\"'[^'\"']*'\"' as lxm { STRING(String.sub lxm 1 (String.length lxm - 2)) } 	(* String *)
 | ['0'-'9']*'.'['0'-'9']+  as lxm { FLOAT(float_of_string lxm) }		(* Float *)
 | ['0'-'9']+'.'['0'-'9']*  as lxm { FLOAT(float_of_string lxm) }		(* Float *)
 | ['0'-'9']+ as lxm { INT(int_of_string lxm) }					(* Int *)
