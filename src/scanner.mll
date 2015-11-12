@@ -2,7 +2,7 @@
 
 rule token = parse
   [' ' '\t' '\\''\\''\n' '\r'] { token lexbuf } (* Whitespace *)
-| ';'      { comment lexbuf }      (* Comments *)
+| "(*"      { comment lexbuf }      (* Comments *)
 | ";;"     { SEMI }
 | '('      { LPAREN }
 | ')'      { RPAREN }
@@ -44,5 +44,5 @@ rule token = parse
 | _ as char { raise (Failure("illegal input " ^ Char.escaped char)) }
 
 and comment = parse
-   '\n'  { token lexbuf } (* comments *)
+   "*)"  { token lexbuf } (* comments *)
    | _    { comment lexbuf }
