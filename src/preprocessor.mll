@@ -22,7 +22,8 @@ let rec closeExpression s stack =
 		else (ignore (Stack.pop stack); closeExpression (")" ^ s) stack)
 }
 let fn_name = ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_' '-']*
-let binop =  "+" | "-" | "*" | "/" | "+." | "-." | "*." | "/." | "and" | "or" | "not" | "="
+let binop =  "+" | "-" | "*" | "/" | "+." | "-." | "*." | "/." 
+	     | "and" | "or" | "is" | "isnt" | ">" | "<" | ">=" | "<=" | "="
 
 rule token = parse
 	 eof { EOF }
