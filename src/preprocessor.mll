@@ -25,11 +25,11 @@ let fn_name = ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_' '-']*
 let binop =  "+" | "-" | "*" | "/" | "+." | "-." | "*." | "/." | "and" | "or" | "not" | "="
 
 rule token = parse
-	| eof { EOF }
+	 eof { EOF }
 
 	| "\n\n" { let parens = closeExpression "" curIndent in Word(parens) }	(* Newline marks end of one expression; Add closing parens and ";;" *)
-
-	| ['\n' ' ' '\t']*';'[^'\n''\r']* 	{ Comment } 			(* Comments will be ignored *)
+	
+	| "(*" { comment lexbuf }
 
 	| '\n'[' ' '\t']*("if" | "for" | "do" | "while" | "def" ) as lxm 		(* Standard library functions *)
 					{ let spaces = countSp lxm 0 1 in
@@ -39,24 +39,28 @@ rule token = parse
 				let spaces = countSp ws 0 1 in
 				if(spaces > Stack.top curIndent) then ( Word(ws))
 				else (			
-					(* Same or less indentation than previously added lparen: pop stack *)
-					let popped = Stack.pop curIndent in
-					if (popped == -1) then Word(");;\n" ^ ws)
-					else Word("~" ^ string_of_int popped ^ ")\n" ^ ws)
+					(* Same or less indentation than previously added lparen: pop stack until current indentation = top of stack *)
+					let parens = 
+					let rec closeParens s stack = 
+						let top = Stack.top curIndent in
+						if (top == -1) then (s ^ ";;\n") 
+						else if (top <= spaces) then (ignore(Stack.pop stack); closeParens (")&" ^ s) stack)
+						else (* top > spaces *) s
+					in closeParens ws curIndent
+					in Word(parens)
 				) }
 
 	| "fn"' '*'('	as lxm { Fdecl(lxm) }					(* Anonymous function declaration: "fn (" *)
 
-(*	| "def" ' '* fn_name ' '* '('						(* Named function declaration: "def fn_name (" *)
-		as lxm { let spaces = countSp lxm 0 0 in
-		ignore(Stack.push spaces curIndent); Fdecl(lxm) }
-*)
 	| [' ' '\t']*(fn_name | binop)' '*'(' as lxm { Fparen(lxm) }		(* Function call as "f(args)" *)
 
 	| '\"'_*'\"' as lxm { String(lxm) } 		(* Quoted strings, so +-/* or f() within quotes scan as strings, not fn calls *)
 
 	| _ as lxm { Word(String.make 1 lxm) } 		(* All characters other than the above *)
 
+and comment = parse
+	"*)"	{ token lexbuf }	(* Return to normal scanning *)
+	| _	{ comment lexbuf }  	(* Ignore other characters *)
 {
 	let () = 
 	let oc = open_out "program.ss" in	
