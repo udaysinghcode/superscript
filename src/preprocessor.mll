@@ -44,7 +44,7 @@ rule token = parse
 					let rec closeParens s stack = 
 						let top = Stack.top curIndent in
 						if (top == -1) then (s ^ ";;\n") 
-						else if (top <= spaces) then (ignore(Stack.pop stack); closeParens (")" ^ s) stack)
+						else if (top >= spaces) then (ignore(Stack.pop stack); closeParens (")" ^ s) stack)
 						else (* top > spaces *) s
 					in closeParens ws curIndent
 					in Word(parens)
@@ -54,7 +54,7 @@ rule token = parse
 
 	| [' ' '\t']*(fn_name | binop)' '*'(' as lxm { Fparen(lxm) }		(* Function call as "f(args)" *)
 
-	| '\"'_*'\"' as lxm { String(lxm) } 		(* Quoted strings, so +-/* or f() within quotes scan as strings, not fn calls *)
+	| '\"'[^'\"']*'\"' as lxm { String(lxm) } 		(* Quoted strings, so +-/* or f() within quotes scan as strings, not fn calls *)
 
 	| _ as lxm { Word(String.make 1 lxm) } 		(* All characters other than the above *)
 
