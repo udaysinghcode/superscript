@@ -1,5 +1,5 @@
 type op = Add | Sub | Mult | Div | Addf | Subf | Multf | Divf 
-	| Equal | Neq | Less | Leq | Greater | Geq | And | Or | Not
+	| Equal | Neq | Less | Leq | Greater | Geq | And | Or
  
 type bool = true | false
 
@@ -11,7 +11,6 @@ type expr =				(* Expressions *)
   | Id of string			(* caml_riders *)
   | Assign of string * expr		(* {x = 5} OR (= x 5) *)
   | Binop of expr * op * expr		(* {x + 10} *)
-  | Unary of op * expr			(* {not a} or (not a) *)
   | Eval of string * expr list		(* (foo 5 21) *)
   | Evalarith of op * expr list   	(* (+ 1 2 3 ) *)
   | Nil					(* null datatype *)
