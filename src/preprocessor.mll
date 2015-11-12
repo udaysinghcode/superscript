@@ -5,6 +5,9 @@ type token = EOF | String of string | Fparen of string | Fdecl of string | Word 
 let curIndent = Stack.create();;
 Stack.push (-1) curIndent;;  (* mark bottom of stack with -1 *)
 
+(* Sentinel to track whether a new expression has started; if not then do not terminate with ";;" *)
+let noexpr = 0;;
+
 (* Counts continuous whitespace in string s, starting at the given index and count *)
 let rec countSp s count index = 
 	 let len = (String.length s - 1) in
@@ -27,7 +30,7 @@ let binop =  "+" | "-" | "*" | "/" | "+." | "-." | "*." | "/." | "and" | "or" | 
 rule token = parse
 	 eof { EOF }
 
-	| "\n\n" { let parens = closeExpression "" curIndent in Word(parens) }	(* Newline marks end of one expression; Add closing parens and ";;" *)
+	| "\n" { let parens = closeExpression "" curIndent in Word(parens) }	(* Newline marks end of expression; Add R-parens & ";;" *)
 	
 	| "(*" { comment lexbuf }
 
@@ -39,7 +42,8 @@ rule token = parse
 				let spaces = countSp ws 0 1 in
 				if(spaces > Stack.top curIndent) then ( Word(ws))
 				else (			
-					(* Same or less indentation than previously added lparen: pop stack until current indentation = top of stack *)
+					(* Same or less indentation than previously added lparen: 
+						pop stack until current indentation = top of stack *)
 					let parens = 
 					let rec closeParens s stack = 
 						let top = Stack.top curIndent in
@@ -51,10 +55,16 @@ rule token = parse
 				) }
 
 	| "fn"' '*'('	as lxm { Fdecl(lxm) }					(* Anonymous function declaration: "fn (" *)
+	
+	| '\n'[' ' '\t']* "def" ' '* fn_name ' '* '(' 		(* Named function declaration: needs own regexp
+							   		so that fn_name(args) does not get slurped into (fn_name args) *)			
+						as lxm { let spaces = countSp lxm 0 1 in
+ 						ignore(Stack.push spaces curIndent); Fdecl(lxm) }
 
-	| [' ' '\t']*(fn_name | binop)' '*'(' as lxm { Fparen(lxm) }		(* Function call as "f(args)" *)
+	| (fn_name | binop)' '*'(' as lxm { Fparen(lxm) }		(* Function call as "f(args)" *)
 
 	| '\"'[^'\"']*'\"' as lxm { String(lxm) } 		(* Quoted strings, so +-/* or f() within quotes scan as strings, not fn calls *)
+
 
 	| _ as lxm { Word(String.make 1 lxm) } 		(* All characters other than the above *)
 

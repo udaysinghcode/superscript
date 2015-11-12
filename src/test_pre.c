@@ -16,6 +16,13 @@ def fac(n)
    f(a b c)
    {n * fac{n - 1}}
 
+
+
+def fac (a)
+	if {a==1}
+		1
+		0
+
 =( fac(n)
   if {n <= 1}
    f(a b c)
