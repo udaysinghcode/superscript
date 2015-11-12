@@ -8,13 +8,13 @@ TODO: newline must be inserted before first expression of program before preproc
 def fac(n)
      if {n <= 1}
           1
-          {n * fac{n - 1}}
+          {n * fac({n - 1})}
 
 (* testing indentation using spaces *)
 def fac(n)
   if {n <= 1}
    f(a b c)
-   {n * fac{n - 1}}
+   {n * fac({n - 1})}
 
 
 
@@ -26,7 +26,7 @@ def fac (a)
 =( fac(n)
   if {n <= 1}
    f(a b c)
-   {n * fac{n - 1}})
+   {n * fac({n - 1})})
 
 (* this should not work since the arguments to "if" are not indented properly *)
 + ( f(a b c)	
@@ -41,3 +41,16 @@ def fac (a)
 		{1 + 2})
 
 
+def fac (a)
+    if {a=1}
+        my_func ( 1
+            "aa"
+            your_func( 2
+                "bb"
+                3
+            )
+        )
+        if {a=0}
+            0
+            1
+        0

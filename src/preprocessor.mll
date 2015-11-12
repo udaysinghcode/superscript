@@ -5,12 +5,9 @@ type token = EOF | String of string | Fparen of string | Fdecl of string | Word 
 let curIndent = Stack.create();;
 Stack.push (-1) curIndent;;  (* mark bottom of stack with -1 *)
 
-(* Sentinel to track whether a new expression has started; if not then do not terminate with ";;" *)
-let noexpr = 0;;
-
 (* Counts continuous whitespace in string s, starting at the given index and count *)
 let rec countSp s count index = 
-	 let len = (String.length s - 1) in
+	 let len = (String.length s - 1) in 
 		if index > len then count
 			else if String.get s index = ' ' then countSp s (count+1)(index+1)
 			else if String.get s index = '\t' then countSp s (count+8)(index+1)
@@ -30,7 +27,11 @@ let binop =  "+" | "-" | "*" | "/" | "+." | "-." | "*." | "/." | "and" | "or" | 
 rule token = parse
 	 eof { EOF }
 
-	| "\n" { let parens = closeExpression "" curIndent in Word(parens) }	(* Newline marks end of expression; Add R-parens & ";;" *)
+	(* Newline marks end of expression; Add R-parens & ";;" and set noexpr to 1 *)
+	| "\n" { let parens = 
+			if (Stack.top curIndent == -2) then "\n"
+			else (closeExpression "" curIndent) 
+			in Word(parens) }
 	
 	| "(*" { comment lexbuf }
 
@@ -38,7 +39,7 @@ rule token = parse
 					{ let spaces = countSp lxm 0 1 in
 					   ignore(Stack.push spaces curIndent); 
 					 StdFn(lxm) }
-	| '\n'[' ' '\t']* as ws { 						(* Indentation: whitespace at the beginning of a line *)
+	| '\n'[' ' '\t']* as ws {						(* Indentation: whitespace at the beginning of a line *)
 				let spaces = countSp ws 0 1 in
 				if(spaces > Stack.top curIndent) then ( Word(ws))
 				else (			
@@ -48,13 +49,13 @@ rule token = parse
 					let rec closeParens s stack = 
 						let top = Stack.top curIndent in
 						if (top == -1) then (s ^ ";;\n") 
-						else if (top <= spaces) then (ignore(Stack.pop stack); closeParens (")" ^ s) stack)
-						else (* top > spaces *) s
+						else if (spaces <= top) then (ignore(Stack.pop stack); closeParens (")" ^ s) stack)
+						else (* spaces > top *) s	(* ignore children *)
 					in closeParens ws curIndent
 					in Word(parens)
 				) }
 
-	| "fn"' '*'('	as lxm { Fdecl(lxm) }					(* Anonymous function declaration: "fn (" *)
+	| "fn"' '*'('	as lxm { Fdecl(lxm) }		(* Anonymous function declaration: "fn (" *)
 	
 	| '\n'[' ' '\t']* "def" ' '* fn_name ' '* '(' 		(* Named function declaration: needs own regexp
 							   		so that fn_name(args) does not get slurped into (fn_name args) *)			
@@ -63,9 +64,11 @@ rule token = parse
 
 	| (fn_name | binop)' '*'(' as lxm { Fparen(lxm) }		(* Function call as "f(args)" *)
 
-	| '\"'[^'\"']*'\"' as lxm { String("&&&" ^ lxm ^ "&&&") } 		(* Quoted strings, so +-/* or f() within quotes scan as strings, not fn calls *)
+	(* Quoted strings, so +-/* or f() within quotes scan as strings, not fn calls *)
+	| '\"'[^'\"']*'\"' as lxm { String(lxm) }
 
-	| _ as lxm { Word(String.make 1 lxm) } 		(* All characters other than the above *)
+	| _ as lxm { 						(* All characters other than the above *) 
+				Word(String.make 1 lxm) } 
 
 and comment = parse
 	"*)"	{ token lexbuf }	(* Return to normal scanning *)
