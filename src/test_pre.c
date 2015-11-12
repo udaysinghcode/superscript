@@ -19,7 +19,7 @@ def fac(n)
 
 
 def fac (a)
-	if {a==1}
+	if {a is 1}
 		1
 		0
 
@@ -30,19 +30,19 @@ def fac (a)
 
 (* this should not work since the arguments to "if" are not indented properly *)
 + ( f(a b c)	
-	if{N < 0}
+	if{n < 0}
 	f(a b)
 	{1 + 2})
 
 (* the above sum (+) function with corrected indenting *)
 + ( f(a b c )
-	if{N < 0}
+	if{n < 0}
 		f(a b)
 		{1 + 2})
 
 
 def fac (a)
-    if {a=1}
+    if {a is 1}
         my_func ( 1
             "aa"
             your_func( 2
@@ -50,7 +50,7 @@ def fac (a)
                 3
             )
         )
-        if {a=0}
+        if isnt(a 0)
             0
             1
         0
