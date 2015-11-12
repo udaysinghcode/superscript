@@ -19,7 +19,7 @@ let rec countSp s count index =
 let rec closeExpression s stack =
 	let top = Stack.top stack in
 		if (top == -1) then (s ^ ";;\n")  (* keep -1 as bottom-of-stack marker *)
-		else (ignore (Stack.pop stack); closeExpression (")!" ^ s) stack)
+		else (ignore (Stack.pop stack); closeExpression (")" ^ s) stack)
 }
 let fn_name = ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_' '-']*
 let binop =  "+" | "-" | "*" | "/" | "+." | "-." | "*." | "/." | "and" | "or" | "not" | "="
@@ -44,7 +44,7 @@ rule token = parse
 					let rec closeParens s stack = 
 						let top = Stack.top curIndent in
 						if (top == -1) then (s ^ ";;\n") 
-						else if (top <= spaces) then (ignore(Stack.pop stack); closeParens (")&" ^ s) stack)
+						else if (top <= spaces) then (ignore(Stack.pop stack); closeParens (")" ^ s) stack)
 						else (* top > spaces *) s
 					in closeParens ws curIndent
 					in Word(parens)
