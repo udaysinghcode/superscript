@@ -3,8 +3,8 @@ let generate_js_func fname = match fname with
   | "pr"      -> ("function pr(s) { process.stdout.write(s); return s; };", ["string"], "string", [])
   | "type"    -> ("function type(o) { return o.type; };", ["ss_boxed"], "string", [])
   | "__clone" -> ("function __clone(o) { return JSON.parse(JSON.stringify(o)); };", ["any"], "same", []) (* *)
-  | "__box"   -> ("function __box(t, v) { return { __t: t, __v: __clone(v) }; };", ["string"; "ss_unboxed"], "ss_boxed", ["clone"])
-  | "__unbox" -> ("function __unbox(o) { return __clone(o.__v); };", ["ss_boxed"], "ss_unboxed", ["clone"])
+  | "__box"   -> ("function __box(t, v) { return { __t: t, __v: __clone(v) }; };", ["string"; "ss_unboxed"], "ss_boxed", ["__clone"])
+  | "__unbox" -> ("function __unbox(o) { return __clone(o.__v); };", ["ss_boxed"], "ss_unboxed", ["__clone"])
   | "head"    -> ("function head(l) { return __clone(__unbox(l)[0]); };", ["list"], "ss_boxed", ["__clone"; "__unbox"])
   | "tail"    -> ("function tail(l) { return __box('list', __unbox(l).slice(1)); };", ["list"], "list", ["__box"; "__unbox"])
   | "cons"    -> ("function cons(i, l) { return __box('list', __unbox(l).unshift(__clone(i))); };", ["ss_boxed"; "list"], "list", ["__box"; "__unbox"; "__clone"])
@@ -18,8 +18,12 @@ let generate_js_func fname = match fname with
   | "__multf" -> ("function __multf(a1, a2) { return __box('float', __unbox(a1) * __unbox(a2)); };", ["float"; "float"], "float", ["__box"; "__unbox"])
   | "__divf"  -> ("function __divf(a1, a2) { return __box('float', __unbox(a1) / __unbox(a2)); };", ["float"; "float"], "float", ["__box"; "__unbox"])
 
-let generate_prog p =
-  let op_name o = match o with
+let is_generatable fname =
+  List.mem fname ["prn"; "pr"; "type"; "__clone"; "__box"; "__unbox";
+                  "head"; "tail"; "cons"; "__add"; "__sub"; "__mult";
+                  "__div"; "mod"; "__addf"; "__subf"; "__multf"; "__divf"]
+
+let op_name o = match o with
       Add -> "__add"
     | Sub -> "__sub"
     | Mult -> "__mult"
@@ -35,7 +39,9 @@ let generate_prog p =
     | Greater -> "__greater"
     | Geq -> "__geq"
     | And -> "__and"
-    | Or -> "__or" in
+    | Or -> "__or"
+
+let generate_prog p =
   let cc l = String.concat "" l in
   let box t v = cc ["{ __t: '"; t; "', __v: "; v; " }"] in
   let rec generate e = match e with
@@ -55,6 +61,26 @@ let generate_prog p =
     | For(init, cond, update, exp) -> cc ["return "; generate Nil; ";"]
     | While(cond, exp) -> cc ["return "; generate Nil; ";"] 
     | Let(n, v, exp) -> cc ["(function () { "; generate (Assign(n, v)); "return "; generate exp; "; })();"] in
-  let generate_head pg = "" in
-  let wrap_exp e = cc [generate e; ";\n"] in
+  let generate_head p =
+    let rec get_deps fname =
+      let (_, _, _, deps) = generate_js_func fname in
+      deps @ (List.flatten (List.map get_deps deps)) in
+    let get_body fname =
+      let (body, _, _, _) = generate_js_func fname in
+      body in
+    let rec get_fnames e = match e with
+        Eval(fname, el) -> fname::(get_fnames (List(el)))
+      | Assign(s, exp) -> get_fnames exp
+      | Binop(e1, o, e2) -> get_fnames (Eval(op_name o, [e1; e2]))
+      | Evalarith(o, el) -> get_fnames (Eval(op_name o, el))
+      | List(el) -> List.flatten (List.map get_fnames el)
+      | Fdecl(argl, exp) -> get_fnames exp
+      | If(cond, thenb, elseb) -> (get_fnames cond) @ (get_fnames thenb) @ (get_fnames elseb)
+      | For(init, cond, update, exp) -> (get_fnames init) @ (get_fnames cond) @ (get_fnames update) @ (get_fnames exp)
+      | While(cond, exp) -> (get_fnames cond) @ (get_fnames exp)
+      | Let(n, v, exp) -> (get_fnames v) @ (get_fnames exp)
+      | _ -> [] in
+    let generatable = (List.filter is_generatable (List.flatten (List.map get_fnames p))) in
+    cc (List.map get_body (List.sort_uniq compare (generatable @ (List.flatten (List.map get_deps generatable))))) in
+  let wrap_exp e = cc [generate e; ";"] in
   cc ((generate_head p)::(List.map wrap_exp p))
