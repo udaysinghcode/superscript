@@ -27,13 +27,18 @@ let generate_js_func fname = match fname with
   | "__geq"     -> ("function __geq(a1, a2) { return __box('boolean', __unbox(a1) >= __unbox(a2)); };", ["ss_boxed"; "ss_boxed"], "boolean", ["__box"; "__unbox"])
   | "__and"     -> ("function __and(a1, a2) { return __box('boolean', __unbox(a1) && __unbox(a2)); };", ["ss_boxed"; "ss_boxed"], "boolean", ["__box"; "__unbox"])
   | "__or"      -> ("function __or(a1, a2) { return __box('boolean', __unbox(a1) || __unbox(a2)); };", ["ss_boxed"; "ss_boxed"], "boolean", ["__box"; "__unbox"])
+  | "str_of_int"   -> ("function str_of_int(i) { return __box('string', '' + __unbox(i)); };", ["int"], "string", ["__box"; "__unbox"])
+  | "int_of_str"   -> ("function int_of_str(s) { return __box('int', parseInt(__unbox(s))); };", ["string"], "int", ["__box"; "__unbox"])
+  | "str_of_float" -> ("function str_of_float(f) { return __box('string', '' + __unbox(i)); };", ["float"], "string", ["__box"; "__unbox"])
+  | "float_of_str" -> ("function float_of_str(s) { return __box('float', parseFloat(__unbox(s))); };", ["string"], "float", ["__box"; "__unbox"])
 
 let is_generatable fname =
   List.mem fname ["prn"; "pr"; "type"; "__clone"; "__box"; "__unbox";
                   "head"; "tail"; "cons"; "__add"; "__sub"; "__mult";
                   "__div"; "mod"; "__addf"; "__subf"; "__multf"; "__divf";
                   "__equal"; "__neq"; "__less"; "__leq"; "__greater";
-                  "__geq"; "__and"; "__or"]
+                  "__geq"; "__and"; "__or"; "str_of_int"; "int_of_str";
+                  "str_of_float"; "float_of_str"]
 
 let op_name o = match o with
       Add -> "__add"

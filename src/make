@@ -7,4 +7,6 @@ ocamlc -c scanner.ml # compile the scanner
 ocamlc -c parser.ml # compile the parser
 ocamlc -c generator.ml # compile the generator
 ocamlc -c finaltest.ml # compile the tester
+ocamlc -c executor.ml # compile the executor
 ocamlc -o tests unix.cma generator.cmo scanner.cmo parser.cmo finaltest.cmo # generate test runner
+ocamlc -o exss unix.cma generator.cmo scanner.cmo parser.cmo executor.cmo # generate exss 
