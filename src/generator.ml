@@ -1,7 +1,7 @@
 open Ast;;
 
 let generate_js_func fname = match fname with
-    "prn"       -> ("function prn(s) { console.log(s); return s; };", ["string"], "string", [])
+    "prn"       -> ("function prn(s) { console.log(__unbox(s)); return s; };", ["string"], "string", ["__unbox"])
   | "pr"        -> ("function pr(s) { process.stdout.write(s); return s; };", ["string"], "string", [])
   | "type"      -> ("function type(o) { return o.type; };", ["ss_boxed"], "string", [])
   | "__clone"   -> ("function __clone(o) { return JSON.parse(JSON.stringify(o)); };", ["any"], "same", []) (* *)
