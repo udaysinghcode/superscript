@@ -2,6 +2,7 @@ open Ast;;
 open Generator;;
 open Scanner;;
 open Unix;;
+open Stringify;;
 
 
 let load_file f =
@@ -31,6 +32,6 @@ let lexbuf = Lexing.from_string (load_file filename) in
 let expression = Parser.program Scanner.token lexbuf in
 let prog = Generator.generate_prog expression in
 write prog;
-print_endline (String.concat "" (funct (Unix.open_process_in "node a.js")))
+print_endline (String.concat "" ["AST: "; Stringify.stringify_prog expression; "\nOutput: "; (String.concat "" (funct (Unix.open_process_in "node a.js")))])
 
 
