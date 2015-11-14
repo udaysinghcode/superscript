@@ -49,7 +49,7 @@ rule token = parse
 					{ let spaces = countSp lxm 0 1 in
 					   ignore(Stack.push spaces curIndent); 
 					 StdFn(lxm) }
-	| '\n'[' ' '\t']* as ws {						(* Indentation: whitespace at the beginning of a line *)
+	| '\n'[' ' '\t']* as ws {			(* Indentation: whitespace at the beginning of a line *)
 				let spaces = countSp ws 0 1 in
 				if(spaces > Stack.top curIndent) then ( Word(ws))
 				else (			
@@ -59,7 +59,8 @@ rule token = parse
 					let rec closeParens s stack = 
 						let top = Stack.top curIndent in
 						if (top == -1) then (s ^ ";;\n") 
-						else if (top >= spaces) then (ignore(Stack.pop stack); closeParens (")" ^ s) stack)
+						else if (top >= spaces) 
+						     then (ignore(Stack.pop stack); closeParens (")" ^ s) stack)
 						else (* top > spaces *) s
 					in closeParens ws curIndent
 					in Word(parens)
@@ -74,7 +75,8 @@ rule token = parse
 
 	| (fn_name | binop)' '* '(' as lxm { Fparen(lxm) }	(* Function call as "f(args)" *)
 
-	| '\"'[^'\"']*'\"' as lxm { String(lxm) } 	(* Quoted strings, so +-/* or f() within quotes scan as strings, not fn calls *)
+	| '\"'[^'\"']*'\"' as lxm { String(lxm) } 	(* Quoted strings: quoted function calls scan as strings, 
+							   not evaluated as fn calls *)
 
 	| _ as lxm { Word(String.make 1 lxm) }		(* All characters other than the above *) 
 
