@@ -1,7 +1,7 @@
 %{ open Ast %}
 
 %token PLUS MINUS TIMES DIVIDE PLUSF MINUSF TIMESF DIVIDEF EOF
-%token ASSIGN QUOTE AND OR NOT EQ NEQ LT LEQ GT GEQ
+%token ASSIGN QUOTE AND OR EQ NEQ LT LEQ GT GEQ
 %token SEMI LPAREN RPAREN LBRACE RBRACE
 %token <int> INT
 %token FUNC LET IN IF FOR WHILE
@@ -88,6 +88,8 @@ arith_call:
 | GEQ args 		{ Evalarith(Geq, List.rev $2) }
 | AND args 		{ Evalarith(And, List.rev $2) }
 | OR args 		{ Evalarith(Or, List.rev $2) }
+| ASSIGN args		{ Evalarith(Assign, List.rev $2) }
+| QUOTE args		{ Evalarith(Quote, List.rev $2) }
 
 args_opt:
 /* nothing */ 		{ [] }
