@@ -23,6 +23,10 @@ def fac (a)
 		1
 		0
 
+(* this will not work since args to if must be indented *)
+def fac (a)
+	if(a b c)
+
 =( fac(n)
   if {n <= 1}
    f(a b c)

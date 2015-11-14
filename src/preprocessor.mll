@@ -1,5 +1,14 @@
 { 
-type token = EOF | String of string | Fparen of string | Fdecl of string | Word of string | Comment | StdFn of string | LineBreak 
+type token = EOF 
+	     | String of string 	(* "sss" *) 
+	     | Fparen of string 	(* foo(a) *)
+	     | Fdecl of string  	(* fn(a b) a + b;; def foo(a) a + 1 *)
+	     | Word of string   	(* other text in program *)
+	     | Comment 			(* comments look just like this *)
+	     | StdFn of string		(* if a 
+					      b 
+					      c *)
+	     | LineBreak 		(* \n *)
 
 (* Store the indentation of added left parens using a stack *)
 let curIndent = Stack.create();;
@@ -13,7 +22,7 @@ let rec countSp s count index =
 			else if String.get s index = '\t' then countSp s (count+8)(index+1)
 		else count
 
-(* At the end of each expression (after seeing two newlines):
+(* At the end of each expression (after seeing a newline):
    Add  one right paren for each element popped off the given stack,
    until the stop of stack is -1; Adding to the end of given string s *)
 let rec closeExpression s stack =
@@ -28,7 +37,7 @@ let binop =  "+" | "-" | "*" | "/" | "+." | "-." | "*." | "/."
 rule token = parse
 	 eof { EOF }
 
-	(* Newline marks end of expression; Add R-parens & ";;" and set noexpr to 1 *)
+	(* Newline marks end of expression; Add R-parens & ";;"*)
 	| "\n" { let parens = 
 			if (Stack.top curIndent == -2) then "\n"
 			else (closeExpression "" curIndent) 
@@ -36,7 +45,7 @@ rule token = parse
 	
 	| "(*" { comment lexbuf }
 
-	| '\n'[' ' '\t']*("if" | "for" | "do" | "while" | "def" ) as lxm 		(* Standard library functions *)
+	| '\n'[' ' '\t']*("if" | "for" | "do" | "while" ) as lxm 		(* Standard library functions *)
 					{ let spaces = countSp lxm 0 1 in
 					   ignore(Stack.push spaces curIndent); 
 					 StdFn(lxm) }
@@ -56,19 +65,18 @@ rule token = parse
 					in Word(parens)
 				) }
 
-	| "fn"' '*'('	as lxm { Fdecl(lxm) }		(* Anonymous function declaration: "fn (" *)
+	| "fn" ' '* '('	as lxm { Fdecl(lxm) }		(* Anonymous function declaration: "fn (" *)
 	
-	| '\n'[' ' '\t']* "def" ' '* fn_name ' '* '(' 		(* Named function declaration: needs own regexp
-							   		so that fn_name(args) does not get slurped into (fn_name args) *)			
-						as lxm { let spaces = countSp lxm 0 1 in
- 						ignore(Stack.push spaces curIndent); Fdecl(lxm) }
+	| '\n'[' ' '\t']* "def" ' '* fn_name ' '* '(' 	(* Named function declaration: needs own regexp
+							   so that fn_name(args) does not get slurped into (fn_name args) *)			
+				as lxm { let spaces = countSp lxm 0 1 in
+ 				ignore(Stack.push spaces curIndent); Fdecl(lxm) }
 
-	| (fn_name | binop)' '*'(' as lxm { Fparen(lxm) }		(* Function call as "f(args)" *)
+	| (fn_name | binop)' '* '(' as lxm { Fparen(lxm) }	(* Function call as "f(args)" *)
 
 	| '\"'[^'\"']*'\"' as lxm { String(lxm) } 	(* Quoted strings, so +-/* or f() within quotes scan as strings, not fn calls *)
 
-	| _ as lxm { 						(* All characters other than the above *) 
-				Word(String.make 1 lxm) } 
+	| _ as lxm { Word(String.make 1 lxm) }		(* All characters other than the above *) 
 
 and comment = parse
 	"*)"	{ token lexbuf }	(* Return to normal scanning *)
@@ -93,12 +101,10 @@ and comment = parse
 				next(s::l)
 		in next []
 	in let program = String.concat "" (List.rev wordlist) 
-	in let lines = Str.split (Str.regexp "\n") program
-	
+	in let lines = Str.split (Str.regexp "\n") program	
 
-
-	in ignore(List.iter (fun a -> print_endline a) lines);
-	Printf.fprintf oc "%s\n" program;
+	in ignore(List.iter (fun a -> if a <> ";;" then print_endline(a)) lines);
+	(List.iter (fun a -> if a <> ";;" then (Printf.fprintf oc "%s\n" a)) lines);
 	close_out oc;
 }
 
