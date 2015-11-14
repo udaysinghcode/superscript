@@ -1,5 +1,5 @@
 type op = Add | Sub | Mult | Div | Addf | Subf | Multf | Divf 
-	| Equal | Neq | Less | Leq | Greater | Geq | And | Or
+	| Equal | Neq | Less | Leq | Greater | Geq | And | Or | Assign | Quote
  
 type bool = true | false
 
@@ -28,7 +28,9 @@ let rec stringify e =
     Add -> "Add" | Sub -> "Sub" | Mult -> "Mult" | Div -> "Div"
     | Addf -> "Addf" | Subf -> "Subf" | Multf -> "Multf" | Divf -> "Divf"
     | Equal -> "Equal" | Neq -> "Neq" | Less -> "Less" | Leq -> "Leq"
-    | Greater -> "Greater" | Geq -> "Geq" | And -> "And" | Or -> "Or" in
+    | Greater -> "Greater" | Geq -> "Geq" | And -> "And" | Or -> "Or" 
+    | Assign -> "Assign" | Quote -> "Quote"
+in
   let concat l = (String.concat "" l) in
   match e with
   | Int(x) -> concat ["Int("; string_of_int x; ")"]
