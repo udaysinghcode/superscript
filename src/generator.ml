@@ -1,3 +1,5 @@
+open Ast;;
+
 let generate_js_func fname = match fname with
     "prn"       -> ("function prn(s) { console.log(s); return s; };", ["string"], "string", [])
   | "pr"        -> ("function pr(s) { process.stdout.write(s); return s; };", ["string"], "string", [])
