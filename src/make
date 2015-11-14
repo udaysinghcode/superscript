@@ -5,3 +5,6 @@ ocamlc -c ast.ml # compile AST types
 ocamlc -c parser.mli # compile parser types
 ocamlc -c scanner.ml # compile the scanner
 ocamlc -c parser.ml # compile the parser
+ocamlc -c generator.ml # compile the generator
+ocamlc -c finaltest.ml # compile the tester
+ocamlc -o tests unix.cma generator.cmo scanner.cmo parser.cmo finaltest.cmo # generate test runner
