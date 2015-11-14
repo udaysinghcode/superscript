@@ -2,7 +2,8 @@
 
 rule token = parse
   [' ' '\t' '\\''\\''\n' '\r'] { token lexbuf } (* Whitespace *)
-| ';'      { comment lexbuf }      (* Comments *)
+| "\n;;\n"  { token lexbuf }	    (* ;; on a line by itself - ignore *)
+| "(*"      { comment lexbuf }      (* Comments *)
 | ";;"     { SEMI }
 | '('      { LPAREN }
 | ')'      { RPAREN }
@@ -35,7 +36,7 @@ rule token = parse
 | "let"    { LET }
 | "in"     { IN }
 | "while"  { WHILE }
-| '\"'_*'\"' as lxm { STRING(String.sub lxm 1 (String.length lxm - 2)) } 	(* String *)
+| '\"'[^'\"']*'\"' as lxm { STRING(String.sub lxm 1 (String.length lxm - 2)) } 	(* String *)
 | ['0'-'9']*'.'['0'-'9']+  as lxm { FLOAT(float_of_string lxm) }		(* Float *)
 | ['0'-'9']+'.'['0'-'9']*  as lxm { FLOAT(float_of_string lxm) }		(* Float *)
 | ['0'-'9']+ as lxm { INT(int_of_string lxm) }					(* Int *)
@@ -44,5 +45,5 @@ rule token = parse
 | _ as char { raise (Failure("illegal input " ^ Char.escaped char)) }
 
 and comment = parse
-   '\n'  { token lexbuf } (* comments *)
+   "*)"  { token lexbuf } (* comments *)
    | _    { comment lexbuf }
