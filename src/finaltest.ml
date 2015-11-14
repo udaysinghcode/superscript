@@ -2,6 +2,7 @@ open Ast;;
 open Generator;;
 open Scanner;;
 open Unix;;
+open Stringify;;
 
 (*  File Foo_ast:
 	let asts = Lit(2)  *)
@@ -42,6 +43,10 @@ let write stuff =
 ;;
 
 let tests = [
+  ("prn function", "(prn \"Hello World!\");;", [Eval("prn", [String("Hello World!")])], "Hello World!") ;
+  ("function literal", "(fn (x) (prn x));;", [Fdecl(["x"], Eval("prn", [Id("x")]))], "") ;
+  ("str_of_int test", "(prn (str_of_int 10));;", [Eval("prn", [Eval("str_of_int", [Int(10)])])], "10") ;
+  ("test1", "(= foo 5);;", [Assign("foo", Int(5))], "Foo") ;
 	("Hello World program", "(prn \"Hello World!\");;", [Eval("prn", [String("Hello World!")])], "Hello World!") ;
 	("Curly expression produces expected ast", "{5 + 3};;", [Binop(Int(5), Add, Int(2))], "place holder") ;
 ] ;;
@@ -51,16 +56,15 @@ let unsuccess = ref 0 ;;
 List.iter (fun (desc, input, ast, expout) -> 
 	let lexbuf = Lexing.from_string input in 
 	let expression = Parser.program Scanner.token lexbuf in
-	if (ast = expression) then 
+	if (ast = expression || ast = []) then 
 		let prog = Generator.generate_prog expression in  (*instead of prog = Generator.generate_prog expr*)
 			write prog;	
 			(*print_endline (String.concat "" (funct (Unix.open_process_in "node a.js"))) *)
 			let actout = String.concat "" (funct (Unix.open_process_in "node a.js")) in
 			if  expout = actout then 
-				print_endline (String.concat "" [desc; "... SUCCESSFUL"])
+				print_endline (String.concat "" [desc; "... SUCCESSFUL. Output: \n"; actout])
 			else print_endline (String.concat "" [desc; "... UNSUCCESSFUL Compilation....\n\ninput:\n"; input; "\nexpected out:\n"; expout; "\n\nActual out:\n"; ]);
 			(*print_endline prog*)
-		else (print_endline (String.concat "" [desc; "... UNSUCCESSFUL Ast creation"]) ; unsuccess := !unsuccess+1 ) ) tests ;;
-
+		else (print_endline (String.concat "" [desc; "... UNSUCCESSFUL Ast creation. Generated Ast: "; Stringify.stringify_prog expression]) ; unsuccess := !unsuccess+1 ) ) tests ;;
 
 if !unsuccess = 0 then exit 0 else exit 1 ;;

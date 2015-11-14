@@ -3,7 +3,7 @@ open Ast;;
 let generate_js_func fname = match fname with
     "prn"       -> ("function prn(s) { console.log(__unbox(s)); return s; };", ["string"], "string", ["__unbox"])
   | "pr"        -> ("function pr(s) { process.stdout.write(s); return s; };", ["string"], "string", [])
-  | "type"      -> ("function type(o) { return o.type; };", ["ss_boxed"], "string", [])
+  | "type"      -> ("function type(o) { return o.__t; };", ["ss_boxed"], "string", [])
   | "__clone"   -> ("function __clone(o) { return JSON.parse(JSON.stringify(o)); };", ["any"], "same", []) (* *)
   | "__box"     -> ("function __box(t, v) { return { __t: t, __v: __clone(v) }; };", ["string"; "ss_unboxed"], "ss_boxed", ["__clone"])
   | "__unbox"   -> ("function __unbox(o) { return __clone(o.__v); };", ["ss_boxed"], "ss_unboxed", ["__clone"])
@@ -31,6 +31,7 @@ let generate_js_func fname = match fname with
   | "int_of_str"   -> ("function int_of_str(s) { return __box('int', parseInt(__unbox(s))); };", ["string"], "int", ["__box"; "__unbox"])
   | "str_of_float" -> ("function str_of_float(f) { return __box('string', '' + __unbox(i)); };", ["float"], "string", ["__box"; "__unbox"])
   | "float_of_str" -> ("function float_of_str(s) { return __box('float', parseFloat(__unbox(s))); };", ["string"], "float", ["__box"; "__unbox"])
+  | _ -> ("", [], "", [])
 
 let is_generatable fname =
   List.mem fname ["prn"; "pr"; "type"; "__clone"; "__box"; "__unbox";
@@ -57,6 +58,8 @@ let op_name o = match o with
     | Geq -> "__geq"
     | And -> "__and"
     | Or -> "__or"
+    | Assign -> "__ASSIGN__"
+    | Quote -> "__QUOTE__"
 
 let generate_prog p =
   let cc l = String.concat "" l in
@@ -73,7 +76,7 @@ let generate_prog p =
     | Evalarith(o, el) -> generate (List(el))
     | Nil -> box "nil" "[]"
     | List(el) -> box "list" (cc ["["; (String.concat ", " (List.map generate el)); "]"])
-    | Fdecl(argl, exp) -> cc ["function("; String.concat ", " argl; ") { return "; generate exp; "; }"]
+    | Fdecl(argl, exp) -> cc ["(function("; String.concat ", " argl; ") { return "; generate exp; "; })"]
     | If(cond, thenb, elseb) -> cc [generate cond; " ? "; generate thenb; " : "; generate elseb]
     | For(init, cond, update, exp) -> cc ["return "; generate Nil; ";"]
     | While(cond, exp) -> cc ["return "; generate Nil; ";"] 
