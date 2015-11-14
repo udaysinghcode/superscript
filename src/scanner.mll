@@ -47,3 +47,12 @@ rule token = parse
 and comment = parse
    "*)"  { token lexbuf } (* comments *)
    | _    { comment lexbuf }
+
+{
+    let lexbuf = Lexing.from_channel stdin in
+    try
+        while true do
+            ignore (token lexbuf)
+        done
+    with _ -> exit 0
+}
