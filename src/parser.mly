@@ -88,7 +88,8 @@ arith_call:
 | GEQ args 		{ Evalarith(Geq, List.rev $2) }
 | AND args 		{ Evalarith(And, List.rev $2) }
 | OR args 		{ Evalarith(Or, List.rev $2) }
-
+| ASSIGN args		{ Evalarith(Assign, List.rev $2) }
+| QUOTE args		{ Evalarith(Quote, List.rev $2) }
 
 args_opt:
 /* nothing */ 		{ [] }
