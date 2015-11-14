@@ -69,17 +69,14 @@ constant:
 
 call:
   ID args_opt		{ Eval($1, List.rev $2) }
-| arith_call		{ $1 } 
-
-arith_call:
-  PLUS args 	{ Evalarith(Add, List.rev $2) }
-| MINUS args    { Evalarith(Sub, List.rev $2) }
-| TIMES args    { Evalarith(Mult, List.rev $2) }
-| DIVIDE args    { Evalarith(Div, List.rev $2) }
-| PLUSF args 	{ Evalarith(Addf, List.rev $2) }
-| MINUSF args    { Evalarith(Subf, List.rev $2) }
-| TIMESF args    { Evalarith(Multf, List.rev $2) }
-| DIVIDEF args    { Evalarith(Divf, List.rev $2) }
+| PLUS args 		{ Evalarith(Add, List.rev $2) }
+| MINUS args    	{ Evalarith(Sub, List.rev $2) }
+| TIMES args    	{ Evalarith(Mult, List.rev $2) }
+| DIVIDE args    	{ Evalarith(Div, List.rev $2) }
+| PLUSF args 		{ Evalarith(Addf, List.rev $2) }
+| MINUSF args    	{ Evalarith(Subf, List.rev $2) }
+| TIMESF args    	{ Evalarith(Multf, List.rev $2) }
+| DIVIDEF args    	{ Evalarith(Divf, List.rev $2) }
 | EQ args 		{ Evalarith(Equal, List.rev $2) }
 | NEQ args 		{ Evalarith(Neq, List.rev $2) }
 | LT args 		{ Evalarith(Less, List.rev $2) }
