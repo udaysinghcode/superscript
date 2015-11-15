@@ -76,9 +76,9 @@ let generate_prog p =
                               [] -> []
                             | h1::h2::tl -> (h1, h2)::(gen_pairs tl) in
                           if o = Assign then String.concat ";" (List.map (fun (Id(s), e) -> generate (Assign(s, e))) (gen_pairs (List.rev el)))
-                          else cc ["__unbox("; generate (List(el)); ").reduce(function(prev, cur) { return "; op_name o; "(prev, cur); })"]
+                          else cc ["__unbox("; generate (List(List.rev el)); ").reduce(function(prev, cur) { return "; op_name o; "(prev, cur); })"]
     | Nil -> box "nil" "[]"
-    | List(el) -> box "list" (cc ["["; (String.concat ", " (List.rev (List.map generate el))); "]"])
+    | List(el) -> box "list" (cc ["["; (String.concat ", " (List.map generate el)); "]"])
     | Fdecl(argl, exp) -> cc ["(function("; String.concat ", " argl; ") { return "; generate exp; "; })"]
     | If(cond, thenb, elseb) -> cc [generate cond; " ? "; generate thenb; " : "; generate elseb]
     | For(init, cond, update, exp) -> cc ["return "; generate Nil; ";"]
