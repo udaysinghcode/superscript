@@ -6,7 +6,7 @@ let rec stringify e =
     | Addf -> "Addf" | Subf -> "Subf" | Multf -> "Multf" | Divf -> "Divf"
     | Equal -> "Equal" | Neq -> "Neq" | Less -> "Less" | Leq -> "Leq"
     | Greater -> "Greater" | Geq -> "Geq" | And -> "And" | Or -> "Or" 
-    | Assign -> "Assign" | Quote -> "Quote"
+    | Assign -> "Assign"
 in
   let concat l = (String.concat "" l) in
   match e with
@@ -18,7 +18,7 @@ in
   | Assign(str, exp) -> concat ["Assign("; str; ", "; stringify exp; ""]
   | Binop(exp1, op, exp2) -> concat ["Binop("; stringify exp1; ", "; stringify_op op; ", "; stringify exp2; ")"]
   | Eval(str, el) -> concat ["Eval("; str; ", "; stringify (List(el)); ")"]
-  | Evalarith(o, el) -> concat ["Evalarith("; stringify_op o; ", "; stringify (List(el)); ")"]
+  | ListOp(o, el) -> concat ["Evalarith("; stringify_op o; ", "; stringify (List(el)); ")"]
   | Nil -> "Nil"
   | List(expl) -> concat ["List("; (String.concat ", " (List.map (fun x -> stringify x) expl)); ")"]
   | Fdecl(args, e) -> concat ["Fdecl(["; String.concat ", " (List.map (fun x -> concat ["\""; x; "\""]) args); "], "; stringify e; ")"]
