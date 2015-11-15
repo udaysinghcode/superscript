@@ -1,9 +1,9 @@
 open Ast;;
+
 open Generator;;
 open Scanner;;
 open Unix;;
 open Stringify;;
-
 
 let load_file f =
   let ic = open_in f in
@@ -28,10 +28,8 @@ let write stuff =
 ;;
 
 let filename = Sys.argv.(1) in
-let lexbuf = Lexing.from_string (load_file filename) in
+let lexbuf = Lexing.from_string (if filename = "-s" then Sys.argv.(2) else load_file filename) in
 let expression = Parser.program Scanner.token lexbuf in
 let prog = Generator.generate_prog expression in
 write prog;
-print_endline (String.concat "" ["AST: "; Stringify.stringify_prog expression; "\nOutput: "; (String.concat "" (funct (Unix.open_process_in "node a.js")))])
-
-
+print_endline (String.concat "" (funct (Unix.open_process_in "node a.js")))
