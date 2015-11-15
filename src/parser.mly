@@ -69,24 +69,23 @@ constant:
 
 call:
   ID args_opt		{ Eval($1, List.rev $2) }
-| PLUS args 		{ Evalarith(Add, List.rev $2) }
-| MINUS args    	{ Evalarith(Sub, List.rev $2) }
-| TIMES args    	{ Evalarith(Mult, List.rev $2) }
-| DIVIDE args    	{ Evalarith(Div, List.rev $2) }
-| PLUSF args 		{ Evalarith(Addf, List.rev $2) }
-| MINUSF args    	{ Evalarith(Subf, List.rev $2) }
-| TIMESF args    	{ Evalarith(Multf, List.rev $2) }
-| DIVIDEF args    	{ Evalarith(Divf, List.rev $2) }
-| EQ args 		{ Evalarith(Equal, List.rev $2) }
-| NEQ args 		{ Evalarith(Neq, List.rev $2) }
-| LT args 		{ Evalarith(Less, List.rev $2) }
-| LEQ args 		{ Evalarith(Leq, List.rev $2) }
-| GT args 		{ Evalarith(Greater, List.rev $2) }
-| GEQ args 		{ Evalarith(Geq, List.rev $2) }
-| AND args 		{ Evalarith(And, List.rev $2) }
-| OR args 		{ Evalarith(Or, List.rev $2) }
-| ASSIGN args		{ Evalarith(Assign, List.rev $2) }
-| QUOTE args		{ Evalarith(Quote, List.rev $2) }
+| PLUS args 		{ ListOp(Add, List.rev $2) }
+| MINUS args    	{ ListOp(Sub, List.rev $2) }
+| TIMES args    	{ ListOp(Mult, List.rev $2) }
+| DIVIDE args    	{ ListOp(Div, List.rev $2) }
+| PLUSF args 		{ ListOp(Addf, List.rev $2) }
+| MINUSF args    	{ ListOp(Subf, List.rev $2) }
+| TIMESF args    	{ ListOp(Multf, List.rev $2) }
+| DIVIDEF args    	{ ListOp(Divf, List.rev $2) }
+| EQ args 		{ ListOp(Equal, List.rev $2) }
+| NEQ args 		{ ListOp(Neq, List.rev $2) }
+| LT args 		{ ListOp(Less, List.rev $2) }
+| LEQ args 		{ ListOp(Leq, List.rev $2) }
+| GT args 		{ ListOp(Greater, List.rev $2) }
+| GEQ args 		{ ListOp(Geq, List.rev $2) }
+| AND args 		{ ListOp(And, List.rev $2) }
+| OR args 		{ ListOp(Or, List.rev $2) }
+| ASSIGN args		{ ListOp(Assign, List.rev $2) }
 
 args_opt:
 /* nothing */ 		{ [] }

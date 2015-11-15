@@ -13,7 +13,7 @@ let generate_js_func fname = match fname with
   | "__add"     -> ("function __add(a1, a2) { return __box('int', __unbox(a1) + __unbox(a2)); };", ["int"; "int"], "int", ["__box"; "__unbox"])
   | "__sub"     -> ("function __sub(a1, a2) { return __box('int', __unbox(a1) - __unbox(a2)); };", ["int"; "int"], "int", ["__box"; "__unbox"])
   | "__mult"    -> ("function __mult(a1, a2) { return __box('int', __unbox(a1) * __unbox(a2)); };", ["int"; "int"], "int", ["__box"; "__unbox"])
-  | "__div"     -> ("function __div(a1, a2) { return __box('int', __unbox(a1) / __unbox(a2)); };", ["int"; "int"], "int", ["__box"; "__unbox"])
+  | "__div"     -> ("function __div(a1, a2) { return __box('int', Math.floor(__unbox(a1) / __unbox(a2))); };", ["int"; "int"], "int", ["__box"; "__unbox"])
   | "mod"       -> ("function mod(a1, a2) { return __box('int', __unbox(a1) % __unbox(a2)); };", ["int"; "int"], "int", ["__box"; "__unbox"])
   | "__addf"    -> ("function __addf(a1, a2) { return __box('float', __unbox(a1) + __unbox(a2)); };", ["float"; "float"], "float", ["__box"; "__unbox"])
   | "__subf"    -> ("function __subf(a1, a2) { return __box('float', __unbox(a1) - __unbox(a2)); };", ["float"; "float"], "float", ["__box"; "__unbox"])
@@ -72,9 +72,10 @@ let generate_prog p =
     | Assign(s, exp) -> cc ["var "; s; " = "; generate exp]
     | Binop(e1, o, e2) -> generate (Eval(op_name o, [e1; e2]))
     | Eval(fname, el) -> cc [fname; ".apply(null, __unbox("; generate (List(el)); "))"]
-    | ListOp(o, el) -> generate (List(el))
+    | ListOp(o, el) -> if o = Assign then "foo"
+                          else cc ["__unbox("; generate (List(el)); ").reduce(function(prev, cur) { return "; op_name o; "(prev, cur); })"]
     | Nil -> box "nil" "[]"
-    | List(el) -> box "list" (cc ["["; (String.concat ", " (List.map generate el)); "]"])
+    | List(el) -> box "list" (cc ["["; (String.concat ", " (List.rev (List.map generate el))); "]"])
     | Fdecl(argl, exp) -> cc ["(function("; String.concat ", " argl; ") { return "; generate exp; "; })"]
     | If(cond, thenb, elseb) -> cc [generate cond; " ? "; generate thenb; " : "; generate elseb]
     | For(init, cond, update, exp) -> cc ["return "; generate Nil; ";"]
