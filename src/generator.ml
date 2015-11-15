@@ -59,7 +59,6 @@ let op_name o = match o with
     | And -> "__and"
     | Or -> "__or"
     | Assign -> "__ASSIGN__"
-    | Quote -> "__QUOTE__"
 
 let generate_prog p =
   let cc l = String.concat "" l in
@@ -73,7 +72,7 @@ let generate_prog p =
     | Assign(s, exp) -> cc ["var "; s; " = "; generate exp]
     | Binop(e1, o, e2) -> generate (Eval(op_name o, [e1; e2]))
     | Eval(fname, el) -> cc [fname; ".apply(null, __unbox("; generate (List(el)); "))"]
-    | Evalarith(o, el) -> let rec gen_pairs l = match l with
+    | ListOp(o, el) -> let rec gen_pairs l = match l with
                               [] -> []
                             | h1::h2::tl -> (h1, h2)::(gen_pairs tl) in
                           if o = Assign then String.concat ";" (List.map (fun (Id(s), e) -> generate (Assign(s, e))) (gen_pairs (List.rev el)))
@@ -96,7 +95,7 @@ let generate_prog p =
         Eval(fname, el) -> ["__unbox"; fname] @ (get_fnames (List(el)))
       | Assign(s, exp) -> get_fnames exp
       | Binop(e1, o, e2) -> get_fnames (Eval(op_name o, [e1; e2]))
-      | Evalarith(o, el) -> get_fnames (Eval(op_name o, el))
+      | ListOp(o, el) -> get_fnames (Eval(op_name o, el))
       | List(el) -> List.flatten (List.map get_fnames el)
       | Fdecl(argl, exp) -> get_fnames exp
       | If(cond, thenb, elseb) -> (get_fnames cond) @ (get_fnames thenb) @ (get_fnames elseb)

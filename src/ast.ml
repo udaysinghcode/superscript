@@ -1,5 +1,5 @@
 type op = Add | Sub | Mult | Div | Addf | Subf | Multf | Divf 
-	| Equal | Neq | Less | Leq | Greater | Geq | And | Or | Assign | Quote
+	| Equal | Neq | Less | Leq | Greater | Geq | And | Or | Assign
  
 type bool = true | false
 
@@ -12,7 +12,7 @@ type expr =				(* Expressions *)
   | Assign of string * expr		(* {x = 5} OR (= x 5) *)
   | Binop of expr * op * expr		(* {x + 10} *)
   | Eval of string * expr list		(* (foo 5 21) *)
-  | Evalarith of op * expr list   	(* (+ 1 2 3 ) *)
+  | ListOp of op * expr list   	(* (+ 1 2 3 ) *)
   | Nil					(* null datatype *)
   | List of expr list			(* list, mixed datatypes allowed in same list *)
   | Fdecl of string list * expr 	(* (fn (a b) {a + b}) *)
