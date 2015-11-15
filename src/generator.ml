@@ -73,7 +73,10 @@ let generate_prog p =
     | Assign(s, exp) -> cc ["var "; s; " = "; generate exp]
     | Binop(e1, o, e2) -> generate (Eval(op_name o, [e1; e2]))
     | Eval(fname, el) -> cc [fname; ".apply(null, __unbox("; generate (List(el)); "))"]
-    | Evalarith(o, el) -> if o = Assign then "foo"
+    | Evalarith(o, el) -> let rec gen_pairs l = match l with
+                              [] -> []
+                            | h1::h2::tl -> (h1, h2)::(gen_pairs tl) in
+                          if o = Assign then String.concat ";" (List.map (fun (Id(s), e) -> generate (Assign(s, e))) (gen_pairs (List.rev el)))
                           else cc ["__unbox("; generate (List(el)); ").reduce(function(prev, cur) { return "; op_name o; "(prev, cur); })"]
     | Nil -> box "nil" "[]"
     | List(el) -> box "list" (cc ["["; (String.concat ", " (List.rev (List.map generate el))); "]"])
