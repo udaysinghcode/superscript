@@ -45,6 +45,9 @@ expr:
 | LBRACE infix_expr RBRACE	{ $2 }
 | LPAREN sexpr RPAREN		{ $2 }
 
+list:
+  QUOTE LPAREN args_opt RPAREN 	{ List(List.rev $3) }
+
 formals_opt:
 /* nothing */ 	{ [] }
 | formal_list	{ List.rev $1 }
@@ -57,32 +60,31 @@ atom:
   constant		{ $1 }
 | ID			{ Id($1) }
 | NIL			{ Nil }
-| stdfname		{ StdFname($1) }
+| operator		{ Id($1) }
+| LET			{ Id("__let") }
+| IF			{ Id("__if") }
+| FOR			{ Id("__for") }
+| WHILE			{ Id("__while") }
+| FUNC			{ Id("__func") }
 
-stdfname:
-| LET			{ "Let" }
-| IF			{ "If" }
-| WHILE			{ "While" }
-| FOR			{ "For" }
-| PLUS			{ "Add" }
-| MINUS			{ "Sub" } 
-| TIMES			{ "Mult" }
-| DIVIDE		{ "Div" }
-| PLUSF			{ "Addf" }
-| MINUSF		{ "Subf" }
-| DIVIDEF		{ "Divf" } 
-| TIMESF		{ "Multf" }
-| EQ			{ "Equal" }
-| NEQ			{ "Neq" }
-| LT			{ "Less" }
-| LEQ			{ "Leq" }
-| GT			{ "Greater" }
-| GEQ			{ "Geq" }
-| AND			{ "And" }
-| OR			{ "Or" }
+operator:
+| PLUS			{ "__add" }
+| MINUS			{ "__sub" } 
+| TIMES			{ "__mult" }
+| DIVIDE		{ "__div" }
+| PLUSF			{ "__addf" }
+| MINUSF		{ "__subf" }
+| DIVIDEF		{ "__divf" } 
+| TIMESF		{ "__multf" }
+| EQ			{ "__equal" }
+| NEQ			{ "__neq" }
+| LT			{ "__less" }
+| LEQ			{ "__leq" }
+| GT			{ "__greater" }
+| GEQ			{ "__geq" }
+| AND			{ "__and" }
+| OR			{ "__or" }
 
-list:
-  QUOTE LPAREN args_opt RPAREN { List(List.rev $3) }
 
 constant: 
   INT 			{ Int($1) }
@@ -92,23 +94,7 @@ constant:
 
 call:
   ID args_opt		{ Eval($1, List.rev $2) }
-| PLUS args 		{ ListOp(Add, List.rev $2) }
-| MINUS args    	{ ListOp(Sub, List.rev $2) }
-| TIMES args    	{ ListOp(Mult, List.rev $2) }
-| DIVIDE args    	{ ListOp(Div, List.rev $2) }
-| PLUSF args 		{ ListOp(Addf, List.rev $2) }
-| MINUSF args    	{ ListOp(Subf, List.rev $2) }
-| TIMESF args    	{ ListOp(Multf, List.rev $2) }
-| DIVIDEF args    	{ ListOp(Divf, List.rev $2) }
-| EQ args 		{ ListOp(Equal, List.rev $2) }
-| NEQ args 		{ ListOp(Neq, List.rev $2) }
-| LT args 		{ ListOp(Less, List.rev $2) }
-| LEQ args 		{ ListOp(Leq, List.rev $2) }
-| GT args 		{ ListOp(Greater, List.rev $2) }
-| GEQ args 		{ ListOp(Geq, List.rev $2) }
-| AND args 		{ ListOp(And, List.rev $2) }
-| OR args 		{ ListOp(Or, List.rev $2) }
-| ASSIGN args		{ ListOp(Assign, List.rev $2) }
+| operator args 	{ Eval($1, List.rev $2) }
 
 args_opt:
 /* nothing */ 		{ [] }
