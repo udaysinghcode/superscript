@@ -83,7 +83,7 @@ let generate_prog p =
     | If(cond, thenb, elseb) -> cc [generate cond; " ? "; generate thenb; " : "; generate elseb]
     | For(init, cond, update, exp) -> cc ["return "; generate Nil; ";"]
     | While(cond, exp) -> cc ["return "; generate Nil; ";"] 
-    | Let(n, v, exp) -> cc ["(function () { "; generate (Assign(n, v)); "; return "; generate exp; "; })();"] in
+    | Let(n, v, exp) -> cc ["(function () { "; generate (Assign(n, v)); "; return "; generate exp; "; })()"] in
   let generate_head p =
     let rec get_deps fname =
       let (_, _, _, deps) = generate_js_func fname in
