@@ -62,8 +62,12 @@ list:
   QUOTE LPAREN args_opt RPAREN { List(List.rev $3) }
 
 constant: 
-  INT			{ Int($1) }
+  INT 			{ Int($1) }
+| PLUS INT		{ Int($2) }
+| MINUS INT 	{ Int(-$2)}
 | FLOAT			{ Float($1) }
+| PLUS FLOAT	{ Float($2) }
+| MINUS FLOAT	{ Float(-.$2) }
 | BOOL			{ Boolean($1) }
 | STRING		{ String($1) }
 
