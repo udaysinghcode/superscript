@@ -4,7 +4,7 @@
 %token ASSIGN QUOTE AND OR EQ NEQ LT LEQ GT GEQ
 %token SEMI LPAREN RPAREN LBRACE RBRACE
 %token <int> INT
-%token FUNC LET IN IF FOR WHILE
+%token FUNC LET IF FOR WHILE
 %token <string> ID
 %token <string> STRING
 %token <float> FLOAT
@@ -32,7 +32,7 @@ expr_list:
 | expr_list expr SEMI	{ $2 :: $1 }
 
 sexpr:
-  LET ID expr IN expr   	{ Let($2, $3, $5) }
+  LET ID expr expr   		{ Let($2, $3, $4) }
 | IF expr expr expr		{ If($2, $3, $4) }
 | FOR expr expr expr expr	{ For($2, $3, $4, $5)}
 | WHILE expr expr		{ While($2, $3) }

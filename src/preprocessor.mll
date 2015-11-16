@@ -45,7 +45,7 @@ rule token = parse
 	
 	| "(*" { comment lexbuf }
 
-	| '\n'[' ' '\t']*("if" | "for" | "do" | "while" ) as lxm 		(* Standard library functions *)
+	| '\n'[' ' '\t']*("let" | "if" | "for" | "do" | "while" ) as lxm 	(* Standard library functions *)
 					{ let spaces = countSp lxm 0 1 in
 					   ignore(Stack.push spaces curIndent); 
 					 StdFn(lxm) }
@@ -66,7 +66,7 @@ rule token = parse
 					in Word(parens)
 				) }
 
-	| "fn" ' '* '('	as lxm { let spaces = countSp lxm 0 1 in			(* Anonymous function declaration: "fn (" *)
+	| "fn" ' '* '('	as lxm { let spaces = countSp lxm 0 1 in	(* Anonymous function declaration: "fn (" *)
  				ignore(Stack.push spaces curIndent); Fdecl(lxm) }
 	
 	| '\n'[' ' '\t']* "def" ' '* fn_name ' '* '(' 	(* Named function declaration: needs own regexp

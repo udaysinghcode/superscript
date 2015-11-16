@@ -33,7 +33,6 @@ rule token = parse
 | "if"     { IF }
 | "for"    { FOR }
 | "let"    { LET }
-| "in"     { IN }
 | "while"  { WHILE }
 | '\"'[^'\"']*'\"' as lxm { STRING(String.sub lxm 1 (String.length lxm - 2)) } 	(* String *)
 | ['0'-'9']*'.'['0'-'9']+  as lxm { FLOAT(float_of_string lxm) }		(* Float *)
