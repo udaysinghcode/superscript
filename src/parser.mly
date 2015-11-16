@@ -49,7 +49,7 @@ formals_opt:
 /* nothing */ 	{ [] }
 | formal_list	{ List.rev $1 }
 
-formal_list:
+ formal_list:
   ID		  { [$1] }
 | formal_list ID  { $2 :: $1 }
 
@@ -57,6 +57,7 @@ atom:
   constant		{ $1 }
 | ID			{ Id($1) }
 | NIL			{ Nil }
+| MINUS atom		{ Unop(Minus, $2) }
 
 list:
   QUOTE LPAREN args_opt RPAREN { List(List.rev $3) }
