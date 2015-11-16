@@ -41,6 +41,7 @@ sexpr:
 
 expr:
   atom				{ $1 }
+| MINUS atom			{ Unop(Minus, $2) }
 | list				{ $1 }
 | LBRACE infix_expr RBRACE	{ $2 }
 | LPAREN sexpr RPAREN		{ $2 }
@@ -57,7 +58,6 @@ atom:
   constant		{ $1 }
 | ID			{ Id($1) }
 | NIL			{ Nil }
-| MINUS atom		{ Unop(Minus, $2) }
 
 list:
   QUOTE LPAREN args_opt RPAREN { List(List.rev $3) }
@@ -98,6 +98,7 @@ args:
   
 infix_expr:
   atom				{ $1 }
+| MINUS atom			{ Unop(Minus, $2) }
 | LPAREN infix_expr RPAREN	{ $2 }
 | ID ASSIGN infix_expr		{ Assign($1, $3) }
 | infix_expr PLUS infix_expr	{ Binop($1, Add, $3) }
