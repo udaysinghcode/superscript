@@ -43,12 +43,17 @@ let write stuff =
 ;;
 
 let tests = [
-  ("prn function", "(prn \"Hello World!\");;", [Eval("prn", [String("Hello World!")])], "Hello World!") ;
-  ("function literal", "(fn (x) (prn x));;", [Fdecl(["x"], Eval("prn", [Id("x")]))], "") ;
-  ("str_of_int test", "(prn (str_of_int 10));;", [Eval("prn", [Eval("str_of_int", [Int(10)])])], "10") ;
-  ("test1", "(= foo 5);;", [Assign("foo", Int(5))], "Foo") ;
-	("Hello World program", "(prn \"Hello World!\");;", [Eval("prn", [String("Hello World!")])], "Hello World!") ;
-	("Curly expression produces expected ast", "{5 + 3};;", [Binop(Int(5), Add, Int(2))], "place holder") ;
+  ("prn function: (prn \"Hello World!\");;", "(prn \"Hello World!\");;", [], "Hello World!") ;
+  ("str_of_int function: (prn (str_of_int 10));;", "(prn (str_of_int 10));;", [], "10") ;
+  ("type function: (prn (type \"Hello\"));;", "(prn (type \"Hello\"));;", [], "string") ;
+  ("function literal: (prn (type (fn (x) (prn x))));;", "(prn (type (fn (x) (prn x))));;", [], "function") ;
+  ("assignment operator: (= foo \"Hello\");;(prn foo);;", "(= foo \"Hello\");;(prn foo);;", [], "Hello") ;
+  ("user defined functions: (= foo (fn (x) (prn x)));;(foo \"Bar\");;", "(= foo (fn (x) (prn x)));;(foo \"Bar\");;", [], "Bar") ;
+	("curly infix arithmetic expression: (prn (str_of_int {5 + 3}));;", "(prn (str_of_int {5 + 3}));;", [], "8") ;
+  ("prefix integer add: (prn (str_of_int (+ 1 2 3 4)));;", "(prn (str_of_int (+ 1 2 3 4)));;", [], "10") ;
+  ("prefix integer sub: (prn (str_of_int (- 10 2 3)));;", "(prn (str_of_int (- 10 2 3)));;", [], "5") ;
+  ("prefix integer mult: (prn (str_of_int (* 1 2 3 4)));;", "(prn (str_of_int (* 1 2 3 4)));;", [], "24") ;
+  ("prefix integer div: (prn (str_of_int (/ 10 2 -5)));;", "(prn (str_of_int (/ 10 2 -5)));;", [], "-1") ;
 ] ;;
 
 let unsuccess = ref 0 ;;
@@ -58,13 +63,13 @@ List.iter (fun (desc, input, ast, expout) ->
 	let expression = Parser.program Scanner.token lexbuf in
 	if (ast = expression || ast = []) then 
 		let prog = Generator.generate_prog expression in  (*instead of prog = Generator.generate_prog expr*)
-			write prog;	
+		write prog;	
 			(*print_endline (String.concat "" (funct (Unix.open_process_in "node a.js"))) *)
-			let actout = String.concat "" (funct (Unix.open_process_in "node a.js")) in
-			if  expout = actout then 
-				print_endline (String.concat "" [desc; "... SUCCESSFUL. Output: \n"; actout])
-			else print_endline (String.concat "" [desc; "... UNSUCCESSFUL Compilation....\n\ninput:\n"; input; "\nexpected out:\n"; expout; "\n\nActual out:\n"; ]);
-			(*print_endline prog*)
-		else (print_endline (String.concat "" [desc; "... UNSUCCESSFUL Ast creation. Generated Ast: "; Stringify.stringify_prog expression]) ; unsuccess := !unsuccess+1 ) ) tests ;;
+		let actout = String.concat "\n" (funct (Unix.open_process_in "node a.js")) in
+		if  expout = actout then 
+			print_endline (String.concat "" [desc; "... SUCCESSFUL. Output: "; actout])
+		else print_endline (String.concat "" [desc; "... UNSUCCESSFUL Compilation....\n\ninput:\n"; input; "\nexpected out:\n"; expout; "\n\nActual out:\n"; ]);
+		(*print_endline prog*)
+	else (print_endline (String.concat "" [desc; "... UNSUCCESSFUL Ast creation. Generated Ast: "; Stringify.stringify_prog expression; " Required Ast: "; Stringify.stringify_prog ast]) ; unsuccess := !unsuccess+1 ) ) tests ;;
 
 if !unsuccess = 0 then exit 0 else exit 1 ;;
