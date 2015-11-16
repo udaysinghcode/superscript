@@ -57,6 +57,29 @@ atom:
   constant		{ $1 }
 | ID			{ Id($1) }
 | NIL			{ Nil }
+| stdfname		{ StdFname($1) }
+
+stdfname:
+| LET			{ "Let" }
+| IF			{ "If" }
+| WHILE			{ "While" }
+| FOR			{ "For" }
+| PLUS			{ "Add" }
+| MINUS			{ "Sub" } 
+| TIMES			{ "Mult" }
+| DIVIDE		{ "Div" }
+| PLUSF			{ "Addf" }
+| MINUSF		{ "Subf" }
+| DIVIDEF		{ "Divf" } 
+| TIMESF		{ "Multf" }
+| EQ			{ "Equal" }
+| NEQ			{ "Neq" }
+| LT			{ "Less" }
+| LEQ			{ "Leq" }
+| GT			{ "Greater" }
+| GEQ			{ "Geq" }
+| AND			{ "And" }
+| OR			{ "Or" }
 
 list:
   QUOTE LPAREN args_opt RPAREN { List(List.rev $3) }
