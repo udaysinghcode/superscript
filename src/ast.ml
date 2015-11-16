@@ -1,8 +1,6 @@
 type op = Add | Sub | Mult | Div | Addf | Subf | Multf | Divf 
 	| Equal | Neq | Less | Leq | Greater | Geq | And | Or | Assign
 
-type bool = true | false
-
 type expr =				(* Expressions *)
   Int of int				(* 4 *)
   | Float of float			(* 4.444 *)
