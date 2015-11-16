@@ -21,7 +21,7 @@ let generate_js_func fname =
     | "__subf"    -> ("'function(a1, a2) { return __box(\\'float\\', __unbox(a1) - __unbox(a2)); }'", ["float"; "float"], "float", [])
     | "__multf"   -> ("'function(a1, a2) { return __box(\\'float\\', __unbox(a1) * __unbox(a2)); }'", ["float"; "float"], "float", [])
     | "__divf"    -> ("'function(a1, a2) { return __box(\\'float\\', __unbox(a1) / __unbox(a2)); }'", ["float"; "float"], "float", [])
-    | "__equal"   -> ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) === __unbox(a2)); }'", ["ss_boxed"; "ss_boxed"], "boolean", [])
+    | "__equal"   -> ("'function(a1, a2) { return __box(\\'boolean\\', JSON.stringify(__unbox(a1)) === JSON.stringify(__unbox(a2))); }'", ["ss_boxed"; "ss_boxed"], "boolean", [])
     | "__neq"     -> ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) !== __unbox(a2)); }'", ["ss_boxed"; "ss_boxed"], "boolean", [])
     | "__less"    -> ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) < __unbox(a2)); }'", ["ss_boxed"; "ss_boxed"], "boolean", [])
     | "__leq"     -> ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) <= __unbox(a2)); }'", ["ss_boxed"; "ss_boxed"], "boolean", [])
@@ -33,6 +33,7 @@ let generate_js_func fname =
     | "int_of_str"   -> ("'function(s) { return __box(\\'int\\', parseInt(__unbox(s))); }'", ["string"], "int", [])
     | "str_of_float" -> ("'function(f) { return __box(\\'string\\', '' + __unbox(f)); }'", ["float"], "string", [])
     | "float_of_str" -> ("'function(s) { return __box(\\'float\\', parseFloat(__unbox(s))); }'", ["string"], "float", [])
+    | "str_of_bool"   -> ("'function(b) { return __box(\\'string\\', \\'\\' + __unbox(b)); }'", ["boolean"], "string", [])
     | "concat"     -> ("'function(s1, s2) { return __box(\\'string\\', __unbox(s1) + __unbox(s2)); }'", ["string"; "string"], "string", [])
     | _ -> ("", [], "", []) in
   let (fstr, arg_types, ret_type, deps) = helper fname in
@@ -44,7 +45,7 @@ let is_generatable fname =
                   "__div"; "mod"; "__addf"; "__subf"; "__multf"; "__divf";
                   "__equal"; "__neq"; "__less"; "__leq"; "__greater";
                   "__geq"; "__and"; "__or"; "str_of_int"; "int_of_str";
-                  "str_of_float"; "float_of_str"; "concat"]
+                  "str_of_float"; "float_of_str"; "str_of_bool"; "concat"]
 
 let op_name o = match o with
       Add -> "__add"
@@ -81,7 +82,7 @@ let generate_prog p =
                             | _::[] -> raise (Failure("= operator used on odd numbered list!")) in
                           if o = Assign then String.concat ";" (List.map (fun (Id(s), e) -> generate (Assign(s, e))) (gen_pairs (List.rev el)))
                           else cc ["__unbox("; generate (List(List.rev el)); ").reduce(function(prev, cur) { return __fcall("; op_name o; ", __box('list', [prev, cur])); })"]
-    | Nil -> box "nil" "[]"
+    | Nil -> box "list" "[]"
     | List(el) -> box "list" (cc ["["; (String.concat ", " (List.map generate el)); "]"])
     | Fdecl(argl, exp) -> box "function" (cc ["(function("; String.concat ", " (List.rev argl); ") { return "; generate exp; "; }).toString()"])
     | If(cond, thenb, elseb) -> cc ["__unbox("; generate cond; ") ? "; generate thenb; " : "; generate elseb]
