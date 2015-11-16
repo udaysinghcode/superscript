@@ -58,7 +58,7 @@ List.iter (fun (desc, input, ast, expout) ->
 		let prog = Generator.generate_prog expression in  (*instead of prog = Generator.generate_prog expr*)
 		write prog;	
 			(*print_endline (String.concat "" (funct (Unix.open_process_in "node a.js"))) *)
-		let actout = String.concat "" (funct (Unix.open_process_in "node a.js")) in
+		let actout = String.concat "\n" (funct (Unix.open_process_in "node a.js")) in
 		if  expout = actout then 
 			print_endline (String.concat "" [desc; "... SUCCESSFUL. Output: "; actout])
 		else print_endline (String.concat "" [desc; "... UNSUCCESSFUL Compilation....\n\ninput:\n"; input; "\nexpected out:\n"; expout; "\n\nActual out:\n"; ]);
