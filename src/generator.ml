@@ -29,7 +29,7 @@ let generate_js_func fname =
     | "__geq"     -> ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) >= __unbox(a2)); }'", ["ss_boxed"; "ss_boxed"], "boolean", [])
     | "__and"     -> ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) && __unbox(a2)); }'", ["ss_boxed"; "ss_boxed"], "boolean", [])
     | "__or"      -> ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) || __unbox(a2)); }'", ["ss_boxed"; "ss_boxed"], "boolean", [])
-    | "str_of_int"   -> ("'function(i) { return __box(\\'string\\', '' + __unbox(i)); }'", ["int"], "string", [])
+    | "str_of_int"   -> ("'function(i) { return __box(\\'string\\', \\'\\' + __unbox(i)); }'", ["int"], "string", [])
     | "int_of_str"   -> ("'function(s) { return __box(\\'int\\', parseInt(__unbox(s))); }'", ["string"], "int", [])
     | "str_of_float" -> ("'function(f) { return __box(\\'string\\', '' + __unbox(f)); }'", ["float"], "string", [])
     | "float_of_str" -> ("'function(s) { return __box(\\'float\\', parseFloat(__unbox(s))); }'", ["string"], "float", [])
