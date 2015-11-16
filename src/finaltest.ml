@@ -43,10 +43,17 @@ let write stuff =
 ;;
 
 let tests = [
-  ("prn function: (prn \"Hello World!\");;", "(prn \"Hello World!\");;", [Eval("prn", [String("Hello World!")])], "Hello World!") ;
-  ("function literal: (fn (x) (prn x));;", "(fn (x) (prn x));;", [Fdecl(["x"], Eval("prn", [Id("x")]))], "") ;
-  ("str_of_int function: (prn (str_of_int 10));;", "(prn (str_of_int 10));;", [Eval("prn", [Eval("str_of_int", [Int(10)])])], "10") ;
-	("curly infix arithmetic expression: (prn (str_of_int {5 + 3}));;", "(prn (str_of_int {5 + 3}));;", [], "9") ;
+  ("prn function: (prn \"Hello World!\");;", "(prn \"Hello World!\");;", [], "Hello World!") ;
+  ("str_of_int function: (prn (str_of_int 10));;", "(prn (str_of_int 10));;", [], "10") ;
+  ("type function: (prn (type \"Hello\"));;", "(prn (type \"Hello\"));;", [], "string") ;
+  ("function literal: (prn (type (fn (x) (prn x))));;", "(prn (type (fn (x) (prn x))));;", [], "function") ;
+  ("assignment operator: (= foo \"Hello\");;(prn foo);;", "(= foo \"Hello\");;(prn foo);;", [], "Hello") ;
+  ("user defined functions: (= foo (fn (x) (prn x)));;(foo \"Bar\");;", "(= foo (fn (x) (prn x)));;(foo \"Bar\");;", [], "Bar") ;
+	("curly infix arithmetic expression: (prn (str_of_int {5 + 3}));;", "(prn (str_of_int {5 + 3}));;", [], "8") ;
+  ("prefix integer add: (prn (str_of_int (+ 1 2 3 4)));;", "(prn (str_of_int (+ 1 2 3 4)));;", [], "10") ;
+  ("prefix integer sub: (prn (str_of_int (- 10 2 3)));;", "(prn (str_of_int (- 10 2 3)));;", [], "5") ;
+  ("prefix integer mult: (prn (str_of_int (* 1 2 3 4)));;", "(prn (str_of_int (* 1 2 3 4)));;", [], "24") ;
+  ("prefix integer div: (prn (str_of_int (/ 10 2 -5)));;", "(prn (str_of_int (/ 10 2 -5)));;", [], "-1") ;
 ] ;;
 
 let unsuccess = ref 0 ;;
