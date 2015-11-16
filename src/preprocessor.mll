@@ -66,7 +66,8 @@ rule token = parse
 					in Word(parens)
 				) }
 
-	| "fn" ' '* '('	as lxm { Fdecl(lxm) }		(* Anonymous function declaration: "fn (" *)
+	| "fn" ' '* '('	as lxm { let spaces = countSp lxm 0 1 in			(* Anonymous function declaration: "fn (" *)
+ 				ignore(Stack.push spaces curIndent); Fdecl(lxm) }
 	
 	| '\n'[' ' '\t']* "def" ' '* fn_name ' '* '(' 	(* Named function declaration: needs own regexp
 							   so that fn_name(args) does not get slurped into (fn_name args) *)			
