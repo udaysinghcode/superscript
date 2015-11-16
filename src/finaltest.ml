@@ -45,6 +45,7 @@ let write stuff =
 let tests = [
   ("prn function should log to stdout", "(prn \"Hello World!\");;", [], "Hello World!") ;
   ("str_of_int function should make string from int", "(prn (str_of_int 10));;", [], "10") ;
+  ("str_of_bool function should make string from boolean", "(pr (str_of_bool true));;(pr (str_of_bool false));;", [], "truefalse") ;
   ("type function should return type of string", "(prn (type \"Hello\"));;", [], "string") ;
   ("type function should return type of int", "(prn (type 10));;", [], "int") ;
   ("type function should return type of float", "(prn (type 2.2));;", [], "float") ;
@@ -69,6 +70,12 @@ let tests = [
   ("empty list should be nil", "(prn (str_of_bool (is '() nil)));;", [], "true") ;
   ("head function should return head of list", "(prn (head '(\"foo\" \"bar\")));;", [], "foo") ;
   ("tail function should return tail of list", "(prn (head (tail '(\"foo\" \"bar\"))));;", [], "bar") ;
+  ("let function should make temp variable for current statement", "(let x \"foo\" in (prn x));;", [], "foo") ;
+  ("let function should shield temp variable from other statements", "(= x \"bar\");;(let x \"foo\" in (pr x));;(pr x);;", [], "foobar") ;
+  ("nested let function should override same outer temp variable", "(let x \"foo\" in (let x \"bar\" in (prn x)));;", [], "bar") ;
+  ("different outer temp variable should be available in nested let", "(let y \"foo\" in (let x \"bar\" in (prn (concat x y))));;", [], "barfoo") ;
+
+  ("< operator should compare ints", "(pr (str_of_bool (< 9 10)));;(pr (str_of_bool (< 10 11)));;", [], "truefalse") ;
 ] ;;
 
 let unsuccess = ref 0 ;;
