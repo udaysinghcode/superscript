@@ -32,4 +32,4 @@ let lexbuf = Lexing.from_string (if filename = "-s" then Sys.argv.(2) else load_
 let expression = Parser.program Scanner.token lexbuf in
 let prog = Generator.generate_prog expression in
 write prog;
-print_endline (String.concat "" (funct (Unix.open_process_in "node a.js")))
+print_endline (String.concat "\n" (funct (Unix.open_process_in "node a.js")))
