@@ -3,8 +3,6 @@ type op = Add | Sub | Mult | Div | Addf | Subf | Multf | Divf
  
 type unop = Minus
 
-type bool = true | false
-
 type expr =				(* Expressions *)
   Int of int				(* 4 *)
   | Float of float			(* 4.444 *)
