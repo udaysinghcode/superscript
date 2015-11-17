@@ -41,6 +41,7 @@ sexpr:
 
 expr:
   atom				{ $1 }
+| MINUS atom			{ Unop(Minus, $2) }
 | list				{ $1 }
 | LBRACE infix_expr RBRACE	{ $2 }
 | LPAREN sexpr RPAREN		{ $2 }
@@ -49,7 +50,7 @@ formals_opt:
 /* nothing */ 	{ [] }
 | formal_list	{ List.rev $1 }
 
-formal_list:
+ formal_list:
   ID		  { [$1] }
 | formal_list ID  { $2 :: $1 }
 
@@ -97,6 +98,7 @@ args:
   
 infix_expr:
   atom				{ $1 }
+| MINUS atom			{ Unop(Minus, $2) }
 | LPAREN infix_expr RPAREN	{ $2 }
 | ID ASSIGN infix_expr		{ Assign($1, $3) }
 | infix_expr PLUS infix_expr	{ Binop($1, Add, $3) }
