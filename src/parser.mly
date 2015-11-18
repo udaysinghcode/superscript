@@ -41,6 +41,7 @@ sexpr:
 
 expr:
   atom				{ $1 }
+| MINUS atom			{ Unop(Minus, $2) }
 | list				{ $1 }
 | LBRACE infix_expr RBRACE	{ $2 }
 | LPAREN sexpr RPAREN		{ $2 }
