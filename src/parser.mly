@@ -52,7 +52,7 @@ formals_opt:
 /* nothing */ 	{ [] }
 | formal_list	{ List.rev $1 }
 
-formal_list:
+ formal_list:
   ID		  { [$1] }
 | formal_list ID  { $2 :: $1 }
 
@@ -87,7 +87,7 @@ operator:
 
 
 constant: 
-  INT 			{ Int($1) }
+  INT 			{ Int($1) } 
 | FLOAT			{ Float($1) }
 | BOOL			{ Boolean($1) }
 | STRING		{ String($1) }
@@ -106,6 +106,7 @@ args:
   
 infix_expr:
   atom				{ $1 }
+| MINUS atom			{ Unop(Minus, $2) }
 | LPAREN infix_expr RPAREN	{ $2 }
 | ID ASSIGN infix_expr		{ Assign($1, $3) }
 | infix_expr PLUS infix_expr	{ Binop($1, Add, $3) }
