@@ -106,7 +106,8 @@ args:
   
 infix_expr:
   constant			{ $1 }
-| MINUS constant		{ Int(-1 * $2) }
+| MINUS INT			{ Int(-1 * $2) }
+| MINUS FLOAT			{ Float(-1.0 * $2) }
 | LPAREN infix_expr RPAREN	{ $2 }
 | ID ASSIGN infix_expr		{ Assign($1, $3) }
 | infix_expr PLUS infix_expr	{ Binop($1, Add, $3) }
