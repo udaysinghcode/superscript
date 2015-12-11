@@ -100,16 +100,16 @@ args:
 | expr args		{ $1 :: $2 }
   
 assign_args:
-  ID expr		{ $1 :: $2 :: [] }
-| ID expr assign_args   { $1 :: $2 :: $3 }
+  ID expr		{ Id($1) :: $2 :: [] }
+| ID expr assign_args   { Id($1) :: $2 :: $3 }
 
 infix_expr:
   constant			{ $1 }
-| ID				{ $1 }
+| ID				{ Id($1) }
 | MINUS INT			{ Int(-1 * $2) }
 | MINUS FLOAT			{ Float(-1.0 *. $2) }
 | LPAREN infix_expr RPAREN	{ $2 }
-| ID ASSIGN infix_expr		{ Assign([$1; $3]) }
+| ID ASSIGN infix_expr		{ Assign([Id($1); $3]) }
 | infix_expr PLUS infix_expr	{ Binop($1, Add, $3) }
 | infix_expr MINUS infix_expr	{ Binop($1, Sub, $3) }
 | infix_expr TIMES infix_expr	{ Binop($1, Mult, $3) }
