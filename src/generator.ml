@@ -12,15 +12,15 @@ let generate_js_func fname =
     | "head"      -> ("'function(l) { return __clone(__unbox(l)[0]); }'", ["list"], "ss_boxed", [])
     | "tail"      -> ("'function(l) { return __box(\\'list\\', __unbox(l).slice(1)); }'", ["list"], "list", [])
     | "cons"      -> ("'function(i, l) { return __box(\\'list\\', __unbox(l).unshift(__clone(i))); }'", ["ss_boxed"; "list"], "list", [])
-    | "__add"     -> ("'function(a1, a2) { return __box(\\'int\\', __unbox(a1) + __unbox(a2)); }'", ["int"; "int"], "int", [])
-    | "__sub"     -> ("'function(a1, a2) { return __box(\\'int\\', __unbox(a1) - __unbox(a2)); }'", ["int"; "int"], "int", [])
-    | "__mult"    -> ("'function(a1, a2) { return __box(\\'int\\', __unbox(a1) * __unbox(a2)); }'", ["int"; "int"], "int", [])
-    | "__div"     -> ("'function(a1, a2) { return __box(\\'int\\', Math.floor(__unbox(a1) / __unbox(a2))); }'", ["int"; "int"], "int", [])
+    | "__add"     -> ("'function() { return __box(\\'int\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'", ["int"; "int"], "int", [])
+    | "__sub"     -> ("'function() { return __box(\\'int\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a-b;})); }'", ["int"; "int"], "int", [])
+    | "__mult"    -> ("'function() { return __box(\\'int\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a*b;})); }'", ["int"; "int"], "int", [])
+    | "__div"     -> ("'function() { return __box(\\'int\\', Math.floor(Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a/b;}))); }'", ["int"; "int"], "int", [])
     | "mod"       -> ("'function(a1, a2) { return __box(\\'int\\', __unbox(a1) % __unbox(a2)); }'", ["int"; "int"], "int", [])
-    | "__addf"    -> ("'function(a1, a2) { return __box(\\'float\\', __unbox(a1) + __unbox(a2)); }'", ["float"; "float"], "float", [])
-    | "__subf"    -> ("'function(a1, a2) { return __box(\\'float\\', __unbox(a1) - __unbox(a2)); }'", ["float"; "float"], "float", [])
-    | "__multf"   -> ("'function(a1, a2) { return __box(\\'float\\', __unbox(a1) * __unbox(a2)); }'", ["float"; "float"], "float", [])
-    | "__divf"    -> ("'function(a1, a2) { return __box(\\'float\\', __unbox(a1) / __unbox(a2)); }'", ["float"; "float"], "float", [])
+    | "__addf"    -> ("'function(a1, a2) { return __box(\\'float\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'", ["float"; "float"], "float", [])
+    | "__subf"    -> ("'function(a1, a2) { return __box(\\'float\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a-b;})); }'", ["float"; "float"], "float", [])
+    | "__multf"   -> ("'function(a1, a2) { return __box(\\'float\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a*b;})); }'", ["float"; "float"], "float", [])
+    | "__divf"    -> ("'function(a1, a2) { return __box(\\'float\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a/b;})); }'", ["float"; "float"], "float", [])
     | "__equal"   -> ("'function(a1, a2) { return __box(\\'boolean\\', JSON.stringify(__unbox(a1)) === JSON.stringify(__unbox(a2))); }'", ["ss_boxed"; "ss_boxed"], "boolean", [])
     | "__neq"     -> ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) !== __unbox(a2)); }'", ["ss_boxed"; "ss_boxed"], "boolean", [])
     | "__less"    -> ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) < __unbox(a2)); }'", ["ss_boxed"; "ss_boxed"], "boolean", [])
@@ -73,22 +73,20 @@ let generate_prog p =
     | Boolean(b) -> box "boolean" (if b = true then "true" else "false")
     | String(s) -> box "string" (cc ["'"; s; "'"])
     | Id(s) -> s
-    | Assign(s, exp) -> cc ["var "; s; " = "; generate exp]
+    | Assign(el) -> let rec gen_pairs l = match l with
+                      [] -> []
+                    | h1::h2::tl -> (h1, h2)::(gen_pairs tl)
+                    | _::[] -> raise (Failure("= operator used on odd numbered list!")) in
+                    String.concat ";" (List.map (fun (Id(s), e) -> cc ["var "; s; " = "; generate e]) (gen_pairs el))
     | Binop(e1, o, e2) -> generate (Eval(op_name o, [e1; e2]))
     | Eval(fname, el) -> cc ["__fcall('"; fname; "', "; generate (List(el)); ")"]
-    | ListOp(o, el) -> let rec gen_pairs l = match l with
-                              [] -> []
-                            | h1::h2::tl -> (h1, h2)::(gen_pairs tl)
-                            | _::[] -> raise (Failure("= operator used on odd numbered list!")) in
-                          if o = Assign then String.concat ";" (List.map (fun (Id(s), e) -> generate (Assign(s, e))) (gen_pairs (List.rev el)))
-                          else cc ["__unbox("; generate (List(List.rev el)); ").reduce(function(prev, cur) { return __fcall("; op_name o; ", __box('list', [prev, cur])); })"]
     | Nil -> box "list" "[]"
     | List(el) -> box "list" (cc ["["; (String.concat ", " (List.map generate el)); "]"])
     | Fdecl(argl, exp) -> box "function" (cc ["(function("; String.concat ", " (List.rev argl); ") { return "; generate exp; "; }).toString()"])
     | If(cond, thenb, elseb) -> cc ["__unbox("; generate cond; ") ? "; generate thenb; " : "; generate elseb]
     | For(init, cond, update, exp) -> cc ["return "; generate Nil; ";"]
     | While(cond, exp) -> cc ["return "; generate Nil; ";"] 
-    | Let(n, v, exp) -> cc ["(function () { "; generate (Assign(n, v)); "; return "; generate exp; "; })()"] in
+    | Let(n, v, exp) -> cc ["(function () { var "; n; " = "; generate v; "; return "; generate exp; "; })()"] in
   let generate_head p =
     let rec get_deps fname =
       let (_, _, _, deps) = generate_js_func fname in
@@ -98,9 +96,8 @@ let generate_prog p =
       cc ["var "; fname; " = "; body] in
     let rec get_fnames e = match e with
         Eval(fname, el) -> [fname] @ (get_fnames (List(el)))
-      | Assign(s, exp) -> get_fnames exp
+      | Assign(el) -> get_fnames (List(el))
       | Binop(e1, o, e2) -> get_fnames (Eval(op_name o, [e1; e2]))
-      | ListOp(o, el) -> get_fnames (Eval(op_name o, el))
       | List(el) -> List.flatten (List.map get_fnames el)
       | Fdecl(argl, exp) -> get_fnames exp
       | If(cond, thenb, elseb) -> (get_fnames cond) @ (get_fnames thenb) @ (get_fnames elseb)
