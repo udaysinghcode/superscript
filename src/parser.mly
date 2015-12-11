@@ -87,9 +87,9 @@ constant:
 | STRING		{ String($1) }
 
 call:
-  ID args_opt		{ Eval($1, List.rev $2) }
-| operator args 	{ Eval($1, List.rev $2) }
-| ASSIGN assign_args	{ Assign(List.rev $2) }
+  ID args_opt		{ Eval($1, $2) }
+| operator args 	{ Eval($1, $2) }
+| ASSIGN assign_args	{ Assign($2) }
 
 args_opt:
 /* nothing */ 		{ [] }
