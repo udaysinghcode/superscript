@@ -1,6 +1,17 @@
 type op = Add | Sub | Mult | Div | Addf | Subf | Multf | Divf 
 	| Equal | Neq | Less | Leq | Greater | Geq | And | Or | Assign
 
+type htype =
+  | TInt                     (** integers [int] *)
+  | TFloat		     (** floats [floats] *)
+  | TBool                    (** booleans [bool] *)
+  | TString		     (** strings [string] *)
+  | TParam of int            (** parameter *)
+  | TTimes of htype * htype  (** Product [s * t] *)
+  | TArrow of htype * htype  (** Function type [s -> t] *)
+  | TSomeList of htype          (** Lists *)
+  | TSome of htype
+
 type expr =				(* Expressions *)
   Int of int				(* 4 *)
   | Float of float			(* 4.444 *)
