@@ -58,11 +58,11 @@ let tests = [
   ("prefix integer add", "(prn (str_of_int (+ 1 2 3 4)));;", [], "10") ;
   ("prefix integer sub", "(prn (str_of_int (- 10 2 3)));;", [], "5") ;
   ("prefix integer mult", "(prn (str_of_int (* 1 2 3 4)));;", [], "24") ;
-  ("prefix integer div", "(prn (str_of_int (/ 10 2 -5)));;", [], "-1") ;
+  ("prefix integer div", "(prn (str_of_int (/ 10 2 (- 5))));;", [], "-1") ;
   ("prefix float add", "(prn (str_of_int (+ .1 .2 .3 .4)));;", [], "1") ;
   ("prefix float sub", "(prn (str_of_int (- 5.0 .2 .3)));;", [], "4.5") ;
   ("prefix float mult", "(prn (str_of_int (* 1. 2. 3. 4.)));;", [], "24") ;
-  ("prefix float div", "(prn (str_of_int (/ 10. 2. -5.)));;", [], "-1") ;
+  ("prefix float div", "(prn (str_of_int (/ 10. 2. (- 5.))));;", [], "-1") ;
   ("comparing ints with is func", "(pr (str_of_bool (is 1 1)));;(pr (str_of_bool (is 1 2)));;", [], "truefalse") ;
   ("comparing floats with is func", "(pr (str_of_bool (is 1.0 1.)));;(pr (str_of_bool (is .1 .2)));;", [], "truefalse") ;
   ("comparing bools with is func", "(pr (str_of_bool (is true true)));;(pr (str_of_bool (is false true)));;", [], "truefalse") ;
@@ -70,10 +70,10 @@ let tests = [
   ("empty list should be nil", "(prn (str_of_bool (is '() nil)));;", [], "true") ;
   ("head function should return head of list", "(prn (head '(\"foo\" \"bar\")));;", [], "foo") ;
   ("tail function should return tail of list", "(prn (head (tail '(\"foo\" \"bar\"))));;", [], "bar") ;
-  ("let function should make temp variable for current statement", "(let x \"foo\" in (prn x));;", [], "foo") ;
-  ("let function should shield temp variable from other statements", "(= x \"bar\");;(let x \"foo\" in (pr x));;(pr x);;", [], "foobar") ;
-  ("nested let function should override same outer temp variable", "(let x \"foo\" in (let x \"bar\" in (prn x)));;", [], "bar") ;
-  ("different outer temp variable should be available in nested let", "(let y \"foo\" in (let x \"bar\" in (prn (concat x y))));;", [], "barfoo") ;
+  ("let function should make temp variable for current statement", "(let x \"foo\" (prn x));;", [], "foo") ;
+  ("let function should shield temp variable from other statements", "(= x \"bar\");;(let x \"foo\" (pr x));;(pr x);;", [], "foobar") ;
+  ("nested let function should override same outer temp variable", "(let x \"foo\" (let x \"bar\" (prn x)));;", [], "bar") ;
+  ("different outer temp variable should be available in nested let", "(let y \"foo\" (let x \"bar\" (prn (concat x y))));;", [], "barfoo") ;
 
   ("< operator should compare ints", "(pr (str_of_bool (< 9 10)));;(pr (str_of_bool (< 10 11)));;", [], "truefalse") ;
 ] ;;
