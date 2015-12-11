@@ -61,11 +61,6 @@ atom:
 | ID			{ Id($1) }
 | NIL			{ Nil }
 | operator		{ Id($1) }
-| LET			{ Id("__let") }
-| IF			{ Id("__if") }
-| FOR			{ Id("__for") }
-| WHILE			{ Id("__while") }
-| FUNC			{ Id("__func") }
 
 operator:
 | PLUS			{ "__add" }
@@ -85,7 +80,6 @@ operator:
 | AND			{ "__and" }
 | OR			{ "__or" }
 
-
 constant: 
   INT 			{ Int($1) } 
 | FLOAT			{ Float($1) }
@@ -95,6 +89,7 @@ constant:
 call:
   ID args_opt		{ Eval($1, List.rev $2) }
 | operator args 	{ Eval($1, List.rev $2) }
+| ASSIGN assign_args	{ Assign(List.rev $2) }
 
 args_opt:
 /* nothing */ 		{ [] }
@@ -104,6 +99,9 @@ args:
   expr			{ [$1] }
 | expr args		{ $1 :: $2 }
   
+assign_args:
+  ID expr		{ $1 :: $2 :: [] }
+| ID expr assign_args   { $1 :: $2 :: $3 }
 infix_expr:
   constant			{ $1 }
 | MINUS INT			{ Int(-1 * $2) }
