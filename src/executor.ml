@@ -1,5 +1,5 @@
 open Ast;;
-
+open Type_infer;;
 open Generator;;
 open Scanner;;
 open Unix;;
@@ -13,7 +13,7 @@ let fatal_error msg = raise (Fatal_error msg)
     the given context [ctx] and environment [env]. It returns the
     new context and environment. *)
 let rec exec_cmd (ctx, env) = function
-    Expr e ->
+   _ as e ->
       (* type check [e], evaluate, and print result *)
       let ty = rename (Type_infer.type_of ctx e) in
 	(ctx, env)
