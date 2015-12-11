@@ -100,12 +100,12 @@ args:
 | expr args		{ $1 :: $2 }
   
 assign_args:
-  ID expr		{ $1 :: $2 :: [] }
-| ID expr assign_args   { $1 :: $2 :: $3 }
+  ID expr		{ Id($1) :: $2 :: [] }
+| ID expr assign_args   { Id($1) :: $2 :: $3 }
 
 infix_expr:
   constant			{ $1 }
-| ID				{ $1 }
+| ID				{ Id($1) }
 | MINUS INT			{ Int(-1 * $2) }
 | MINUS FLOAT			{ Float(-1.0 *. $2) }
 | LPAREN infix_expr RPAREN	{ $2 }
