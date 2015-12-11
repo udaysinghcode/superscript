@@ -70,10 +70,10 @@ let tests = [
   ("empty list should be nil", "(prn (str_of_bool (is '() nil)));;", [], "true") ;
   ("head function should return head of list", "(prn (head '(\"foo\" \"bar\")));;", [], "foo") ;
   ("tail function should return tail of list", "(prn (head (tail '(\"foo\" \"bar\"))));;", [], "bar") ;
-  ("let function should make temp variable for current statement", "(let x \"foo\" in (prn x));;", [], "foo") ;
-  ("let function should shield temp variable from other statements", "(= x \"bar\");;(let x \"foo\" in (pr x));;(pr x);;", [], "foobar") ;
-  ("nested let function should override same outer temp variable", "(let x \"foo\" in (let x \"bar\" in (prn x)));;", [], "bar") ;
-  ("different outer temp variable should be available in nested let", "(let y \"foo\" in (let x \"bar\" in (prn (concat x y))));;", [], "barfoo") ;
+  ("let function should make temp variable for current statement", "(let x \"foo\" (prn x));;", [], "foo") ;
+  ("let function should shield temp variable from other statements", "(= x \"bar\");;(let x \"foo\" (pr x));;(pr x);;", [], "foobar") ;
+  ("nested let function should override same outer temp variable", "(let x \"foo\" (let x \"bar\" (prn x)));;", [], "bar") ;
+  ("different outer temp variable should be available in nested let", "(let y \"foo\" (let x \"bar\" (prn (concat x y))));;", [], "barfoo") ;
 
   ("< operator should compare ints", "(pr (str_of_bool (< 9 10)));;(pr (str_of_bool (< 10 11)));;", [], "truefalse") ;
 ] ;;
