@@ -87,21 +87,21 @@ constant:
 | STRING		{ String($1) }
 
 call:
-  ID args_opt		{ Eval($1, $2) }
-| operator args 	{ Eval($1, $2) }
-| ASSIGN assign_args	{ Assign($2) }
+  ID args_opt		{ Eval($1, List.rev $2) }
+| operator args 	{ Eval($1, List.rev $2) }
+| ASSIGN assign_args	{ Assign(List.rev $2) }
 
 args_opt:
 /* nothing */ 		{ [] }
-| args			{ List.rev $1 }
+| args			{ $1 }
 
 args:
   expr			{ [$1] }
-| expr args		{ $1 :: $2 }
+| expr args		{ $2 :: $1 }
   
 assign_args:
-  ID expr		{ Id($1) :: $2 :: [] }
-| ID expr assign_args   { Id($1) :: $2 :: $3 }
+  ID expr		{ $2 :: Id($1) :: [] }
+| ID expr assign_args   { $2 :: Id($1) :: $3 }
 
 infix_expr:
   constant			{ $1 }
