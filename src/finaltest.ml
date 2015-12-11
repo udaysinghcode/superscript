@@ -58,11 +58,11 @@ let tests = [
   ("prefix integer add", "(prn (str_of_int (+ 1 2 3 4)));;", [], "10") ;
   ("prefix integer sub", "(prn (str_of_int (- 10 2 3)));;", [], "5") ;
   ("prefix integer mult", "(prn (str_of_int (* 1 2 3 4)));;", [], "24") ;
-  ("prefix integer div", "(prn (str_of_int (/ 10 2 -5)));;", [], "-1") ;
+  ("prefix integer div", "(prn (str_of_int (/ 10 2 (- 5))));;", [], "-1") ;
   ("prefix float add", "(prn (str_of_int (+ .1 .2 .3 .4)));;", [], "1") ;
   ("prefix float sub", "(prn (str_of_int (- 5.0 .2 .3)));;", [], "4.5") ;
   ("prefix float mult", "(prn (str_of_int (* 1. 2. 3. 4.)));;", [], "24") ;
-  ("prefix float div", "(prn (str_of_int (/ 10. 2. -5.)));;", [], "-1") ;
+  ("prefix float div", "(prn (str_of_int (/ 10. 2. (- 5.))));;", [], "-1") ;
   ("comparing ints with is func", "(pr (str_of_bool (is 1 1)));;(pr (str_of_bool (is 1 2)));;", [], "truefalse") ;
   ("comparing floats with is func", "(pr (str_of_bool (is 1.0 1.)));;(pr (str_of_bool (is .1 .2)));;", [], "truefalse") ;
   ("comparing bools with is func", "(pr (str_of_bool (is true true)));;(pr (str_of_bool (is false true)));;", [], "truefalse") ;
