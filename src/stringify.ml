@@ -15,7 +15,7 @@ in
   | Boolean(x) -> concat ["Boolean("; if x = true then "true" else "false"; ")"]
   | String(x) -> concat ["String(\""; x; "\")"]
   | Id(x) -> concat ["Id(\""; x; "\")"]
-  | Assign(str, exp) -> concat ["Assign("; str; ", "; stringify exp; ""]
+  | Assign(el) -> concat ["Assign("; stringify (List(el)); ")"]
   | Binop(exp1, op, exp2) -> concat ["Binop("; stringify exp1; ", "; stringify_op op; ", "; stringify exp2; ")"]
   | Eval(str, el) -> concat ["Eval("; str; ", "; stringify (List(el)); ")"]
   | Nil -> "Nil"

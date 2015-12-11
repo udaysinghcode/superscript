@@ -73,7 +73,11 @@ let generate_prog p =
     | Boolean(b) -> box "boolean" (if b = true then "true" else "false")
     | String(s) -> box "string" (cc ["'"; s; "'"])
     | Id(s) -> s
-    | Assign(s, exp) -> cc ["var "; s; " = "; generate exp]
+    | Assign(el) -> let rec gen_pairs l = match l with
+                      [] -> []
+                    | h1::h2::tl -> (h1, h2)::(gen_pairs tl)
+                    | _::[] -> raise (Failure("= operator used on odd numbered list!")) in
+                    String.concat ";" (List.map (fun (Id(s), e) -> cc ["var "; s; " = "; generate e]) (gen_pairs (List.rev el)))
     | Binop(e1, o, e2) -> generate (Eval(op_name o, [e1; e2]))
     | Eval(fname, el) -> cc ["__fcall('"; fname; "', "; generate (List(el)); ")"]
     | Nil -> box "list" "[]"
@@ -82,7 +86,7 @@ let generate_prog p =
     | If(cond, thenb, elseb) -> cc ["__unbox("; generate cond; ") ? "; generate thenb; " : "; generate elseb]
     | For(init, cond, update, exp) -> cc ["return "; generate Nil; ";"]
     | While(cond, exp) -> cc ["return "; generate Nil; ";"] 
-    | Let(n, v, exp) -> cc ["(function () { "; generate (Assign(n, v)); "; return "; generate exp; "; })()"] in
+    | Let(n, v, exp) -> cc ["(function () { var "; n; " = "; generate v; "; return "; generate exp; "; })()"] in
   let generate_head p =
     let rec get_deps fname =
       let (_, _, _, deps) = generate_js_func fname in
@@ -92,7 +96,7 @@ let generate_prog p =
       cc ["var "; fname; " = "; body] in
     let rec get_fnames e = match e with
         Eval(fname, el) -> [fname] @ (get_fnames (List(el)))
-      | Assign(s, exp) -> get_fnames exp
+      | Assign(el) -> get_fnames (List(el))
       | Binop(e1, o, e2) -> get_fnames (Eval(op_name o, [e1; e2]))
       | List(el) -> List.flatten (List.map get_fnames el)
       | Fdecl(argl, exp) -> get_fnames exp
