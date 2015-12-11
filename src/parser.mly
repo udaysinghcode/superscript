@@ -61,11 +61,6 @@ atom:
 | ID			{ Id($1) }
 | NIL			{ Nil }
 | operator		{ Id($1) }
-| LET			{ Id("__let") }
-| IF			{ Id("__if") }
-| FOR			{ Id("__for") }
-| WHILE			{ Id("__while") }
-| FUNC			{ Id("__func") }
 
 operator:
 | PLUS			{ "__add" }
@@ -84,7 +79,6 @@ operator:
 | GEQ			{ "__geq" }
 | AND			{ "__and" }
 | OR			{ "__or" }
-
 
 constant: 
   INT 			{ Int($1) } 
