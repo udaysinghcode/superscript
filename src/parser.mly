@@ -89,6 +89,7 @@ constant:
 call:
   ID args_opt		{ Eval($1, List.rev $2) }
 | operator args 	{ Eval($1, List.rev $2) }
+| ASSIGN assign_args	{ Assign(List.rev $2) }
 
 args_opt:
 /* nothing */ 		{ [] }
@@ -98,6 +99,9 @@ args:
   expr			{ [$1] }
 | expr args		{ $1 :: $2 }
   
+assign_args:
+  ID expr		{ $1 :: $2 :: [] }
+| ID expr assign_args   { $1 :: $2 :: $3 }
 infix_expr:
   constant			{ $1 }
 | MINUS INT			{ Int(-1 * $2) }
