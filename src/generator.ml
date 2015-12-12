@@ -78,7 +78,6 @@ let generate_prog p =
                     | h1::h2::tl -> (h1, h2)::(gen_pairs tl)
                     | _::[] -> raise (Failure("= operator used on odd numbered list!")) in
                     String.concat ";" (List.map (fun (Id(s), e) -> cc ["var "; s; " = "; generate e]) (gen_pairs el))
-    | Binop(e1, o, e2) -> generate (Eval(op_name o, [e1; e2]))
     | Eval(fname, el) -> cc ["__fcall('"; fname; "', "; generate (List(el)); ")"]
     | Nil -> box "list" "[]"
     | List(el) -> box "list" (cc ["["; (String.concat ", " (List.map generate el)); "]"])
@@ -97,7 +96,6 @@ let generate_prog p =
     let rec get_fnames e = match e with
         Eval(fname, el) -> [fname] @ (get_fnames (List(el)))
       | Assign(el) -> get_fnames (List(el))
-      | Binop(e1, o, e2) -> get_fnames (Eval(op_name o, [e1; e2]))
       | List(el) -> List.flatten (List.map get_fnames el)
       | Fdecl(argl, exp) -> get_fnames exp
       | If(cond, thenb, elseb) -> (get_fnames cond) @ (get_fnames thenb) @ (get_fnames elseb)
