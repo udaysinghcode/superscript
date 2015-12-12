@@ -55,6 +55,8 @@ let tests = [
   ("assignment operator", "(= foo \"Hello\");;(prn foo);;", [], "Hello") ;
   ("user defined functions", "(= foo (fn (x) (prn x)));;(foo \"Bar\");;", [], "Bar") ;
 	("curly infix arithmetic expression", "(prn (str_of_int {5 + 3}));;", [], "8") ;
+  ("+ operator with no args should return 0", "(prn (str_of_int (+)));;", [], "0") ;
+  ("* operator with no args should return 1", "(prn (str_of_int (*)));;", [], "1") ;
   ("prefix integer add", "(prn (str_of_int (+ 1 2 3 4)));;", [], "10") ;
   ("prefix integer sub", "(prn (str_of_int (- 10 2 3)));;", [], "5") ;
   ("prefix integer mult", "(prn (str_of_int (* 1 2 3 4)));;", [], "24") ;
@@ -73,10 +75,9 @@ let tests = [
   ("let function should make temp variable for current statement", "(let x \"foo\" (prn x));;", [], "foo") ;
   ("let function should shield temp variable from other statements", "(= x \"bar\");;(let x \"foo\" (pr x));;(pr x);;", [], "foobar") ;
   ("nested let function should override same outer temp variable", "(let x \"foo\" (let x \"bar\" (prn x)));;", [], "bar") ;
-  ("++ operator concatenates strings", "(prn (++ \"foo\" \"bar\"));;", [], "foobar") ;
+  ("++ operator concatenates strings", "(prn (++ \"foo\" \"bar\" \"orange\"));;", [], "foobarorange") ;
   ("different outer temp variable should be available in nested let", "(let y \"foo\" (let x \"bar\" (prn (++ x y))));;", [], "barfoo") ;
-
-  ("< operator should compare ints", "(pr (str_of_bool (< 9 10)));;(pr (str_of_bool (< 10 11)));;", [], "truefalse") ;
+  ("< operator should compare ints", "(pr (str_of_bool (< 9 10)));;(pr (str_of_bool (< 11 10)));;", [], "truefalse") ;
 ] ;;
 
 let unsuccess = ref 0 ;;
