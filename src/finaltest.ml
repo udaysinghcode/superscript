@@ -55,6 +55,8 @@ let tests = [
   ("assignment operator", "(= foo \"Hello\");;(prn foo);;", [], "Hello") ;
   ("user defined functions", "(= foo (fn (x) (prn x)));;(foo \"Bar\");;", [], "Bar") ;
 	("curly infix arithmetic expression", "(prn (str_of_int {5 + 3}));;", [], "8") ;
+  ("+ operator with no args should return 0", "(prn (str_of_int (+)));;", [], "0") ;
+  ("* operator with no args should return 1", "(prn (str_of_int (*)));;", [], "1") ;
   ("prefix integer add", "(prn (str_of_int (+ 1 2 3 4)));;", [], "10") ;
   ("prefix integer sub", "(prn (str_of_int (- 10 2 3)));;", [], "5") ;
   ("prefix integer mult", "(prn (str_of_int (* 1 2 3 4)));;", [], "24") ;
