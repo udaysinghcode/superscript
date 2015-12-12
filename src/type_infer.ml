@@ -147,7 +147,7 @@ let rec constraints_of gctx =
 		let ty2, eq = cnstr ctx (List.hd e2) in
 		let ty = TSomeList(TSome(ty2)) in
 		ty, (ty2, ty) :: eq
-	| _ as x ->
+	| _ ->
 		TInt, [] (* TODO: user defined function calls *)
     )
     | Assign(e) -> TUnit, [] (* has no type per se: can assign values of any types to Identifiers,
