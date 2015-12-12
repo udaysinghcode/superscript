@@ -1,38 +1,8 @@
 (* Type inference *)
 
-open Ast
+open Ast;;
 
 exception Type_error of string
-
-(** [subst [(x1,e1);...;(xn;en)] e] replaces in [e] free occurrences
-    of variables [x1], ..., [xn] with expressions [e1], ..., [en]. *)
-let rec subst s = function
-  | (Int _ | Boolean _ | String _ | Float _ | Id _ | Nil) as e -> e
-  | Assign(e) -> Assign(subst s e)
-  | Binop(e1, op, e2) -> Eval(e1, ([e1 :: e2]))
-  | List(e) -> List(e)
-  | Eval (e1, e2) -> Eval(subst s e1, subst s e2)
-  | If (e1, e2, e3) -> If (subst s e1, subst s e2, subst s e3)
-  | For (e1, e2, e3, e4) -> For (subst s e1, subst s e2, subst s e3, subst s e4)
-  | While (e1, e2) -> While (subst s e1, subst s e2)
-  | Let (e1, e2, e3) -> Let (subst s e1, subst s e2, subst s e3)
-  | Fdecl (args, e) -> let s' = List.remove_assoc x s in Fun (x, subst s' e)
-
-(** [tsubst [(k1,t1); ...; (kn,tn)] t] replaces in type [t] parameters
-    [TParam ki] with types [ti]. *)
-let rec tsubst s = function
-  | (TInt | TBool | (* TSome | *) TSomeList) as t -> t
-  | TParam k -> (try List.assoc k s with Not_found -> TParam k)
-  | TTimes (t1, t2) -> TTimes (tsubst s t1, tsubst s t2)
-  | TArrow (t1, t2) -> TArrow (tsubst s t1, tsubst s t2)
-(*  | TList t -> TList (tsubst s t) *)
-
-
-
-
-
-
-
 
 (** [ty_error msg] reports a type error by raising [Type_error msg]. *)
 let type_error msg = raise (Type_error msg)
@@ -92,7 +62,7 @@ let solve eq =
       | (t1, t2) :: eq when t1 = t2 -> solve eq sbst
 	  
       | ((TParam k, t) :: eq | (t, TParam k) :: eq) when (not (occurs k t)) ->
-	  let ts = tsubst [(k,t)] in
+	  let ts = Ast.tsubst [(k,t)] in
 	    solve
 	      (List.map (fun (ty1,ty2) -> (ts ty1, ts ty2)) eq)
 	      ((k,t)::(List.map (fun (n, u) -> (n, ts u)) sbst))
@@ -116,7 +86,7 @@ in
     may refer to. *)
 let rec constraints_of gctx = 
   let rec cnstr ctx = function
-    | Var x ->  
+    | Id x ->  
 	(try
 	   List.assoc x ctx, []
 	 with Not_found ->
@@ -129,6 +99,12 @@ let rec constraints_of gctx =
 
     | Bool _ -> TBool, []
     | Nil -> TSomeList (fresh ()), []
+    | Eval(id, args) -> (match id with
+ 	  "__add"
+	| "__sub"
+	| "__mult"
+	| "__div"
+	| "__equal"
     | Times (e1, e2)
     | Divide (e1, e2)
     | Mod (e1, e2)
