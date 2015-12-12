@@ -96,6 +96,7 @@ let generate_prog p =
       cc ["var "; fname; " = "; body] in
     let rec get_fnames e = match e with
         Eval(fname, el) -> [fname] @ (get_fnames (List(el)))
+      | Id(s) -> [s]
       | Assign(el) -> get_fnames (List(el))
       | Binop(e1, o, e2) -> get_fnames (Eval(op_name o, [e1; e2]))
       | List(el) -> List.flatten (List.map get_fnames el)
