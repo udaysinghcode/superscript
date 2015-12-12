@@ -78,6 +78,7 @@ let tests = [
   ("++ operator concatenates strings", "(prn (++ \"foo\" \"bar\" \"orange\"));;", [], "foobarorange") ;
   ("different outer temp variable should be available in nested let", "(let y \"foo\" (let x \"bar\" (prn (++ x y))));;", [], "barfoo") ;
   ("< operator should compare ints", "(pr (str_of_bool (< 9 10)));;(pr (str_of_bool (< 11 10)));;", [], "truefalse") ;
+  ("if statements", "(if true (pr \"foo\") (pr \"bar\"));;(if false (pr \"foos\") (pr \"bars\"));;", [], "foobars") ;
 ] ;;
 
 let unsuccess = ref 0 ;;
