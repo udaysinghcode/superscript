@@ -19,6 +19,7 @@ let refresh ty =
     | TFloat -> TFloat, s
     | TBool -> TBool, s
     | TString -> TString, s
+    | TUnit -> TUnit, s
     | TParam k ->
 	(try
 	   List.assoc k s, s
@@ -42,6 +43,7 @@ let rec occurs k = function
   | TFloat -> false
   | TString -> false
   | TBool -> false
+  | TUnit -> false
   | TParam j -> k = j
   | TArrow (t1, t2) -> occurs k t1 || occurs k t2
   | TSomeList t1 -> occurs k t1
@@ -94,52 +96,66 @@ let rec constraints_of gctx =
 	    with Not_found -> type_error ("Unknown variable " ^ x)))
 	  
     | Int _ ->  TInt, []
-
+    | Float _ -> TFloat, []
+    | String _ -> TString, []
     | Boolean _ -> TBool, []
     | Nil -> TSomeList (fresh ()), []
-    | Eval(e1, e2) -> (match id with
+    | Eval(e1, e2) -> (match e1 with
  	  "__add"
 	| "__sub"
 	| "__mult"
 	| "__div" ->
-		let ty1, eq1 = cnstr ctx e1 in
 		let addcnstr x = 
-		  let ty2, eq2 = cnstr ctx x in
-		  TInt, (ty1,TInt) :: (ty2, TInt) :: eq1 @ eq2
-	        in List.map(addcnstr) e2
+		let ty, eq = cnstr ctx x in
+		  TInt, (ty,TInt) :: eq
+	          in List.map(addcnstr) e2
 	| "__addf"
 	| "__subf"
 	| "__multf"
 	| "__divf" ->
-		let ty1, eq1 = cnstr ctx e1 in
 		let addcnstr x = 
-		  let ty2, eq2 = cnstr ctx x in
-		  TFloat, (ty1,TFloat) :: (ty2, TFloat) :: eq1 @ eq2
-	        in List.map(addcnstr) e2
-        )
-    | Times (e1, e2)
-    | Divide (e1, e2)
-    | Mod (e1, e2)
-    | Plus (e1, e2)
-    | Minus (e1, e2) ->
-	let ty1, eq1 = cnstr ctx e1 in
-	let ty2, eq2 = cnstr ctx e2 in
-	  TInt, (ty1,TInt) :: (ty2,TInt) :: eq1 @ eq2
-
+		let ty, eq = cnstr ctx x in
+		  TFloat, (ty,TFloat) :: eq
+	          in List.map(addcnstr) e2        
+	| "__equal"
+	| "__neq"
+	| "__less"
+	| "__leq"
+	| "__greater"
+	| "__geq" -> 
+		let ty1, eq1 = cnstr ctx (List.hd e2) in
+		let ty2, eq2 = cnstr ctx (List.hd(List.tl e2)) in
+		  TBool, (ty1, ty2) :: eq1 @ eq2
+	| "__and"
+	| "__or"
+	| "not" -> 
+		let addcnstr x = 
+		let ty, eq = cnstr ctx x in
+		  TBool, (ty,TBool) :: eq
+	          in List.map(addcnstr) e2
+	| "__concat" ->
+		let addcnstr x = 
+		let ty, eq = cnstr ctx x in
+		  TString, (ty,TString) :: eq
+	          in List.map(addcnstr) e2
+	| "cons" -> 
+		let ty2, eq = cnstr ctx e2 in
+		let ty = TSomeList(TSome(ty2)) in
+		ty, (ty2, ty) :: eq
+	| _ as x -> (
+		let ty1, eq1 = cnstr ctx x in
+		let addcnstr c = 
+		  let ty2, eq2 = cnstr ctx c in
+		  let ty = fresh () in
+		    ty, (ty1, TArrow (ty2, ty)) :: eq1 @ eq2
+		in List.map(addcnstr) e2 )
+	)
+    | Assign(e) -> TUnit, [] (* has no type per se: can assign values of any types to Identifiers,
+				e.g. (= x 2 y "hi" z true) *)
+	
     | List e -> (let h = List.hd(List.rev e) in
 	let ty1, eq1 = cnstr ctx h in
 	TSomeList (TSome(ty1)), eq1)
-    | Equal (e1, e2)
-    | Less (e1, e2) ->
-	let ty1, eq1 = cnstr ctx e1 in
-	let ty2, eq2 = cnstr ctx e2 in
-	  TBool, (ty1,TInt) :: (ty2,TInt) :: eq1 @ eq2
-
-    | Cons (e1, e2) ->
-	let ty1, eq1 = cnstr ctx e1 in
-	let ty2, eq2 = cnstr ctx e2 in
-	(let ty = TSomeList(TSome(ty1)) in
-	  ty, (ty2, ty) :: eq1 @ eq2);
 
     | If (e1, e2, e3) ->
 	let ty1, eq1 = cnstr ctx e1 in
@@ -147,45 +163,10 @@ let rec constraints_of gctx =
 	let ty3, eq3 = cnstr ctx e3 in
 	  ty2, (ty1, TBool) :: (ty2, ty3) :: eq1 @ eq2 @ eq3
 
-    | Fun (x, e) ->
-	let ty1 = fresh () in
-	let ty2, eq = cnstr ((x,ty1)::ctx) e in
-	  TArrow (ty1, ty2), eq
-
-    | Rec (x, e) ->
+    | Fdecl(x, e) ->	
 	let ty1 = fresh () in
 	let ty2, eq = cnstr ((x,ty1)::ctx) e in
 	  ty1, (ty1, ty2) :: eq
-(*
-    | Match (e1, e2, x, y, e3) ->
-	let ty = fresh () in
-	let ty1, eq1 = cnstr ctx e1 in
-	let ty2, eq2 = cnstr ctx e2 in
-	let ty3, eq3 = cnstr ((x,ty)::(y, TList ty)::ctx) e3 in
-	  ty2, (ty1, TList ty) :: (ty2, ty3) :: eq1 @ eq2 @ eq3
-*)
-    | Apply (e1, e2) ->
-	let ty1, eq1 = cnstr ctx e1 in
-	let ty2, eq2 = cnstr ctx e2 in
-	let ty = fresh () in
-	  ty, (ty1, TArrow (ty2,ty)) :: eq1 @ eq2
-
-    | Pair (e1, e2) ->
-	let ty1, eq1 = cnstr ctx e1 in
-	let ty2, eq2 = cnstr ctx e2 in
-	  TTimes (ty1, ty2), eq1 @ eq2
-
-    | Fst e ->
-	let ty, eq = cnstr ctx e in
-	let ty1 = fresh () in
-	let ty2 = fresh () in
-	  ty1, (ty, TTimes (ty1, ty2)) :: eq
-
-    | Snd e ->
-	let ty, eq = cnstr ctx e in
-	let ty1 = fresh () in
-	let ty2 = fresh () in
-	  ty2, (ty, TTimes (ty1, ty2)) :: eq
   in
     cnstr []
 

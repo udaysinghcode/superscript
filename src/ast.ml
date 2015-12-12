@@ -9,7 +9,8 @@ type htype =
   | TParam of int            (** parameter *)
   | TArrow of htype * htype  (** Function type [s -> t] *)
   | TSomeList of htype          (** Lists *)
-  | TSome of htype
+  | TSome of htype		(* Sometype - used only with lists *)
+  | TUnit			(* unit type for printing *)
 
 type expr =				(* Expressions *)
   Int of int				(* 4 *)
@@ -49,7 +50,7 @@ let rename ty =
 	  TArrow (u1,u2), c''
     | TSome t -> let u, c' = ren c t in TSome u, c'
     | TSomeList t -> let u, c' = ren c t in TSomeList u, c'
- 
+    | TUnit -> TUnit, c 
   in
     fst (ren (0,[]) ty)
 
@@ -71,6 +72,7 @@ let string_of_type ty =
       match ty with
 	| TSome ty -> (3, to_str 3 ty)
 	| TSomeList ty -> (3, to_str 3 ty ^ " list") 
+ 	| TUnit -> (4, "unit")
 	| TInt -> (4, "int")
 	| TFloat -> (4, "float")
 	| TString -> (4, "string")
@@ -124,7 +126,7 @@ let string_of_expr e =
 (** [tsubst [(k1,t1); ...; (kn,tn)] t] replaces in type [t] parameters
     [TParam ki] with types [ti]. *)
 let rec tsubst s = function
-  | (TInt | TBool | TFloat | TString ) as t -> t
+  | (TInt | TBool | TFloat | TString | TUnit ) as t -> t
   | TParam k -> (try List.assoc k s with Not_found -> TParam k)
   | TArrow (t1, t2) -> TArrow (tsubst s t1, tsubst s t2)
   | TSomeList t -> TSomeList (tsubst s t)
