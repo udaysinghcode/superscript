@@ -113,19 +113,19 @@ infix_expr:
 | LPAREN infix_expr RPAREN	{ $2 }
 | ID ASSIGN infix_expr		{ Assign([Id($1); $3]) }
 | infix_expr CONCAT infix_expr  { Eval("__concat", [$1; $3]) }
-| infix_expr PLUS infix_expr	{ Binop($1, Add, $3) }
-| infix_expr MINUS infix_expr	{ Binop($1, Sub, $3) }
-| infix_expr TIMES infix_expr	{ Binop($1, Mult, $3) }
-| infix_expr DIVIDE infix_expr	{ Binop($1, Div, $3) }
-| infix_expr PLUSF infix_expr	{ Binop($1, Addf, $3) }
-| infix_expr MINUSF infix_expr	{ Binop($1, Subf, $3) }
-| infix_expr TIMESF infix_expr	{ Binop($1, Multf, $3) }
-| infix_expr DIVIDEF infix_expr	{ Binop($1, Divf, $3) }
-| infix_expr EQ infix_expr	{ Binop($1, Equal, $3) }
-| infix_expr NEQ infix_expr	{ Binop($1, Neq, $3) }
-| infix_expr LT infix_expr	{ Binop($1, Less, $3) }
-| infix_expr LEQ infix_expr	{ Binop($1, Leq, $3) }
-| infix_expr GT infix_expr	{ Binop($1, Greater, $3) }
-| infix_expr GEQ infix_expr	{ Binop($1, Geq, $3) }
-| infix_expr AND infix_expr	{ Binop($1, And, $3) }
-| infix_expr OR infix_expr	{ Binop($1, Or, $3) } 
+| infix_expr PLUS infix_expr	{ Eval("__add", [$1; $3]) }
+| infix_expr MINUS infix_expr	{ Eval("__sub", [$1; $3])  }
+| infix_expr TIMES infix_expr	{ Eval("__mult", [$1; $3]) }
+| infix_expr DIVIDE infix_expr	{ Eval("__div", [$1; $3])  }
+| infix_expr PLUSF infix_expr	{ Eval("__addf", [$1; $3]) }
+| infix_expr MINUSF infix_expr	{ Eval("__subf", [$1; $3]) }
+| infix_expr TIMESF infix_expr	{ Eval("__multf", [$1; $3]) }
+| infix_expr DIVIDEF infix_expr	{ Eval("__divf", [$1; $3]) }
+| infix_expr EQ infix_expr	{ Eval("__equal", [$1; $3]) }
+| infix_expr NEQ infix_expr	{ Eval("__neq", [$1; $3]) }
+| infix_expr LT infix_expr	{ Eval("__add", [$1; $3]) }
+| infix_expr LEQ infix_expr	{ Eval("__less", [$1; $3]) }
+| infix_expr GT infix_expr	{ Eval("__greater", [$1; $3]) }
+| infix_expr GEQ infix_expr	{ Eval("__geq", [$1; $3]) }
+| infix_expr AND infix_expr	{ Eval("__and", [$1; $3]) }
+| infix_expr OR infix_expr	{ Eval("__or", [$1; $3]) } 
