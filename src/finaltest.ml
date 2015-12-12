@@ -73,7 +73,8 @@ let tests = [
   ("let function should make temp variable for current statement", "(let x \"foo\" (prn x));;", [], "foo") ;
   ("let function should shield temp variable from other statements", "(= x \"bar\");;(let x \"foo\" (pr x));;(pr x);;", [], "foobar") ;
   ("nested let function should override same outer temp variable", "(let x \"foo\" (let x \"bar\" (prn x)));;", [], "bar") ;
-  ("different outer temp variable should be available in nested let", "(let y \"foo\" (let x \"bar\" (prn (concat x y))));;", [], "barfoo") ;
+  ("++ operator concatenates strings", "(prn (++ \"foo\" \"bar\"));;", [], "foobar") ;
+  ("different outer temp variable should be available in nested let", "(let y \"foo\" (let x \"bar\" (prn (++ x y))));;", [], "barfoo") ;
 
   ("< operator should compare ints", "(pr (str_of_bool (< 9 10)));;(pr (str_of_bool (< 10 11)));;", [], "truefalse") ;
 ] ;;
