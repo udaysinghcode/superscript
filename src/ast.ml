@@ -56,9 +56,9 @@ let rename ty =
 (** [rename t1 t2] simultaneously renames types [t1] and [t2] so that
     parameters appearing in them are numbered from [0] on. *)
 let rename2 t1 t2 =
-(*  match rename (TTimes (t1,t2)) with
-      TTimes (u1, u2) -> u1, u2
-    | _ ->*) assert false
+match rename (TArrow (t1,t2)) with
+      TArrow (u1, u2) -> u1, u2
+    | _ -> assert false
 
 (** [string_of_type] converts a Poly type to string. *)
 let string_of_type ty =

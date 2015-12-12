@@ -16,7 +16,6 @@ in
   | String(x) -> concat ["String(\""; x; "\")"]
   | Id(x) -> concat ["Id(\""; x; "\")"]
   | Assign(el) -> concat ["Assign("; stringify (List(el)); ")"]
-  | Binop(exp1, op, exp2) -> concat ["Binop("; stringify exp1; ", "; stringify_op op; ", "; stringify exp2; ")"]
   | Eval(str, el) -> concat ["Eval("; str; ", "; stringify (List(el)); ")"]
   | Nil -> "Nil"
   | List(expl) -> concat ["List("; (String.concat ", " (List.map (fun x -> stringify x) expl)); ")"]
