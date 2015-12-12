@@ -100,23 +100,26 @@ let rec constraints_of gctx =
     | String _ -> TString, []
     | Boolean _ -> TBool, []
     | Nil -> TSomeList (fresh ()), []
-    | Eval(e1, e2) -> (match e1 with
+    | Eval(e1, e2) -> (
+	match e1 with
  	  "__add"
 	| "__sub"
 	| "__mult"
-	| "__div" ->
-		let addcnstr x = 
-		let ty, eq = cnstr ctx x in
-		  TInt, (ty,TInt) :: eq
-	          in List.map(addcnstr) e2
+	| "__div" -> ( match e2 with
+		| [] -> TInt, []
+		| hd::tl -> let ty1, eq1 = cnstr ctx hd in
+			    let ty2, eq2 = cnstr ctx (Eval(e1, tl)) in
+			    TInt, (ty1,TInt) :: (ty2,TInt) :: eq1 @ eq2   
+	)
 	| "__addf"
 	| "__subf"
 	| "__multf"
-	| "__divf" ->
-		let addcnstr x = 
-		let ty, eq = cnstr ctx x in
-		  TFloat, (ty,TFloat) :: eq
-	          in List.map(addcnstr) e2        
+	| "__divf" -> ( match e2 with
+		| [] -> TFloat, []
+		| hd::tl -> let ty1, eq1 = cnstr ctx hd in
+			    let ty2, eq2 = cnstr ctx (Eval(e1, tl)) in
+			    TFloat, (ty1,TFloat) :: (ty2,TFloat) :: eq1 @ eq2  
+	)
 	| "__equal"
 	| "__neq"
 	| "__less"
@@ -128,28 +131,25 @@ let rec constraints_of gctx =
 		  TBool, (ty1, ty2) :: eq1 @ eq2
 	| "__and"
 	| "__or"
-	| "not" -> 
-		let addcnstr x = 
-		let ty, eq = cnstr ctx x in
-		  TBool, (ty,TBool) :: eq
-	          in List.map(addcnstr) e2
-	| "__concat" ->
-		let addcnstr x = 
-		let ty, eq = cnstr ctx x in
-		  TString, (ty,TString) :: eq
-	          in List.map(addcnstr) e2
+	| "not" -> ( match e2 with
+		| [] -> TBool, []
+		| hd::tl -> let ty1, eq1 = cnstr ctx hd in
+			    let ty2, eq2 = cnstr ctx (Eval(e1, tl)) in
+			    TBool, (ty1,TBool) :: (ty2,TBool) :: eq1 @ eq2  
+	)
+	| "__concat" -> ( match e2 with
+		| [] -> TString, []
+		| hd::tl -> let ty1, eq1 = cnstr ctx hd in
+			    let ty2, eq2 = cnstr ctx (Eval(e1, tl)) in
+			    TString, (ty1,TString) :: (ty2,TString) :: eq1 @ eq2
+	)  
 	| "cons" -> 
-		let ty2, eq = cnstr ctx e2 in
+		let ty2, eq = cnstr ctx (List.hd e2) in
 		let ty = TSomeList(TSome(ty2)) in
 		ty, (ty2, ty) :: eq
-	| _ as x -> (
-		let ty1, eq1 = cnstr ctx x in
-		let addcnstr c = 
-		  let ty2, eq2 = cnstr ctx c in
-		  let ty = fresh () in
-		    ty, (ty1, TArrow (ty2, ty)) :: eq1 @ eq2
-		in List.map(addcnstr) e2 )
-	)
+	| _ as x ->
+		TInt, [] (* TODO: user defined function calls *)
+    )
     | Assign(e) -> TUnit, [] (* has no type per se: can assign values of any types to Identifiers,
 				e.g. (= x 2 y "hi" z true) *)
 	
@@ -163,10 +163,10 @@ let rec constraints_of gctx =
 	let ty3, eq3 = cnstr ctx e3 in
 	  ty2, (ty1, TBool) :: (ty2, ty3) :: eq1 @ eq2 @ eq3
 
-    | Fdecl(x, e) ->	
+    | Fdecl(x, e) -> TInt, [] (*
 	let ty1 = fresh () in
 	let ty2, eq = cnstr ((x,ty1)::ctx) e in
-	  ty1, (ty1, ty2) :: eq
+	  ty1, (ty1, ty2) :: eq *)
   in
     cnstr []
 
