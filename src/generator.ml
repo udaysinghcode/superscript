@@ -34,7 +34,7 @@ let generate_js_func fname =
     | "str_of_float" -> ("'function(f) { return __box(\\'string\\', '' + __unbox(f)); }'", ["float"], "string", [])
     | "float_of_str" -> ("'function(s) { return __box(\\'float\\', parseFloat(__unbox(s))); }'", ["string"], "float", [])
     | "str_of_bool"   -> ("'function(b) { return __box(\\'string\\', \\'\\' + __unbox(b)); }'", ["boolean"], "string", [])
-    | "concat"     -> ("'function(s1, s2) { return __box(\\'string\\', __unbox(s1) + __unbox(s2)); }'", ["string"; "string"], "string", [])
+    | "__concat"     -> ("'function(s1, s2) { return __box(\\'string\\', __unbox(s1) + __unbox(s2)); }'", ["string"; "string"], "string", [])
     | _ -> ("", [], "", []) in
   let (fstr, arg_types, ret_type, deps) = helper fname in
   (box "function" fstr, arg_types, ret_type, deps)
@@ -45,7 +45,7 @@ let is_generatable fname =
                   "__div"; "mod"; "__addf"; "__subf"; "__multf"; "__divf";
                   "__equal"; "__neq"; "__less"; "__leq"; "__greater";
                   "__geq"; "__and"; "__or"; "str_of_int"; "int_of_str";
-                  "str_of_float"; "float_of_str"; "str_of_bool"; "concat"]
+                  "str_of_float"; "float_of_str"; "str_of_bool"; "__concat"]
 
 let op_name o = match o with
       Add -> "__add"
