@@ -99,7 +99,7 @@ args_opt:
 
 args:
   expr			{ [$1] }
-| expr args		{ $2 :: $1 }
+| args expr		{ $2 :: $1 }
   
 assign_args:
   ID expr		{ $2 :: Id($1) :: [] }
@@ -112,7 +112,7 @@ infix_expr:
 | MINUS FLOAT			{ Float(-1.0 *. $2) }
 | LPAREN infix_expr RPAREN	{ $2 }
 | ID ASSIGN infix_expr		{ Assign([Id($1); $3]) }
-| infix_expr CONCAT infix_expr  { Eval(Id("__concat"), [$3 :: $1]) }
+| infix_expr CONCAT infix_expr  { Eval(Id("__concat"), [$1 :: $3]) }
 | infix_expr PLUS infix_expr	{ Binop($1, Add, $3) }
 | infix_expr MINUS infix_expr	{ Binop($1, Sub, $3) }
 | infix_expr TIMES infix_expr	{ Binop($1, Mult, $3) }
