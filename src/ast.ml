@@ -1,5 +1,5 @@
 type op = Add | Sub | Mult | Div | Addf | Subf | Multf | Divf 
-	| Equal | Neq | Less | Leq | Greater | Geq | And | Or | Assign
+	| Equal | Neq | Less | Leq | Greater | Geq | And | Or | Assign | Concat
 
 type htype =
   | TInt                     (** integers [int] *)
