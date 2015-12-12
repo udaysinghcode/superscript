@@ -1,7 +1,7 @@
 %{ open Ast %}
 
 %token PLUS MINUS TIMES DIVIDE PLUSF MINUSF TIMESF DIVIDEF EOF
-%token ASSIGN QUOTE AND OR EQ NEQ LT LEQ GT GEQ
+%token ASSIGN QUOTE AND OR EQ NEQ LT LEQ GT GEQ CONCAT
 %token SEMI LPAREN RPAREN LBRACE RBRACE
 %token <int> INT
 %token FUNC LET IF FOR WHILE
@@ -18,6 +18,7 @@
 %left LT GT LEQ GEQ
 %left PLUS MINUS PLUSF MINUSF
 %left TIMES DIVIDE TIMESF DIVIDEF
+%left CONCAT
 
 %start program
 %type <Ast.program> program
@@ -79,6 +80,7 @@ operator:
 | GEQ			{ "__geq" }
 | AND			{ "__and" }
 | OR			{ "__or" }
+| CONCAT		{ "__concat" }
 
 constant: 
   INT 			{ Int($1) } 
@@ -87,21 +89,21 @@ constant:
 | STRING		{ String($1) }
 
 call:
-  ID args_opt		{ Eval($1, $2) }
-| operator args 	{ Eval($1, $2) }
-| ASSIGN assign_args	{ Assign($2) }
+  ID args_opt		{ Eval($1, List.rev $2) }
+| operator args 	{ Eval($1, List.rev $2) }
+| ASSIGN assign_args	{ Assign(List.rev $2) }
 
 args_opt:
 /* nothing */ 		{ [] }
-| args			{ List.rev $1 }
+| args			{ $1 }
 
 args:
   expr			{ [$1] }
-| expr args		{ $1 :: $2 }
+| args expr		{ $2 :: $1 }
   
 assign_args:
-  ID expr		{ Id($1) :: $2 :: [] }
-| ID expr assign_args   { Id($1) :: $2 :: $3 }
+  ID expr		{ $2 :: Id($1) :: [] }
+| ID expr assign_args   { $2 :: Id($1) :: $3 }
 
 infix_expr:
   constant			{ $1 }
@@ -110,6 +112,7 @@ infix_expr:
 | MINUS FLOAT			{ Float(-1.0 *. $2) }
 | LPAREN infix_expr RPAREN	{ $2 }
 | ID ASSIGN infix_expr		{ Assign([Id($1); $3]) }
+| infix_expr CONCAT infix_expr  { Eval(Id("__concat"), [$1 :: $3]) }
 | infix_expr PLUS infix_expr	{ Binop($1, Add, $3) }
 | infix_expr MINUS infix_expr	{ Binop($1, Sub, $3) }
 | infix_expr TIMES infix_expr	{ Binop($1, Mult, $3) }
