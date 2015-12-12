@@ -7,7 +7,6 @@ type htype =
   | TBool                    (** booleans [bool] *)
   | TString		     (** strings [string] *)
   | TParam of int            (** parameter *)
-  | TTimes of htype * htype  (** Product [s * t] *)
   | TArrow of htype * htype  (** Function type [s -> t] *)
   | TSomeList of htype          (** Lists *)
   | TSome of htype
@@ -48,14 +47,6 @@ let rename ty =
 	let u1, c'  = ren c t1 in
 	let u2, c'' = ren c' t2 in
 	  TArrow (u1,u2), c''
-    | TTimes (t1, t2) ->
-	let u1, c'  = ren c t1 in
-	let u2, c'' = ren c' t2 in
-	  TTimes (u1,u2), c''
-(*    | TList t ->
-	let u, c' = ren c t in TList u, c'
-    | TSome -> TSome, c
-*)  
     | TSome t -> let u, c' = ren c t in TSome u, c'
     | TSomeList t -> let u, c' = ren c t in TSomeList u, c'
  
@@ -65,9 +56,9 @@ let rename ty =
 (** [rename t1 t2] simultaneously renames types [t1] and [t2] so that
     parameters appearing in them are numbered from [0] on. *)
 let rename2 t1 t2 =
-  match rename (TTimes (t1,t2)) with
+(*  match rename (TTimes (t1,t2)) with
       TTimes (u1, u2) -> u1, u2
-    | _ -> assert false
+    | _ ->*) assert false
 
 (** [string_of_type] converts a Poly type to string. *)
 let string_of_type ty =
@@ -85,8 +76,6 @@ let string_of_type ty =
 	| TString -> (4, "string")
 	| TBool -> (4, "bool")
 	| TParam k -> (4, (if k < Array.length a then "'" ^ a.(k) else "'ty" ^ string_of_int k))
-(*	| TList ty -> (3, to_str 3 ty ^ " list")
-*)	| TTimes (ty1, ty2) -> (2, (to_str 2 ty1) ^ " * " ^ (to_str 2 ty2))
 	| TArrow (ty1, ty2) -> (1, (to_str 1 ty1) ^ " -> " ^ (to_str 0 ty2))
     in
       if m > n then str else "(" ^ str ^ ")"
@@ -137,7 +126,6 @@ let string_of_expr e =
 let rec tsubst s = function
   | (TInt | TBool | TFloat | TString ) as t -> t
   | TParam k -> (try List.assoc k s with Not_found -> TParam k)
-  | TTimes (t1, t2) -> TTimes (tsubst s t1, tsubst s t2)
   | TArrow (t1, t2) -> TArrow (tsubst s t1, tsubst s t2)
   | TSomeList t -> TSomeList (tsubst s t)
   | TSome t -> TSome (tsubst s t)

@@ -16,7 +16,9 @@ let fresh =
 let refresh ty =
   let rec refresh s = function
     | TInt -> TInt, s
+    | TFloat -> TFloat, s
     | TBool -> TBool, s
+    | TString -> TString, s
     | TParam k ->
 	(try
 	   List.assoc k s, s
@@ -25,10 +27,6 @@ let refresh ty =
 	let u1, s'  = refresh s t1 in
 	let u2, s'' = refresh s' t2 in
 	  TArrow (u1, u2), s''
-    | TTimes (t1, t2) ->
-	let u1, s'  = refresh s t1 in
-	let u2, s'' = refresh s' t2 in
-	  TTimes (u1, u2), s''
     | TSomeList t ->
 	let u, s' = refresh s t in
 	  TSomeList u, s'
@@ -41,10 +39,11 @@ let refresh ty =
 (** [occurs k t] returns [true] if parameter [TParam k] appears in type [t]. *)
 let rec occurs k = function
   | TInt -> false
+  | TFloat -> false
+  | TString -> false
   | TBool -> false
   | TParam j -> k = j
   | TArrow (t1, t2) -> occurs k t1 || occurs k t2
-  | TTimes (t1, t2) -> occurs k t1 || occurs k t2
   | TSomeList t1 -> occurs k t1
   | TSome t1 -> occurs k t1
 
@@ -67,7 +66,6 @@ let solve eq =
 	      (List.map (fun (ty1,ty2) -> (ts ty1, ts ty2)) eq)
 	      ((k,t)::(List.map (fun (n, u) -> (n, ts u)) sbst))
 	      
-      | (TTimes (u1,v1), TTimes (u2,v2)) :: eq
       | (TArrow (u1,v1), TArrow (u2,v2)) :: eq ->
 	  solve ((u1,u2)::(v1,v2)::eq) sbst
 	    
@@ -97,7 +95,7 @@ let rec constraints_of gctx =
 	  
     | Int _ ->  TInt, []
 
-    | Bool _ -> TBool, []
+    | Boolean _ -> TBool, []
     | Nil -> TSomeList (fresh ()), []
     | Eval(e1, e2) -> (match id with
  	  "__add"
@@ -109,7 +107,6 @@ let rec constraints_of gctx =
 		  let ty2, eq2 = cnstr ctx x in
 		  TInt, (ty1,TInt) :: (ty2, TInt) :: eq1 @ eq2
 	        in List.map(addcnstr) e2
-	)
 	| "__addf"
 	| "__subf"
 	| "__multf"
@@ -119,7 +116,7 @@ let rec constraints_of gctx =
 		  let ty2, eq2 = cnstr ctx x in
 		  TFloat, (ty1,TFloat) :: (ty2, TFloat) :: eq1 @ eq2
 	        in List.map(addcnstr) e2
-		
+        )
     | Times (e1, e2)
     | Divide (e1, e2)
     | Mod (e1, e2)
@@ -197,16 +194,4 @@ let rec constraints_of gctx =
 let type_of ctx e =
   let ty, eq = constraints_of ctx e in
     let ans = solve eq in
-	    let rec printType = function
-                  | TInt -> "TInt"
-		  | TBool -> "TBool"
-		  | TParam k -> "TypeVar" ^ (string_of_int k)
-		  | TSome _ -> "SomeType"
-		  | TSomeList _ -> "List of sometype"
-		  | TTimes(c, d) -> (printType c) ^ "*" ^ (printType d)
-(*	          | TList k -> "TList" ^ (printType k)
-*)		  | TArrow(c, d) -> (printType c) ^ "->" ^ (printType d)
-		in let printpairs p = 
-		  print_int(fst p); print_endline(printType (snd p))
-	in ignore(List.iter (printpairs) ans);
     tsubst (ans) ty
