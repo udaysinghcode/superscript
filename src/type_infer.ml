@@ -99,12 +99,27 @@ let rec constraints_of gctx =
 
     | Bool _ -> TBool, []
     | Nil -> TSomeList (fresh ()), []
-    | Eval(id, args) -> (match id with
+    | Eval(e1, e2) -> (match id with
  	  "__add"
 	| "__sub"
 	| "__mult"
-	| "__div"
-	| "__equal"
+	| "__div" ->
+		let ty1, eq1 = cnstr ctx e1 in
+		let addcnstr x = 
+		  let ty2, eq2 = cnstr ctx x in
+		  TInt, (ty1,TInt) :: (ty2, TInt) :: eq1 @ eq2
+	        in List.map(addcnstr) e2
+	)
+	| "__addf"
+	| "__subf"
+	| "__multf"
+	| "__divf" ->
+		let ty1, eq1 = cnstr ctx e1 in
+		let addcnstr x = 
+		  let ty2, eq2 = cnstr ctx x in
+		  TFloat, (ty1,TFloat) :: (ty2, TFloat) :: eq1 @ eq2
+	        in List.map(addcnstr) e2
+		
     | Times (e1, e2)
     | Divide (e1, e2)
     | Mod (e1, e2)
