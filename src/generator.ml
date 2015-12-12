@@ -34,7 +34,7 @@ let generate_js_func fname =
     | "str_of_float" -> ("'function(f) { return __box(\\'string\\', '' + __unbox(f)); }'", ["float"], "string", [])
     | "float_of_str" -> ("'function(s) { return __box(\\'float\\', parseFloat(__unbox(s))); }'", ["string"], "float", [])
     | "str_of_bool"   -> ("'function(b) { return __box(\\'string\\', \\'\\' + __unbox(b)); }'", ["boolean"], "string", [])
-    | "__concat"     -> ("'function(s1, s2) { return __box(\\'string\\', __unbox(s1) + __unbox(s2)); }'", ["string"; "string"], "string", [])
+    | "__concat"     -> ("'function() { return __box(\\'string\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'", ["string"; "string"], "string", [])
     | _ -> ("", [], "", []) in
   let (fstr, arg_types, ret_type, deps) = helper fname in
   (box "function" fstr, arg_types, ret_type, deps)
