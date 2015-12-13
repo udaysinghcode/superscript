@@ -11,7 +11,7 @@ let generate_js_func fname =
     | "type"      -> ("'function(o) { return __box(\\'string\\', o.__t); }'", ["ss_boxed"], "string", [])
     | "head"      -> ("'function(l) { return __clone(__unbox(l)[0]); }'", ["list"], "ss_boxed", [])
     | "tail"      -> ("'function(l) { return __box(\\'list\\', __unbox(l).slice(1)); }'", ["list"], "list", [])
-    | "cons"      -> ("'function(i, l) { return __box(\\'list\\', __unbox(l).unshift(__clone(i))); }'", ["ss_boxed"; "list"], "list", [])
+    | "cons"      -> ("'function(i, l) { var __temp = __unbox(l); __temp.unshift(__clone(i)); return __box(\\'list\\', __temp); }'", ["ss_boxed"; "list"], "list", [])
     | "__add"     -> ("'function() { return __box(\\'int\\', arguments.length === 0 ? 0 : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'", ["int"; "int"], "int", [])
     | "__sub"     -> ("'function(a1) { return __box(\\'int\\', arguments.length === 1 ? -1 * __unbox(a1) : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a-b;})); }'", ["int"; "int"], "int", [])
     | "__mult"    -> ("'function() { return __box(\\'int\\', arguments.length === 0 ? 1 : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a*b;})); }'", ["int"; "int"], "int", [])
@@ -35,6 +35,7 @@ let generate_js_func fname =
     | "float_of_str" -> ("'function(s) { return __box(\\'float\\', parseFloat(__unbox(s))); }'", ["string"], "float", [])
     | "str_of_bool"   -> ("'function(b) { return __box(\\'string\\', \\'\\' + __unbox(b)); }'", ["boolean"], "string", [])
     | "__concat"     -> ("'function() { return __box(\\'string\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'", ["string"; "string"], "string", [])
+    | "evaluate"      -> ("'function(l) { return eval(\\'(\\' + __unbox(__unbox(l)[0]) + \\').apply(null, \\' + JSON.stringify(__unbox(l).slice(1)) + \\')\\'); }'", ["string"], "string", [])
     | _ -> ("", [], "", []) in
   let (fstr, arg_types, ret_type, deps) = helper fname in
   (box "function" fstr, arg_types, ret_type, deps)
@@ -45,7 +46,8 @@ let is_generatable fname =
                   "__div"; "mod"; "__addf"; "__subf"; "__multf"; "__divf";
                   "__equal"; "__neq"; "__less"; "__leq"; "__greater";
                   "__geq"; "__and"; "__or"; "str_of_int"; "int_of_str";
-                  "str_of_float"; "float_of_str"; "str_of_bool"; "__concat"]
+                  "str_of_float"; "float_of_str"; "str_of_bool"; "__concat";
+                  "evaluate"]
 
 let op_name o = match o with
       Add -> "__add"
@@ -82,10 +84,10 @@ let generate_prog p =
     | Nil -> box "list" "[]"
     | List(el) -> box "list" (cc ["["; (String.concat ", " (List.map generate el)); "]"])
     | Fdecl(argl, exp) -> box "function" (cc ["(function("; String.concat ", " (List.rev argl); ") { return "; generate exp; "; }).toString()"])
-    | If(cond, thenb, elseb) -> cc ["__unbox("; generate cond; ") ? "; generate thenb; " : "; generate elseb]
+    | If(cond, thenb, elseb) -> cc ["(function(){var __c=__unbox("; generate cond; "); return !(Array.isArray(__c) && __c.length===0) && __c ? "; generate thenb; " : "; generate elseb; "})()"]
     | For(init, cond, update, exp) -> cc ["return "; generate Nil; ";"]
     | While(cond, exp) -> cc ["return "; generate Nil; ";"] 
-    | Let(n, v, exp) -> cc ["(function () { var "; n; " = "; generate v; "; return "; generate exp; "; })()"] in
+    | Let(n, v, exp) -> cc ["(function(){ var "; n; " = "; generate v; "; return "; generate exp; "; })()"] in
   let generate_head p =
     let rec get_deps fname =
       let (_, _, _, deps) = generate_js_func fname in
