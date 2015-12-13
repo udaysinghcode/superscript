@@ -41,32 +41,8 @@ let generate_js_func fname =
   (box "function" fstr, arg_types, ret_type, deps)
 
 let is_generatable fname =
-  List.mem fname ["prn"; "pr"; "type";
-                  "head"; "tail"; "cons"; "__add"; "__sub"; "__mult";
-                  "__div"; "mod"; "__addf"; "__subf"; "__multf"; "__divf";
-                  "__equal"; "__neq"; "__less"; "__leq"; "__greater";
-                  "__geq"; "__and"; "__or"; "str_of_int"; "int_of_str";
-                  "str_of_float"; "float_of_str"; "str_of_bool"; "__concat";
-                  "evaluate"]
-
-let op_name o = match o with
-      Add -> "__add"
-    | Sub -> "__sub"
-    | Mult -> "__mult"
-    | Div -> "__div"
-    | Addf -> "__addf"
-    | Subf -> "__subf"
-    | Multf -> "__multf"
-    | Divf -> "__divf"
-    | Equal -> "__equal"
-    | Neq -> "__neq"
-    | Less -> "__less"
-    | Leq -> "__leq"
-    | Greater -> "__greater"
-    | Geq -> "__geq"
-    | And -> "__and"
-    | Or -> "__or"
-    | Assign -> "__ASSIGN__"
+  let (_, argtypes, _, _) = generate_js_func fname in
+  argtypes != []
 
 let generate_prog p =
   let rec generate e = match e with
