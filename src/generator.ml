@@ -1,11 +1,14 @@
 open Ast;;
+open Printf;;
 
-let cc l = String.concat "" l
+let sprintf = Printf.sprintf;;
 
-let box t v = cc ["({ __t: '"; t; "', __v: "; v; " })"]
+let cc l = String.concat "" l;;
+let box t v = sprintf "({ __t: '%s', __v: %s })" t v;;
 
 let generate_js_func fname =
-  let helper fname = match fname with
+  let helper fname =
+    match fname with
       "prn"       -> ("'function(s) { console.log(__unbox(s)); return s; }'", ["string"], "string", [])
     | "pr"        -> ("'function(s) { process.stdout.write(__unbox(s)); return s; }'", ["string"], "string", [])
     | "type"      -> ("'function(o) { return __box(\\'string\\', o.__t); }'", ["ss_boxed"], "string", [])
@@ -36,41 +39,72 @@ let generate_js_func fname =
     | "str_of_bool"   -> ("'function(b) { return __box(\\'string\\', \\'\\' + __unbox(b)); }'", ["boolean"], "string", [])
     | "__concat"     -> ("'function() { return __box(\\'string\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'", ["string"; "string"], "string", [])
     | "evaluate"      -> ("'function(l) { return eval(\\'(\\' + __unbox(__unbox(l)[0]) + \\').apply(null, \\' + JSON.stringify(__unbox(l).slice(1)) + \\')\\'); }'", ["string"], "string", [])
-    | _ -> ("", [], "", []) in
-  let (fstr, arg_types, ret_type, deps) = helper fname in
-  (box "function" fstr, arg_types, ret_type, deps)
+    | _ -> ("", [], "", [])
+  in
+    let (fstr, arg_types, ret_type, deps) = helper fname in
+    (box "function" fstr, arg_types, ret_type, deps)
 
 let is_generatable fname =
   let (_, argtypes, _, _) = generate_js_func fname in
   argtypes != []
 
 let generate_prog p =
-  let rec generate e = match e with
-      Int(i) -> box "int" (string_of_int (i))
+  let rec generate e =
+    match e with
+      Nil -> box "list" "[]"
+    | List(el) -> box "list" (sprintf "[%s]" (String.concat ", " (List.map generate el)))
+    | Int(i) -> box "int" (string_of_int (i))
     | Float(f) -> box "float" (string_of_float (f))
     | Boolean(b) -> box "boolean" (if b = true then "true" else "false")
-    | String(s) -> box "string" (cc ["'"; s; "'"])
-    | Id(s) -> s
-    | Assign(el) -> let rec gen_pairs l = match l with
-                      [] -> []
-                    | h1::h2::tl -> (h1, h2)::(gen_pairs tl)
-                    | _::[] -> raise (Failure("= operator used on odd numbered list!")) in
-                    String.concat ";" (List.map (fun (Id(s), e) -> cc ["var "; s; " = "; generate e]) (gen_pairs el))
-    | Eval(fname, el) -> cc ["__fcall('"; fname; "', "; generate (List(el)); ")"]
-    | Nil -> box "list" "[]"
-    | List(el) -> box "list" (cc ["["; (String.concat ", " (List.map generate el)); "]"])
-    | Fdecl(argl, exp) -> box "function" (cc ["(function("; String.concat ", " (List.rev argl); ") { return "; generate exp; "; }).toString()"])
-    | If(cond, thenb, elseb) -> cc ["(function(){var __c=__unbox("; generate cond; "); return !(Array.isArray(__c) && __c.length===0) && __c ? "; generate thenb; " : "; generate elseb; "})()"]
+    | String(s) -> box "string" (sprintf "'%s'" s)
+    | Id(s) -> sprintf "__getv('%s')" s
+
+    | Assign(el) -> let rec gen_pairs l =
+                      match l with
+                        [] -> []
+                      | h1::h2::tl -> (h1, h2)::(gen_pairs tl)
+                      | _::[] -> raise (Failure("= operator used on odd numbered list!"))
+                    in
+                      String.concat "; " (List.map 
+                                            (fun (Id(s), e) -> sprintf "__setv('%s', %s)" s (generate e))
+                                            (gen_pairs el))
+
+    | Eval(fname, el) -> sprintf 
+                            "__fcall('%s', %s)"
+                            fname
+                            (generate (List(el)))
+
+    | Fdecl(argl, exp) -> box "function"
+        (sprintf
+          "(function() { var __temp = JSON.stringify(__flatten(__dup(__s))); return (function(%s) { var __scope = MYSCOPE; var __s = __scope; %s; return %s; }).toString().replace('MYSCOPE', __temp) })()"
+          (String.concat ", " argl)
+          (String.concat "; " (List.map (fun a -> sprintf "__setv('%s', %s)" a a) argl))
+          (generate exp))
+
+    | If(cond, thenb, elseb) ->
+        sprintf
+          "(function() { var __c = __unbox(%s); return !(Array.isArray(__c) && __c.length === 0) && __c ? %s : %s; })()"
+          (generate cond)
+          (generate thenb)
+          (generate elseb)
+
     | For(init, cond, update, exp) -> cc ["return "; generate Nil; ";"]
     | While(cond, exp) -> cc ["return "; generate Nil; ";"] 
-    | Let(n, v, exp) -> cc ["(function(){ var "; n; " = "; generate v; "; return "; generate exp; "; })()"] in
+
+    | Let(n, v, exp) ->
+        sprintf
+          "(function(parentscope) { var __scope = Object.create(parentscope); var __s = __scope; __setv('%s', %s); return %s; })(__s)"
+          n
+          (generate v)
+          (generate exp)
+  in
   let generate_head p =
     let rec get_deps fname =
       let (_, _, _, deps) = generate_js_func fname in
       deps @ (List.flatten (List.map get_deps deps)) in
     let get_def fname =
       let (body, _, _, _) = generate_js_func fname in
-      cc ["var "; fname; " = "; body] in
+      cc ["var "; fname; "="; body] in
     let rec get_fnames e = match e with
         Eval(fname, el) -> [fname] @ (get_fnames (List(el)))
       | Id(s) -> [s]
@@ -85,7 +119,14 @@ let generate_prog p =
     let generatable = (List.filter is_generatable (List.flatten (List.map get_fnames p))) in
     String.concat ";\n" (List.map get_def (List.sort_uniq compare (generatable @ (List.flatten (List.map get_deps generatable))))) in
   let wrap_exp e = cc [generate e; ";"] in
-  cc ("function __box(t, v) { return ({ __t: t, __v: __clone(v) }); };\n"::
-      "function __clone(o) { return JSON.parse(JSON.stringify(o)); };\n"::
-      "function __unbox(o) { return __clone(o.__v); };\n"::
-      "function __fcall(name, args) { return eval('(' + __unbox(eval(name)) + ').apply(null, __unbox(args))'); };\n"::(generate_head p)::";\n"::(List.map wrap_exp p))
+  cc ("function getOwnPropertyDescriptors(object) { var keys = Object.getOwnPropertyNames(object), returnObj = {}; keys.forEach(getPropertyDescriptor); return returnObj; function getPropertyDescriptor(key) { var pd = Object.getOwnPropertyDescriptor(object, key); returnObj[key] = pd; } }"::
+      "Object.getOwnPropertyDescriptors = getOwnPropertyDescriptors;"::
+      "function __dup(o) { return Object.create(Object.getPrototypeOf(o), Object.getOwnPropertyDescriptors(o)); }"::
+      "function __flatten(o) { var result = Object.create(o); for(var key in result) { result[key] = result[key]; } return result; }"::
+      "var __scope={};var __s=__scope;"::
+      "function __setv(n,v){ if(n in __scope) { __scope=Object.create(__scope);__s=__scope; } __scope[n]=v;};"::
+      "function __getv(n){ if(n in __scope){return __scope[n];} else if(eval('typeof ' + n) !== 'undefined') { return eval(n); } else{throw new ReferenceError(n+' is not defined',__filename,0)}};"::
+      "function __box(t,v){return ({__t:t,__v:__clone(v)});};"::
+      "function __clone(o){return JSON.parse(JSON.stringify(o));};"::
+      "function __unbox(o){return __clone(o.__v);};"::
+      "function __fcall(name,args){return eval('('+__unbox(__getv(name))+').apply(null,__unbox(args))');};\n"::(generate_head p)::";\n"::(List.map wrap_exp p))
