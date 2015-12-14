@@ -10,6 +10,7 @@ let generate_js_func fname =
   let helper fname =
     match fname with
       "prn"       -> ("'function(s) { console.log(__unbox(s)); return s; }'", ["string"], "string", [])
+    | "exec"      -> ("'function() { var res; for(var i = 0; i < arguments.length; i++) { res = __fcall(\\'evaluate\\', [arguments[i]]); } return res; }'", ["string"], "string", ["evaluate"])
     | "pr"        -> ("'function(s) { process.stdout.write(__unbox(s)); return s; }'", ["string"], "string", [])
     | "type"      -> ("'function(o) { return __box(\\'string\\', o.__t); }'", ["ss_boxed"], "string", [])
     | "head"      -> ("'function(l) { return __clone(__unbox(l)[0]); }'", ["list"], "ss_boxed", [])
@@ -49,6 +50,8 @@ let is_generatable fname =
   argtypes != []
 
 let generate_prog p =
+  let escape_quotes s =
+    Str.global_replace (Str.regexp "\\([^\\\\]?\\)'") "\\1\\'" (Str.global_replace (Str.regexp "\\([\\\\]+\\)'") "\\1\\1'" s) in
   let rec generate e =
     match e with
       Nil -> box "list" "[]"
@@ -57,7 +60,7 @@ let generate_prog p =
     | Float(f) -> box "float" (string_of_float (f))
     | Boolean(b) -> box "boolean" (if b = true then "true" else "false")
     | String(s) -> box "string" (sprintf "'%s'" s)
-    | Id(s) -> sprintf "__getv('%s')" s
+    | Id(s) -> sprintf "eval('%s')" s
 
     | Assign(el) -> let rec gen_pairs l =
                       match l with
@@ -66,7 +69,7 @@ let generate_prog p =
                       | _::[] -> raise (Failure("= operator used on odd numbered list!"))
                     in
                       String.concat "; " (List.map 
-                                            (fun (Id(s), e) -> sprintf "__setv('%s', %s)" s (generate e))
+                                            (fun (Id(s), e) -> sprintf "eval('var %s = %s;')" s (escape_quotes (generate e)))
                                             (gen_pairs el))
 
     | Eval(fname, el) -> sprintf 
@@ -76,9 +79,8 @@ let generate_prog p =
 
     | Fdecl(argl, exp) -> box "function"
         (sprintf
-          "(function() { var __temp = JSON.stringify(__flatten(__dup(__s))); return (function(%s) { var __scope = MYSCOPE; var __s = __scope; %s; return %s; }).toString().replace('MYSCOPE', __temp) })()"
+          "(function(%s) { return %s; }).toString()"
           (String.concat ", " argl)
-          (String.concat "; " (List.map (fun a -> sprintf "__setv('%s', %s)" a a) argl))
           (generate exp))
 
     | If(cond, thenb, elseb) ->
@@ -93,7 +95,7 @@ let generate_prog p =
 
     | Let(n, v, exp) ->
         sprintf
-          "(function(parentscope) { var __scope = Object.create(parentscope); var __s = __scope; __setv('%s', %s); return %s; })(__s)"
+          "(function() { var %s = %s; return %s; })()"
           n
           (generate v)
           (generate exp)
@@ -123,10 +125,7 @@ let generate_prog p =
       "Object.getOwnPropertyDescriptors = getOwnPropertyDescriptors;"::
       "function __dup(o) { return Object.create(Object.getPrototypeOf(o), Object.getOwnPropertyDescriptors(o)); }"::
       "function __flatten(o) { var result = Object.create(o); for(var key in result) { result[key] = result[key]; } return result; }"::
-      "var __scope={};var __s=__scope;"::
-      "function __setv(n,v){ if(n in __scope) { __scope=Object.create(__scope);__s=__scope; } __scope[n]=v;};"::
-      "function __getv(n){ if(n in __scope){return __scope[n];} else if(eval('typeof ' + n) !== 'undefined') { return eval(n); } else{throw new ReferenceError(n+' is not defined',__filename,0)}};"::
       "function __box(t,v){return ({__t:t,__v:__clone(v)});};"::
       "function __clone(o){return JSON.parse(JSON.stringify(o));};"::
       "function __unbox(o){return __clone(o.__v);};"::
-      "function __fcall(name,args){return eval('('+__unbox(__getv(name))+').apply(null,__unbox(args))');};\n"::(generate_head p)::";\n"::(List.map wrap_exp p))
+      "function __fcall(name,args){ return eval('('+__unbox(eval(name))+').apply(null,__unbox(args))');};\n"::(generate_head p)::";\n"::(List.map wrap_exp p))
