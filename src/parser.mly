@@ -72,15 +72,17 @@ operator:
 | MINUSF		{ "__subf" }
 | DIVIDEF		{ "__divf" } 
 | TIMESF		{ "__multf" }
-| EQ			{ "__equal" }
-| NEQ			{ "__neq" }
-| LT			{ "__less" }
-| LEQ			{ "__leq" }
-| GT			{ "__greater" }
-| GEQ			{ "__geq" }
 | AND			{ "__and" }
 | OR			{ "__or" }
 | CONCAT		{ "__concat" }
+
+two_args_operators:
+| EQ      { "__equal" }
+| NEQ     { "__neq" }
+| LT      { "__less" }
+| LEQ     { "__leq" }
+| GT      { "__greater" }
+| GEQ     { "__geq" }
 
 constant: 
   INT 			{ Int($1) } 
@@ -91,11 +93,15 @@ constant:
 call:
   ID args_opt		{ Eval($1, List.rev $2) }
 | operator args_opt 	{ Eval($1, List.rev $2) }
+| two_args_operators two_args { Eval($1, List.rev $2)}
 | ASSIGN assign_args	{ Assign(List.rev $2) }
 
 args_opt:
 /* nothing */ 		{ [] }
 | args			{ $1 }
+
+two_args:
+expr expr { [$2; $1] }
 
 args:
   expr			{ [$1] }
