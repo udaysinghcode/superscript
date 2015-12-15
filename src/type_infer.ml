@@ -74,9 +74,6 @@ let solve eq =
 	    
       | (TSomeList t1, TSomeList t2) :: eq ->
         	solve ((t1,t2) :: eq) sbst
-
-      | (TSome, t1) :: eq | (t1, TSome) :: eq
-		 -> solve eq sbst
       | (t1,t2)::_ ->
 	  let u1, u2 = rename2 t1 t2 in
 	    type_error ("The types " ^ string_of_type u1 ^ " and " ^
@@ -147,7 +144,7 @@ let rec constraints_of gctx =
 			    TString, (ty1,TString) :: (ty2,TString) :: eq1 @ eq2
 	)  
 	| "cons" -> 
-		let ty2, eq = cnstr ctx (List.hd e2) in
+		let ty2, eq = cnstr ctx (List.hd (List.rev e2)) in
 		let ty = TSomeList(TSome) in
 		ty, (ty2, ty) :: eq
 	| "pr" 
@@ -186,7 +183,8 @@ let rec constraints_of gctx =
 	| "str_head"
 	| "head" ->
 	   (
-		if List.length e2 <> 1 then (invalid_args_error("Invalid arguments error: head takes one list as argument. ")) 
+		if List.length e2 <> 1 then 
+			(invalid_args_error("Invalid arguments error: head takes one list as argument. ")) 
 		else (
 			let thelist = (List.hd e2) in
 			  let ty, eq = cnstr ctx thelist in
@@ -196,17 +194,19 @@ let rec constraints_of gctx =
 			   | "float_head" -> TFloat, (ty, TSomeList(TSome)) :: eq
 			   | "bool_head" -> TBool, (ty, TSomeList(TSome)) :: eq
 			   | "str_head" -> TString, (ty, TSomeList(TSome)) :: eq
-			   | "head" -> TSome, (ty, TSomeList(TSome)) :: eq
+			   | "head" -> 
+				TSome, (ty, TSomeList(TSome)) :: eq
 		)
 	   )
-	| _ -> TString, [] (* TODO *)
-    )
+	(* User-defined functions *)
+	| _ -> TInt, [] (*let e = Id(e1) in let ty1, eq1 = (cnstr ctx e) in
+				 let ty = fresh () in 
+				ty, (ty1, TArrow(e2,ty)) :: eq1
+  *)  )
     | Assign(e) -> TUnit, [] (* has no type per se: can assign values of any types to Identifiers,
 				e.g. (= x 2 y "hi" z true) *)
 	
-    | List e -> (let h = List.hd(List.rev e) in
-	let ty1, eq1 = cnstr ctx h in
-	TSomeList (TSome), eq1)
+    | List _ -> TSomeList (TSome), []
 
     | If (e1, e2, e3) ->
 	let ty1, eq1 = cnstr ctx e1 in
@@ -225,5 +225,4 @@ let rec constraints_of gctx =
     context [ctx]. *)
 let type_of ctx e =
   let ty, eq = constraints_of ctx e in
-    let ans = solve eq in
-    tsubst (ans) ty
+    tsubst (solve eq) ty
