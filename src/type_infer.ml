@@ -109,7 +109,7 @@ let rec constraints_of gctx =
 		| [] -> TInt, []
 		| hd::tl -> let ty1, eq1 = cnstr ctx hd in
 			    let ty2, eq2 = cnstr ctx (Eval(e1, tl)) in
-			    TInt, (ty1,TInt) :: (ty2,TInt) :: eq1 @ eq2   
+			    TInt, (ty1,TInt) :: (ty2,TInt) :: eq1 @ eq2
 	)
 	| "__addf"
 	| "__subf"
@@ -147,8 +147,15 @@ let rec constraints_of gctx =
 		let ty2, eq = cnstr ctx (List.hd e2) in
 		let ty = TSomeList(TSome(ty2)) in
 		ty, (ty2, ty) :: eq
-	| _ ->
-		TInt, [] (* TODO: user defined function calls *)
+	| "pr" 
+	| "prn" -> ( 
+		let rec addcnstr = function
+		| [] -> []
+		| hd::tl -> let ty1, eq1 = cnstr ctx hd in
+			    (ty1,TString) :: eq1 @ addcnstr tl
+		in TUnit, addcnstr e2
+		)
+	| _ -> TString, [] (* TODO *)
     )
     | Assign(e) -> TUnit, [] (* has no type per se: can assign values of any types to Identifiers,
 				e.g. (= x 2 y "hi" z true) *)
