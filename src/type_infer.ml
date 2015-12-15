@@ -3,9 +3,12 @@
 open Ast;;
 
 exception Type_error of string
+exception Invalid_args of string
 
-(** [ty_error msg] reports a type error by raising [Type_error msg]. *)
+(** [type_error msg] reports a type error by raising [Type_error msg]. *)
 let type_error msg = raise (Type_error msg)
+(** [invalid_args_error msg] reports invalid argument exceptions by raising [Invalid_args msg]. *)
+let invalid_args_error msg = raise(Invalid_args msg)
 
 (** [fresh ()] returns an unused type parameter. *)
 let fresh =
@@ -155,6 +158,13 @@ let rec constraints_of gctx =
 			    (ty1,TString) :: eq1 @ addcnstr tl
 		in TUnit, addcnstr e2
 		)
+	| "str_of_int" -> (
+		if List.length e2 <> 1 then (invalid_args_error "ERROR: str_of_int takes 1 argument")
+		else (
+			let ty, eq = cnstr ctx (List.hd e2) in
+			TString, (ty, TInt) :: eq
+		)
+	)
 	| _ -> TString, [] (* TODO *)
     )
     | Assign(e) -> TUnit, [] (* has no type per se: can assign values of any types to Identifiers,
