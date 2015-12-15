@@ -7,7 +7,7 @@ type htype =
   | TBool                    (** booleans [bool] *)
   | TString		     (** strings [string] *)
   | TParam of int            (** parameter *)
-  | TArrow of htype * htype  (** Function type [s -> t] *)
+  | TArrow of htype list * htype  (** Function type [a -> b -> c -> ... -> e] *)
   | TSomeList of htype          (** Lists *)
   | TSome of htype		(* Sometype - used only with lists *)
   | TUnit			(* unit type for printing *)
