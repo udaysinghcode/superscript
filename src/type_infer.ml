@@ -158,11 +158,25 @@ let rec constraints_of gctx =
 			    (ty1,TString) :: eq1 @ addcnstr tl
 		in TUnit, addcnstr e2
 		)
+
+	| "int_of_str"
+	| "str_of_float"
+	| "float_of_str"
+	| "str_of_bool"
+	| "bool_of_str"
 	| "str_of_int" -> (
-		if List.length e2 <> 1 then (invalid_args_error "ERROR: str_of_int takes 1 argument")
+		if List.length e2 <> 1 then (invalid_args_error("Invalid arguments error: " ^ 
+								e1 ^ " takes 1 argument. "))
 		else (
-			let ty, eq = cnstr ctx (List.hd e2) in
-			TString, (ty, TInt) :: eq
+			let arg = List.hd e2 in
+			let ty, eq = cnstr ctx arg in
+			match e1 with
+				| "int_of_str" -> TInt, (ty, TString) :: eq
+				| "str_of_float" -> TString, (ty, TFloat) :: eq
+				| "float_of_str" -> TFloat, (ty, TString) :: eq
+				| "str_of_bool" -> TString, (ty, TBool) :: eq
+				| "bool_of_str" -> TBool, (ty, TString) :: eq
+				| "str_of_int" -> TString, (ty, TInt) :: eq
 		)
 	)
 	| _ -> TString, [] (* TODO *)
