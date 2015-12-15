@@ -23,6 +23,7 @@ let refresh ty =
     | TBool -> TBool, s
     | TString -> TString, s
     | TUnit -> TUnit, s
+    | TSome -> TSome, s
     | TParam k ->
 	(try
 	   List.assoc k s, s
@@ -34,9 +35,6 @@ let refresh ty =
     | TSomeList t ->
 	let u, s' = refresh s t in
 	  TSomeList u, s'
-    | TSome t -> 
-	let u, s' = refresh s t in
-	  TSome u, s'
   in
     fst (refresh [] ty)
 
@@ -47,10 +45,10 @@ let rec occurs k = function
   | TString -> false
   | TBool -> false
   | TUnit -> false
+  | TSome -> false
   | TParam j -> k = j
   | TArrow (t1, t2) -> occurs k t1 || occurs k t2
   | TSomeList t1 -> occurs k t1
-  | TSome t1 -> occurs k t1
 
 (** [solve [(t1,u1); ...; (tn,un)] solves the system of equations
     [t1=u1], ..., [tn=un]. The solution is represented by a list of
@@ -76,7 +74,9 @@ let solve eq =
 	    
       | (TSomeList t1, TSomeList t2) :: eq ->
         	solve ((t1,t2) :: eq) sbst
-      | (TSome t1, TSome t2) :: eq -> solve eq sbst 
+
+      | (TSome, t1) :: eq | (t1, TSome) :: eq
+		 -> solve eq sbst
       | (t1,t2)::_ ->
 	  let u1, u2 = rename2 t1 t2 in
 	    type_error ("The types " ^ string_of_type u1 ^ " and " ^
@@ -148,7 +148,7 @@ let rec constraints_of gctx =
 	)  
 	| "cons" -> 
 		let ty2, eq = cnstr ctx (List.hd e2) in
-		let ty = TSomeList(TSome(ty2)) in
+		let ty = TSomeList(TSome) in
 		ty, (ty2, ty) :: eq
 	| "pr" 
 	| "prn" -> ( 
@@ -179,6 +179,26 @@ let rec constraints_of gctx =
 				| "str_of_int" -> TString, (ty, TInt) :: eq
 		)
 	)
+	| "int_head"
+	| "list_head"
+	| "float_head"
+	| "bool_head"
+	| "str_head"
+	| "head" ->
+	   (
+		if List.length e2 <> 1 then (invalid_args_error("Invalid arguments error: head takes one list as argument. ")) 
+		else (
+			let thelist = (List.hd e2) in
+			  let ty, eq = cnstr ctx thelist in
+			match e1 with 
+			   | "int_head" -> TInt, (ty,TSomeList(TSome)) :: eq
+			   | "list_head" -> TSomeList(TSome), (ty, TSomeList(TSomeList(TSome))) :: eq
+			   | "float_head" -> TFloat, (ty, TSomeList(TSome)) :: eq
+			   | "bool_head" -> TBool, (ty, TSomeList(TSome)) :: eq
+			   | "str_head" -> TString, (ty, TSomeList(TSome)) :: eq
+			   | "head" -> TSome, (ty, TSomeList(TSome)) :: eq
+		)
+	   )
 	| _ -> TString, [] (* TODO *)
     )
     | Assign(e) -> TUnit, [] (* has no type per se: can assign values of any types to Identifiers,
@@ -186,7 +206,7 @@ let rec constraints_of gctx =
 	
     | List e -> (let h = List.hd(List.rev e) in
 	let ty1, eq1 = cnstr ctx h in
-	TSomeList (TSome(ty1)), eq1)
+	TSomeList (TSome), eq1)
 
     | If (e1, e2, e3) ->
 	let ty1, eq1 = cnstr ctx e1 in
