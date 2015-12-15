@@ -51,7 +51,7 @@ list:
 
 formals_opt:
 /* nothing */ 	{ [] }
-| formal_list	{ List.rev $1 }
+| formal_list	{ $1 }
 
  formal_list:
   ID		  { [$1] }
