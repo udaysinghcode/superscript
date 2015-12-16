@@ -82,7 +82,11 @@ with
 in 
 let program = Parser.program Scanner.token lexbuf in
 	let types = fst(exec_cmds ([], []) program) in
-	List.iter(fun a -> print_endline (fst a)) types;
+	(*PRINTING ALL VARIBLES AND TYPES from CTX *)
+	ignore(print_endline "\nVariable | Type");
+	List.iter(fun a -> ignore(print_string ((fst a) ^ ": ")); 
+		let ty = Ast.rename(snd a) in
+		print_endline(string_of_type ty)) types; ignore(print_string "\n");
 let prog = Generator.generate_prog program in
 write prog;
 print_endline (String.concat "\n" (funct (Unix.open_process_in "node a.js")))
