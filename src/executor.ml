@@ -1,11 +1,17 @@
 open Ast;;
 open Type_infer;;
-open Generator;;
+(* open Generator;; *)
 open Scanner;;
 open Unix;;
-open Stringify;;
 
 exception Fatal_error of string
+
+type environment = (string * value ref) list
+and value = 
+    | VInt of int
+    | VBool of bool
+    | VNil
+    | VClosure of environment * expr
 
 let fatal_error msg = raise (Fatal_error msg)
 
@@ -13,8 +19,32 @@ let fatal_error msg = raise (Fatal_error msg)
     the given context [ctx] and environment [env]. It returns the
     new context and environment. *)
 let rec exec_cmd (ctx, env) = function
-        _ as e ->
-	let ty = (Type_infer.type_of ctx e) in
+    | Assign(el) ->
+	let rec gen_pairs l = 
+	match l with
+		| [] -> []
+		| h1::h2::tl -> (h1, h2)::(gen_pairs tl)
+		| _::[] -> raise(Fatal_error("=operator used on odd numbered list!"))
+	in 
+	let defs = gen_pairs el in
+	let rec addCtx ctx env = function
+		| [] -> ctx, env
+		| (x,e)::tl ->
+	    		(* convert x from Ast.htype into the actual identifier string *)
+	     		let x = match x with
+				| Id(s) -> s
+				| _ -> raise(Fatal_error("first operand of assignment must be an identifier!"))
+	     		in
+	     		(* type check [e], and store it unevaluated! *)
+	         	let ty = Ast.rename (Type_infer.type_of ctx e) in
+		 	print_endline ("val " ^ x ^ " : " ^ string_of_type ty) ;
+	     		( (x,ty)::ctx, (x, ref (VClosure (env,e)))::env)
+	in addCtx ctx env defs
+    | _ as e ->
+      (* type check [e], evaluate, and print result *)
+      let ty = Ast.rename (Type_infer.type_of ctx e) in
+	print_string ("- : " ^ string_of_type ty ^ " = ") ;
+	print_newline () ;
 	(ctx, env)
 ;;
 
@@ -52,6 +82,7 @@ with
 in 
 let expression = Parser.program Scanner.token lexbuf in
         exec_cmds ([], []) expression;
-let prog = Generator.generate_prog expression in
+(*let prog = Generator.generate_prog expression in
 write prog;
 print_endline (String.concat "\n" (funct (Unix.open_process_in "node a.js")))
+*)
