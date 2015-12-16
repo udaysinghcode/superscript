@@ -74,13 +74,17 @@ let generate_prog p =
                       | _::[] -> raise (Failure("= operator used on odd numbered list!"))
                     in
                       String.concat "; " (List.map 
-                                            (fun (Id(s), e) -> sprintf "eval('var %s = %s;')" s (escape_quotes (generate e)))
+                                            (fun (Id(s), e) -> sprintf "eval('var %s = %s; %s;')" s (escape_quotes (generate e)) s)
                                             (gen_pairs el))
 
-    | Eval(fname, el) -> sprintf 
-                            "__fcall('%s', %s)"
-                            fname
-                            (generate (List(el)))
+    | Eval(first, el) -> (match first with
+                            String(x) -> (match x with 
+                                            "dot" -> sprintf "__dot(%s)" (generate (List(el)))
+                                          | "call" -> sprintf "__call(%s)" (generate (List(el)))
+                                          | _ -> sprintf "(function(_i, _a) { return _i.__t === 'module' ? __box('module', __unbox(_i).apply(null, __unbox(_a).map(__unbox))) : eval('(' + __unbox(_i) + ').apply(null, ' + JSON.stringify(__unbox(_a)) + ')'); })(eval('%s'), %s)" x (generate (List(el))))
+                          | Fdecl(x, y) -> sprintf "eval('(' + __unbox(%s) + ').apply(null, ' + JSON.stringify(__unbox(%s)) + ')')" (generate (Fdecl(x, y))) (generate (List(el)))
+                          | Eval(x, y) -> sprintf "eval('(' + __unbox(%s) + ').apply(null, ' + JSON.stringify(__unbox(%s)) + ')')" (generate (Eval(x, y))) (generate (List(el)))
+                          | _ -> raise (Failure "foo"))
 
     | Fdecl(argl, exp) -> box "function"
         (sprintf
@@ -94,9 +98,6 @@ let generate_prog p =
           (generate cond)
           (generate thenb)
           (generate elseb)
-
-    | For(init, cond, update, exp) -> cc ["return "; generate Nil; ";"]
-    | While(cond, exp) -> cc ["return "; generate Nil; ";"] 
 
     | Let(n, v, exp) ->
         sprintf
@@ -113,14 +114,12 @@ let generate_prog p =
       let (body, _, _, _) = generate_js_func fname in
       cc ["var "; fname; "="; body] in
     let rec get_fnames e = match e with
-        Eval(fname, el) -> [fname] @ (get_fnames (List(el)))
+        Eval(f, el) -> (match f with String(x) -> [x] | Fdecl(x, y) -> [] | Eval(x, y) -> get_fnames (Eval(x, y)) | _ -> []) @ (get_fnames (List(el)))
       | Id(s) -> [s]
       | Assign(el) -> get_fnames (List(el))
       | List(el) -> List.flatten (List.map get_fnames el)
       | Fdecl(argl, exp) -> get_fnames exp
       | If(cond, thenb, elseb) -> (get_fnames cond) @ (get_fnames thenb) @ (get_fnames elseb)
-      | For(init, cond, update, exp) -> (get_fnames init) @ (get_fnames cond) @ (get_fnames update) @ (get_fnames exp)
-      | While(cond, exp) -> (get_fnames cond) @ (get_fnames exp)
       | Let(n, v, exp) -> (get_fnames v) @ (get_fnames exp)
       | _ -> [] in
     let generatable = (List.filter is_generatable (List.flatten (List.map get_fnames p))) in
