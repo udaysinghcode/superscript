@@ -75,10 +75,10 @@ let generate_prog p =
                                             (fun (Id(s), e) -> sprintf "eval('var %s = %s;')" s (escape_quotes (generate e)))
                                             (gen_pairs el))
 
-    | Eval(fname, el) -> (match fname with
-                          String(x) -> sprintf "__fcall('%s', %s)" x (generate (List(el)))
+    | Eval(first, el) -> (match first with
+                          String(x) -> sprintf "eval('(' + __unbox(eval('%s')) + ').apply(null, ' + JSON.stringify(__unbox(%s)) + ')')" x (generate (List(el)))
                         | Fdecl(x, y) -> sprintf "eval('(' + __unbox(%s) + ').apply(null, ' + JSON.stringify(__unbox(%s)) + ')')" (generate (Fdecl(x, y))) (generate (List(el)))
-                        | Eval(x, y) -> (generate (Eval(x, y)))
+                        | Eval(x, y) -> sprintf "eval('(' + __unbox(%s) + ').apply(null, ' + JSON.stringify(__unbox(%s)) + ')')" (generate (Eval(x, y))) (generate (List(el)))
                         | _ -> raise (Failure "foo"))
                            
     | Fdecl(argl, exp) -> box "function"
@@ -112,7 +112,7 @@ let generate_prog p =
       let (body, _, _, _) = generate_js_func fname in
       cc ["var "; fname; "="; body] in
     let rec get_fnames e = match e with
-        Eval(fname, el) -> (* [fname] @*) ["prn"] @ (get_fnames (List(el)))
+        Eval(f, el) -> (match f with String(x) -> [x] | Fdecl(x, y) -> [] | Eval(x, y) -> get_fnames (Eval(x, y))) @ (get_fnames (List(el)))
       | Id(s) -> [s]
       | Assign(el) -> get_fnames (List(el))
       | List(el) -> List.flatten (List.map get_fnames el)
