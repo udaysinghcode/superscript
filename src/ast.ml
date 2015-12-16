@@ -7,10 +7,10 @@ type htype =
   | TBool                    (** booleans [bool] *)
   | TString		     (** strings [string] *)
   | TParam of int            (** parameter *)
-  | TArrow of htype * htype  (** Function type [s -> t] *)
+  | TArrow of htype * htype  (** Function type [a -> b -> c -> ... -> e] *)
   | TSomeList of htype          (** Lists *)
-  | TSome of htype		(* Sometype - used only with lists *)
   | TUnit			(* unit type for printing *)
+  | TSome			(* sometype - used only for lists *)
 
 type expr =				(* Expressions *)
   Int of int				(* 4 *)
@@ -19,7 +19,7 @@ type expr =				(* Expressions *)
   | String of string			(* "hello world" *)
   | Id of string			(* caml_riders *)
   | Assign of expr list			(* {x = 5} OR (= x 5 y 6 z 7) *)
-  | Eval of string * expr list		(* (foo 5 21) *)
+  | Eval of expr * expr list		(* (foo 5 21) *)
   | Nil					(* null datatype *)
   | List of expr list			(* list, mixed datatypes allowed in same list *)
   | Fdecl of string list * expr 	(* (fn (a b) {a + b}) *)
@@ -38,6 +38,7 @@ let rename ty =
     | TBool -> TBool, c
     | TFloat -> TFloat, c
     | TString -> TString, c
+    | TSome -> TSome, c
     | TParam k ->
 	(try
 	   TParam (List.assoc k s), c
@@ -47,7 +48,6 @@ let rename ty =
 	let u1, c'  = ren c t1 in
 	let u2, c'' = ren c' t2 in
 	  TArrow (u1,u2), c''
-    | TSome t -> let u, c' = ren c t in TSome u, c'
     | TSomeList t -> let u, c' = ren c t in TSomeList u, c'
     | TUnit -> TUnit, c 
   in
@@ -69,7 +69,7 @@ let string_of_type ty =
   let rec to_str n ty =
     let (m, str) =
       match ty with
-	| TSome ty -> (3, to_str 3 ty)
+	| TSome -> (3, "sometype")
 	| TSomeList ty -> (3, to_str 3 ty ^ " list") 
  	| TUnit -> (4, "unit")
 	| TInt -> (4, "int")
@@ -125,8 +125,8 @@ let string_of_expr e =
 (** [tsubst [(k1,t1); ...; (kn,tn)] t] replaces in type [t] parameters
     [TParam ki] with types [ti]. *)
 let rec tsubst s = function
-  | (TInt | TBool | TFloat | TString | TUnit ) as t -> t
+  | (TInt | TBool | TFloat | TString | TUnit | TSome ) as t -> t
   | TParam k -> (try List.assoc k s with Not_found -> TParam k)
   | TArrow (t1, t2) -> TArrow (tsubst s t1, tsubst s t2)
   | TSomeList t -> TSomeList (tsubst s t)
-  | TSome t -> TSome (tsubst s t)
+
