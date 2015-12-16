@@ -104,6 +104,9 @@ let generate_js_func fname =
     | "evaluate" ->
       ("'function(l) { return eval(\\'(\\' + __unbox(__unbox(l)[0]) + \\').apply(null, \\' + JSON.stringify(__unbox(l).slice(1)) + \\')\\'); }'",
         ["string"], "string", [])
+    | "module" ->
+      ("'function(n) { return __box(\\'module\\', require(__unbox(n))); }'",
+        ["string"], "string", [])
     | "int" ->
       ("'function(i) { return __box(\\'string\\', \\'\\' + __unbox(i)); }'",
         ["ss_boxed"], "int", ["type"])
@@ -208,7 +211,11 @@ let generate_prog p =
       "Object.getOwnPropertyDescriptors = getOwnPropertyDescriptors;"::
       "function __dup(o) { return Object.create(Object.getPrototypeOf(o), Object.getOwnPropertyDescriptors(o)); }"::
       "function __flatten(o) { var result = Object.create(o); for(var key in result) { result[key] = result[key]; } return result; }"::
-      "function __box(t,v){return ({__t:t,__v:__clone(v)});};"::
+      "function __box(t,v){ return ({ __t: t, __v: (t === 'module') ? v : __clone(v) }); };"::
       "function __clone(o){return JSON.parse(JSON.stringify(o));};"::
-      "function __unbox(o){return __clone(o.__v);};"::
-      "function __fcall(name,args){ return eval('('+__unbox(eval(name))+').apply(null,__unbox(args))');};\n"::(generate_head p)::";\n"::(List.map wrap_exp p))
+      "function __unbox(o){ return (o.__t === 'module') ? o.__v : __clone(o.__v); };"::
+      "function __tojs(o) { if (o.__t === 'function') { return function() { var __temp = Array.prototype.slice.call(arguments); return eval('(' + o.__v + ').apply(null, __temp)'); }; } else { return __unbox(o); } };"::
+      "function __call(args) { var __temp = !args.__v[0].__t ? args.__v[0] : __unbox(args.__v[0]); __temp[__unbox(args.__v[1])].apply(__temp, args.__v.slice(2).map(__tojs)); };"::
+      "function __dot(args) { var __temp = args.__v; var res; for(var i = 1; i < __temp.length; i++) { res = (i === 1 ? __temp[0] : res)[__unbox(__temp[i])]; } return __box('json', res); };"::
+      "function __test() {};"::
+      "function __fcall(name,args){ var __temp = eval(name); return (__temp.__t === 'module') ? __box('module', __unbox(__temp).apply(null, __unbox(args).map(__unbox))) : name === 'dot' ? __dot(args) : name === 'call' ? __call(args) : eval('('+__unbox(__temp)+').apply(null,__unbox(args))'); };\n"::(generate_head p)::";\n"::(List.map wrap_exp p))
