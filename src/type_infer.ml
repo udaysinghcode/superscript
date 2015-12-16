@@ -102,13 +102,14 @@ let rec constraints_of gctx =
     | Nil -> TSomeList (fresh ()), []
     | Eval(e1, e2) -> (
 	match e1 with
+	Id(e1) -> match e1 with
  	  "__add"
 	| "__sub"
 	| "__mult"
 	| "__div" -> ( match e2 with
 		| [] -> TInt, []
 		| hd::tl -> let ty1, eq1 = cnstr ctx hd in
-			    let ty2, eq2 = cnstr ctx (Eval(e1, tl)) in
+			    let ty2, eq2 = cnstr ctx (Eval(Id(e1), tl)) in
 			    TInt, (ty1,TInt) :: (ty2,TInt) :: eq1 @ eq2
 	)
 	| "__addf"
@@ -117,7 +118,7 @@ let rec constraints_of gctx =
 	| "__divf" -> ( match e2 with
 		| [] -> TFloat, []
 		| hd::tl -> let ty1, eq1 = cnstr ctx hd in
-			    let ty2, eq2 = cnstr ctx (Eval(e1, tl)) in
+			    let ty2, eq2 = cnstr ctx (Eval(Id(e1), tl)) in
 			    TFloat, (ty1,TFloat) :: (ty2,TFloat) :: eq1 @ eq2  
 	)
 	| "__equal"
@@ -134,13 +135,13 @@ let rec constraints_of gctx =
 	| "not" -> ( match e2 with
 		| [] -> TBool, []
 		| hd::tl -> let ty1, eq1 = cnstr ctx hd in
-			    let ty2, eq2 = cnstr ctx (Eval(e1, tl)) in
+			    let ty2, eq2 = cnstr ctx (Eval(Id(e1), tl)) in
 			    TBool, (ty1,TBool) :: (ty2,TBool) :: eq1 @ eq2  
 	)
 	| "__concat" -> ( match e2 with
 		| [] -> TString, []
 		| hd::tl -> let ty1, eq1 = cnstr ctx hd in
-			    let ty2, eq2 = cnstr ctx (Eval(e1, tl)) in
+			    let ty2, eq2 = cnstr ctx (Eval(Id(e1), tl)) in
 			    TString, (ty1,TString) :: (ty2,TString) :: eq1 @ eq2
 	)  
 	| "cons" -> 
