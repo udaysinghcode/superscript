@@ -30,7 +30,7 @@ type program = expr list
 
 (** [rename t] renames parameters in type [t] so that they count from
     [0] up. This is useful for pretty printing. *)
-let rename ty =
+let rename (ty: htype) = 
   let rec ren ((j,s) as c) = function
     | TInt -> TInt, c
     | TBool -> TBool, c
@@ -127,4 +127,3 @@ let rec tsubst s = function
   | TParam k -> (try List.assoc k s with Not_found -> TParam k)
   | TArrow (t1, t2) -> TArrow (tsubst s t1, tsubst s t2)
   | TSomeList t -> TSomeList (tsubst s t)
-
