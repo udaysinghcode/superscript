@@ -76,14 +76,11 @@ let generate_prog p =
                                             (gen_pairs el))
 
     | Eval(fname, el) -> (match fname with
-                          String(x) -> ""
-                        | Eval(x, y) -> ""
+                          String(x) -> sprintf "__fcall('%s', %s)" x (generate (List(el)))
+                        | Fdecl(x, y) -> sprintf "eval('(' + __unbox(%s) + ').apply(null, ' + JSON.stringify(__unbox(%s)) + ')')" (generate (Fdecl(x, y))) (generate (List(el)))
+                        | Eval(x, y) -> (generate (Eval(x, y)))
                         | _ -> raise (Failure "foo"))
-                           (*sprintf 
-                            "__fcall('%s', %s)"
-                            fname
-                            (generate (List(el)))*)
-
+                           
     | Fdecl(argl, exp) -> box "function"
         (sprintf
           "(function(%s) { return %s; }).toString()"
@@ -115,7 +112,7 @@ let generate_prog p =
       let (body, _, _, _) = generate_js_func fname in
       cc ["var "; fname; "="; body] in
     let rec get_fnames e = match e with
-        Eval(fname, el) -> (* [fname] @*) (get_fnames (List(el)))
+        Eval(fname, el) -> (* [fname] @*) ["prn"] @ (get_fnames (List(el)))
       | Id(s) -> [s]
       | Assign(el) -> get_fnames (List(el))
       | List(el) -> List.flatten (List.map get_fnames el)
@@ -138,4 +135,5 @@ let generate_prog p =
       "function __tojs(o) { if (o.__t === 'function') { return function() { var __temp = Array.prototype.slice.call(arguments); return eval('(' + o.__v + ').apply(null, __temp)'); }; } else { return __unbox(o); } };"::
       "function __call(args) { var __temp = !args.__v[0].__t ? args.__v[0] : __unbox(args.__v[0]); __temp[__unbox(args.__v[1])].apply(__temp, args.__v.slice(2).map(__tojs)); };"::
       "function __dot(args) { var __temp = args.__v; var res; for(var i = 1; i < __temp.length; i++) { res = (i === 1 ? __temp[0] : res)[__unbox(__temp[i])]; } return __box('json', res); };"::
+      "function __test() {};"::
       "function __fcall(name,args){ var __temp = eval(name); return (__temp.__t === 'module') ? __box('module', __unbox(__temp).apply(null, __unbox(args).map(__unbox))) : name === 'dot' ? __dot(args) : name === 'call' ? __call(args) : eval('('+__unbox(__temp)+').apply(null,__unbox(args))'); };\n"::(generate_head p)::";\n"::(List.map wrap_exp p))
