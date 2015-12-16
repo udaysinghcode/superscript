@@ -19,7 +19,7 @@ let fatal_error msg = raise (Fatal_error msg)
     the given context [ctx] and environment [env]. It returns the
     new context and environment. *)
 let rec exec_cmd (ctx, env) = function
-    | Assign(el) ->
+    | Assign(el) as assignment ->
 	let rec gen_pairs l = 
 	match l with
 		| [] -> []
@@ -39,7 +39,9 @@ let rec exec_cmd (ctx, env) = function
 	         	let ty = Ast.rename (Type_infer.type_of ctx e) in
 		 	print_endline ("val " ^ x ^ " : " ^ string_of_type ty) ;
 	     			(x,ty)::(addCtx ctx tl)
-	in (addCtx ctx defs), env
+	in
+	(addCtx ctx defs), env 
+
     | _ as e ->
       (* type check [e], evaluate, and print result *)
       let ty = Ast.rename (Type_infer.type_of ctx e) in
@@ -82,8 +84,8 @@ with
 in 
 let program = Parser.program Scanner.token lexbuf in
 	let types = fst(exec_cmds ([], []) program) in
-	(*PRINTING ALL VARIBLES AND TYPES from CTX *)
-	ignore(print_endline "\nVariable | Type");
+	(*PRINTING ALL IDENTIFIER AND TYPES from CTX *)
+	ignore(print_endline "\nIdentifier & Type");
 	List.iter(fun a -> ignore(print_string ((fst a) ^ ": ")); 
 		let ty = Ast.rename(snd a) in
 		print_endline(string_of_type ty)) types; ignore(print_string "\n");
