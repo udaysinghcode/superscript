@@ -100,9 +100,26 @@ let rec constraints_of gctx =
     | String _ -> TString, []
     | Boolean _ -> TBool, []
     | Nil -> TSomeList (fresh ()), []
+    | List _ -> TSomeList (TSome), []
+
+    | If (e1, e2, e3) ->
+	let ty1, eq1 = cnstr ctx e1 in
+	let ty2, eq2 = cnstr ctx e2 in
+	let ty3, eq3 = cnstr ctx e3 in
+	  ty2, (ty1, TBool) :: (ty2, ty3) :: eq1 @ eq2 @ eq3
+
+    | Fdecl(x, e) -> TInt, [] (*
+	let ty1 = fresh () in
+	let ty2, eq = cnstr ((x,ty1)::ctx) e in
+	  ty1, (ty1, ty2) :: eq *)
+
+    | Assign(e) -> TUnit, []
     | Eval(e1, e2) -> (
-	match e1 with
-	Id(e1) -> match e1 with
+       match e1 with
+       | Let(a,b,c) -> TUnit, [] 
+       | If(a,b,c) -> TUnit, []
+       | Fdecl(a,b) -> TUnit, []
+       | Id(e1) -> match e1 with
  	  "__add"
 	| "__sub"
 	| "__mult"
@@ -157,12 +174,12 @@ let rec constraints_of gctx =
 		in TUnit, addcnstr e2
 		)
 
-	| "int_of_str"
-	| "str_of_float"
-	| "float_of_str"
-	| "str_of_bool"
-	| "bool_of_str"
-	| "str_of_int" -> (
+	| "int_of_string"
+	| "string_of_float"
+	| "float_of_string"
+	| "string_of_boolean"
+	| "boolean_of_string"
+	| "string_of_int" -> (
 		if List.length e2 <> 1 then (invalid_args_error("Invalid arguments error: " ^ 
 								e1 ^ " takes 1 argument. "))
 		else (
@@ -189,7 +206,7 @@ let rec constraints_of gctx =
 	   )
 	| "int"
 	| "float"
-	| "bool"
+	| "boolean"
 	| "string"
 	| "list" ->
 	  ( 
@@ -203,7 +220,7 @@ let rec constraints_of gctx =
 			  | "int" -> TInt, []
 			  | "float" -> TFloat, []
 			  | "bool" -> TBool, []
-			  | "string" -> TString, []
+			  | "str" -> TString, []
 			  | "list" -> TSomeList(TSome), []
 		)	
 	  )
@@ -212,21 +229,6 @@ let rec constraints_of gctx =
 				 let ty = fresh () in 
 				ty, (ty1, TArrow(e2,ty)) :: eq1
   *)  )
-    | Assign(e) -> TUnit, [] (* has no type per se: can assign values of any types to Identifiers,
-				e.g. (= x 2 y "hi" z true) *)
-	
-    | List _ -> TSomeList (TSome), []
-
-    | If (e1, e2, e3) ->
-	let ty1, eq1 = cnstr ctx e1 in
-	let ty2, eq2 = cnstr ctx e2 in
-	let ty3, eq3 = cnstr ctx e3 in
-	  ty2, (ty1, TBool) :: (ty2, ty3) :: eq1 @ eq2 @ eq3
-
-    | Fdecl(x, e) -> TInt, [] (*
-	let ty1 = fresh () in
-	let ty2, eq = cnstr ((x,ty1)::ctx) e in
-	  ty1, (ty1, ty2) :: eq *)
   in
     cnstr []
 
@@ -234,4 +236,15 @@ let rec constraints_of gctx =
     context [ctx]. *)
 let type_of ctx e =
   let ty, eq = constraints_of ctx e in
-    tsubst (solve eq) ty
+    let ans = solve eq in
+	    let rec printType = function
+                  | TInt -> "TInt"
+		  | TBool -> "TBool"
+		  | TParam k -> "TypeVar" ^ (string_of_int k)
+		  | TSome -> "SomeType"
+		  | TSomeList _ -> "List of sometype"
+		  | TArrow(c, d) -> (printType c) ^ "->" ^ (printType d)
+		in let printpairs p = 
+		  print_int(fst p); print_endline(printType (snd p))
+	in ignore(List.iter (printpairs) ans);
+    tsubst (ans) ty

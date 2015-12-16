@@ -30,7 +30,7 @@ type program = expr list
 
 (** [rename t] renames parameters in type [t] so that they count from
     [0] up. This is useful for pretty printing. *)
-let rename ty =
+let rename (ty: htype) = 
   let rec ren ((j,s) as c) = function
     | TInt -> TInt, c
     | TBool -> TBool, c
