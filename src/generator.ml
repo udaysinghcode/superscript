@@ -147,9 +147,9 @@ let generate_prog p =
                       | h1::h2::tl -> (h1, h2)::(gen_pairs tl)
                       | _::[] -> raise (Failure("= operator used on odd numbered list!"))
                     in
-                      String.concat "; " (List.map 
-                                            (fun (Id(s), e) -> sprintf "eval('var %s = %s; %s;')" s (escape_quotes (generate e)) s)
-                                            (gen_pairs el))
+                      sprintf "eval('%s')" (cc (List.map 
+                                                  (fun (Id(s), e) -> sprintf "var %s = %s; %s;" s (escape_quotes (generate e)) s)
+                                                  (gen_pairs el)))
 
     | Eval(first, el) -> let argl = generate (List(el)) in
                           (match first with
