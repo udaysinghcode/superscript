@@ -16,7 +16,7 @@ in
   | String(x) -> concat ["String(\""; x; "\")"]
   | Id(x) -> concat ["Id(\""; x; "\")"]
   | Assign(el) -> concat ["Assign("; stringify (List(el)); ")"]
-  | Eval(str, el) -> concat ["Eval("; str; ", "; stringify (List(el)); ")"]
+  | Eval(str, el) -> (* concat ["Eval("; str; ", "; stringify (List(el)); ")"] *) ""
   | Nil -> "Nil"
   | List(expl) -> concat ["List("; (String.concat ", " (List.map (fun x -> stringify x) expl)); ")"]
   | Fdecl(args, e) -> concat ["Fdecl(["; String.concat ", " (List.map (fun x -> concat ["\""; x; "\""]) args); "], "; stringify e; ")"]
