@@ -2,7 +2,6 @@ open Ast;;
 open Generator;;
 open Scanner;;
 open Unix;;
-open Stringify;;
 
 (*  File Foo_ast:
 	let asts = Lit(2)  *)
@@ -112,6 +111,6 @@ List.iter (fun (desc, input, ast, expout) ->
 		if  expout = actout then print_string "" else
 		 print_endline (String.concat "" ["\027[38;5;1m"; desc; ": "; input; "... UNSUCCESSFUL Compilation....\ninput: "; input; "\nexpected out: "; expout; "\nActual out: "; actout; "\027[0m"]);
 		(*print_endline prog*)
-	else (print_endline (String.concat "" ["\027[38;5;1m"; desc; ": "; input; "... UNSUCCESSFUL Ast creation. Generated Ast: "; Stringify.stringify_prog expression; " Required Ast: "; Stringify.stringify_prog ast; "\027[0m"]) ; unsuccess := !unsuccess+1 ) ) tests ;;
+	else (print_endline (String.concat "" ["\027[38;5;1m"; desc; ": "; input; "\027[0m"]) ; unsuccess := !unsuccess+1 ) ) tests ;;
 
 if !unsuccess = 0 then exit 0 else exit 1 ;;

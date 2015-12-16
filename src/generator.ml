@@ -109,7 +109,7 @@ let generate_prog p =
       let (body, _, _, _) = generate_js_func fname in
       cc ["var "; fname; "="; body] in
     let rec get_fnames e = match e with
-        Eval(f, el) -> (match f with String(x) -> [x] | Fdecl(x, y) -> [] | Eval(x, y) -> get_fnames (Eval(x, y))) @ (get_fnames (List(el)))
+        Eval(f, el) -> (match f with String(x) -> [x] | Fdecl(x, y) -> [] | Eval(x, y) -> get_fnames (Eval(x, y)) | _ -> []) @ (get_fnames (List(el)))
       | Id(s) -> [s]
       | Assign(el) -> get_fnames (List(el))
       | List(el) -> List.flatten (List.map get_fnames el)
