@@ -26,9 +26,9 @@ let rec exec_cmd (ctx, env) = function
 		| h1::h2::tl -> (h1, h2)::(gen_pairs tl)
 		| _::[] -> raise(Fatal_error("=operator used on odd numbered list!"))
 	in 
-	let defs = gen_pairs el in
-	let rec addCtx ctx env = function
-		| [] -> ctx, env
+	let defs = List.rev (gen_pairs el) in
+	let rec addCtx ctx = function
+		| [] -> ctx
 		| (x,e)::tl ->
 	    		(* convert x from Ast.htype into the actual identifier string *)
 	     		let x = match x with
@@ -38,8 +38,8 @@ let rec exec_cmd (ctx, env) = function
 	     		(* type check [e], and store it unevaluated! *)
 	         	let ty = Ast.rename (Type_infer.type_of ctx e) in
 		 	print_endline ("val " ^ x ^ " : " ^ string_of_type ty) ;
-	     		( (x,ty)::ctx, (x, ref (VClosure (env,e)))::env)
-	in addCtx ctx env defs
+	     			(x,ty)::(addCtx ctx tl)
+	in (addCtx ctx defs), env
     | _ as e ->
       (* type check [e], evaluate, and print result *)
       let ty = Ast.rename (Type_infer.type_of ctx e) in
@@ -81,7 +81,8 @@ with
 	fatal_error("Syntax error" ^ "TODO: ERROR MSG")
 in 
 let program = Parser.program Scanner.token lexbuf in
-        exec_cmds ([], []) program;
+	let types = fst(exec_cmds ([], []) program) in
+	List.iter(fun a -> print_endline (fst a)) types;
 let prog = Generator.generate_prog program in
 write prog;
 print_endline (String.concat "\n" (funct (Unix.open_process_in "node a.js")))
