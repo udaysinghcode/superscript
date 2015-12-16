@@ -148,7 +148,9 @@ let generate_prog p =
                       | _::[] -> raise (Failure("= operator used on odd numbered list!"))
                     in
                       sprintf "eval('%s')" (cc (List.map 
-                                                  (fun (Id(s), e) -> sprintf "var %s = %s; %s;" s (escape_quotes (generate e)) s)
+                                                  (function
+                                                   | (Id(s), e) -> sprintf "var %s = %s; %s;" s (escape_quotes (generate e)) s
+                                                   | _ -> raise (Failure "can only assign to identifier"))
                                                   (gen_pairs el)))
 
     | Eval(first, el) -> let argl = generate (List(el)) in
