@@ -176,11 +176,6 @@ let rec constraints_of gctx =
 				| "str_of_int" -> TString, (ty, TInt) :: eq
 		)
 	)
-	| "int_head"
-	| "list_head"
-	| "float_head"
-	| "bool_head"
-	| "str_head"
 	| "head" ->
 	   (
 		if List.length e2 <> 1 then 
@@ -188,16 +183,29 @@ let rec constraints_of gctx =
 		else (
 			let thelist = (List.hd e2) in
 			  let ty, eq = cnstr ctx thelist in
-			match e1 with 
-			   | "int_head" -> TInt, (ty,TSomeList(TSome)) :: eq
-			   | "list_head" -> TSomeList(TSome), (ty, TSomeList(TSomeList(TSome))) :: eq
-			   | "float_head" -> TFloat, (ty, TSomeList(TSome)) :: eq
-			   | "bool_head" -> TBool, (ty, TSomeList(TSome)) :: eq
-			   | "str_head" -> TString, (ty, TSomeList(TSome)) :: eq
-			   | "head" -> 
 				TSome, (ty, TSomeList(TSome)) :: eq
 		)
 	   )
+	| "int"
+	| "float"
+	| "bool"
+	| "string"
+	| "list" ->
+	  ( 
+		if List.length e2 <> 1 then
+			(invalid_args_error("Invalid arguments error: int takes 1 atom as argument." ))
+		else (
+			(* DO NOT CHECK THE TYPE OF THE ARG (List.hd e2) AT COMPILE TIME --
+			i.e., casts on any type are allowed. int("hi") is allowed at compile time; 
+			however a run-time checker will throw an error if the types do not match. *)
+			match e1 with
+			  | "int" -> TInt, []
+			  | "float" -> TFloat, []
+			  | "bool" -> TBool, []
+			  | "string" -> TString, []
+			  | "list" -> TSomeList(TSome), []
+		)	
+	  )
 	(* User-defined functions *)
 	| _ -> TInt, [] (*let e = Id(e1) in let ty1, eq1 = (cnstr ctx e) in
 				 let ty = fresh () in 
