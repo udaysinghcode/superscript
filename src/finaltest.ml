@@ -2,7 +2,6 @@ open Ast;;
 open Generator;;
 open Scanner;;
 open Unix;;
-open Stringify;;
 
 (*  File Foo_ast:
 	let asts = Lit(2)  *)
@@ -10,6 +9,10 @@ open Stringify;;
 
 (*ocamlc -o final unix.cma scanner.cmo parser.cmo finaltest.cmo  *)
 
+(*    if  expout = actout then 
+      print_endline (String.concat "" ["\027[38;5;2m"; desc; ": "; input; "... SUCCESSFUL. Output: "; actout; "\027[0m"])
+    else print_endline (String.concat "" ["\027[38;5;1m"; desc; ": "; input; "... UNSUCCESSFUL Compilation....\ninput: "; input; "\nexpected out: "; expout; "\nActual out: "; actout; "\027[0m"]);
+*)
 
 (*let _ = 
 	let lexbuf = Lexing.from_string "2" in
@@ -79,6 +82,20 @@ let tests = [
   ("different outer temp variable should be available in nested let", "(let y \"foo\" (let x \"bar\" (prn (++ x y))));;", [], "barfoo") ;
   ("< operator should compare ints", "(pr (str_of_bool (< 9 10)));;(pr (str_of_bool (< 11 10)));;", [], "truefalse") ;
   ("if statements", "(if true (pr \"foo\") (pr \"bar\"));;(if false (pr \"foos\") (pr \"bars\"));;", [], "foobars") ;
+  ("prefix float sub without conversion", "(prn (- 5.0 .2 .3));;", [], "4.5") ;
+  ("prefix float mult without conversion", "(prn (* 1. 2. 3. 4.));;", [], "24") ;
+  ("prefix float div without conversion", "(prn (/ 10. 2. -5.));;", [], "-1") ;
+  ("use def to define factorial function", "(prn type (def fac (n) (if (<= n 1) 1 (* n (fac (- n 1))))))", [], "int" );
+  ("get first element (int) of list", "(head ‘(1 2 3 4 5 6 7 8 9 10));;", [], "1");
+  ("get first element (function) of list", "(prn (head '(+ 1 2 3)));;", [], "+");
+  ("multiple expressions", "( prn \"hello\" );; ( prn \"world\" );;  ( prn \"people\");;", [], "hello\nworld\npeople");
+  ("set add equal to anon func then call it", "(= add (fn (x y) (+ x y) )) ;;(prn (add 1 3));; ", [],  "4");
+  ("print the 5 mod 6", "(prn (mod 5 6));;", [], "5");
+  ("logical AND of true and false","(prn (and true false));;", [], "false");
+  ("setting and testing inequality", "(= a \"a\");; (prn (is \"a\" a));;", [], "");
+  ("trying to add float and int", "( + 1 2 3 3.5);;", [], "Fatal error: exception Executor.Fatal_error(\"The types float and int are incompatible\")");
+  ("quote won't allow list to be evaluated", "(prn \'(1 2 3))", [], "")
+  (*recursion*)
 ] ;;
 
 let unsuccess = ref 0 ;;
@@ -91,10 +108,9 @@ List.iter (fun (desc, input, ast, expout) ->
 		write prog;	
 			(*print_endline (String.concat "" (funct (Unix.open_process_in "node a.js"))) *)
 		let actout = String.concat "\n" (funct (Unix.open_process_in "node a.js")) in
-		if  expout = actout then 
-			print_endline (String.concat "" ["\027[38;5;2m"; desc; ": "; input; "... SUCCESSFUL. Output: "; actout; "\027[0m"])
-		else print_endline (String.concat "" ["\027[38;5;1m"; desc; ": "; input; "... UNSUCCESSFUL Compilation....\ninput: "; input; "\nexpected out: "; expout; "\nActual out: "; actout; "\027[0m"]);
+		if  expout = actout then print_string "" else
+		 print_endline (String.concat "" ["\027[38;5;1m"; desc; ": "; input; "... UNSUCCESSFUL Compilation....\ninput: "; input; "\nexpected out: "; expout; "\nActual out: "; actout; "\027[0m"]);
 		(*print_endline prog*)
-	else (print_endline (String.concat "" ["\027[38;5;1m"; desc; ": "; input; "... UNSUCCESSFUL Ast creation. Generated Ast: "; Stringify.stringify_prog expression; " Required Ast: "; Stringify.stringify_prog ast; "\027[0m"]) ; unsuccess := !unsuccess+1 ) ) tests ;;
+	else (print_endline (String.concat "" ["\027[38;5;1m"; desc; ": "; input; "\027[0m"]) ; unsuccess := !unsuccess+1 ) ) tests ;;
 
 if !unsuccess = 0 then exit 0 else exit 1 ;;
