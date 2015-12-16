@@ -135,7 +135,10 @@ let rec constraints_of gctx =
     					TArrow (func_types@[ty1]), eq
     	)
 
-    | Assign(e) -> TUnit, []
+    | Assign(e) -> (* all ids/types were already added to ctx in the executor. just return the type of the last assignment *)
+	let last = List.hd(List.rev e) in
+	let ty, eq = cnstr ctx last in
+	ty, eq
     | Eval(e1, e2) -> (
        match e1 with
        | Let(a,b,c) -> TUnit, [] 
