@@ -72,7 +72,7 @@ let generate_prog p =
                       | _::[] -> raise (Failure("= operator used on odd numbered list!"))
                     in
                       String.concat "; " (List.map 
-                                            (fun (Id(s), e) -> sprintf "eval('var %s = %s;')" s (escape_quotes (generate e)))
+                                            (fun (Id(s), e) -> sprintf "eval('var %s = %s; %s;')" s (escape_quotes (generate e)) s)
                                             (gen_pairs el))
 
     | Eval(first, el) -> (match first with
