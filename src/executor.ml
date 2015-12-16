@@ -82,7 +82,6 @@ with
 in 
 let expression = Parser.program Scanner.token lexbuf in
         exec_cmds ([], []) expression;
-(*let prog = Generator.generate_prog expression in
+let prog = Generator.generate_prog expression in
 write prog;
 print_endline (String.concat "\n" (funct (Unix.open_process_in "node a.js")))
-*)

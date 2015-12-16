@@ -197,12 +197,12 @@ let rec constraints_of gctx =
 			let arg = List.hd e2 in
 			let ty, eq = cnstr ctx arg in
 			match e1 with
-				| "int_of_str" -> TInt, (ty, TString) :: eq
-				| "str_of_float" -> TString, (ty, TFloat) :: eq
-				| "float_of_str" -> TFloat, (ty, TString) :: eq
-				| "str_of_bool" -> TString, (ty, TBool) :: eq
-				| "bool_of_str" -> TBool, (ty, TString) :: eq
-				| "str_of_int" -> TString, (ty, TInt) :: eq
+				| "int_of_string" -> TInt, (ty, TString) :: eq
+				| "string_of_float" -> TString, (ty, TFloat) :: eq
+				| "float_of_string" -> TFloat, (ty, TString) :: eq
+				| "string_of_boolean" -> TString, (ty, TBool) :: eq
+				| "boolean_of_string" -> TBool, (ty, TString) :: eq
+				| "string_of_int" -> TString, (ty, TInt) :: eq
 		)
 	)
 	| "head" ->
