@@ -35,8 +35,6 @@ expr_list:
 sexpr:
   LET ID expr expr   		{ Let($2, $3, $4) }
 | IF expr expr expr		{ If($2, $3, $4) }
-| FOR expr expr expr expr	{ For($2, $3, $4, $5)}
-| WHILE expr expr		{ While($2, $3) }
 | FUNC LPAREN formals_opt RPAREN expr { Fdecl(List.rev $3, $5) }
 | call				{ $1 }
 
@@ -48,6 +46,9 @@ expr:
 
 list:
   QUOTE LPAREN args_opt RPAREN 	{ List(List.rev $3) }
+
+rlist:
+  LPAREN sexpr RPAREN { $2 }
 
 formals_opt:
 /* nothing */ 	{ [] }
@@ -91,9 +92,10 @@ constant:
 | STRING		{ String($1) }
 
 call:
-  ID args_opt		{ Eval($1, List.rev $2) }
-| operator args_opt 	{ Eval($1, List.rev $2) }
-| two_args_operators two_args { Eval($1, List.rev $2)}
+  ID args_opt		{ Eval(String($1), List.rev $2) }
+| rlist args_opt   { Eval($1, List.rev $2) }
+| operator args_opt 	{ Eval(String($1), List.rev $2) }
+| two_args_operators two_args { Eval(String($1), List.rev $2)}
 | ASSIGN assign_args	{ Assign(List.rev $2) }
 
 args_opt:
@@ -118,20 +120,20 @@ infix_expr:
 | MINUS FLOAT			{ Float(-1.0 *. $2) }
 | LPAREN infix_expr RPAREN	{ $2 }
 | ID ASSIGN infix_expr		{ Assign([Id($1); $3]) }
-| infix_expr CONCAT infix_expr  { Eval("__concat", [$1; $3]) }
-| infix_expr PLUS infix_expr	{ Eval("__add", [$1; $3]) }
-| infix_expr MINUS infix_expr	{ Eval("__sub", [$1; $3])  }
-| infix_expr TIMES infix_expr	{ Eval("__mult", [$1; $3]) }
-| infix_expr DIVIDE infix_expr	{ Eval("__div", [$1; $3])  }
-| infix_expr PLUSF infix_expr	{ Eval("__addf", [$1; $3]) }
-| infix_expr MINUSF infix_expr	{ Eval("__subf", [$1; $3]) }
-| infix_expr TIMESF infix_expr	{ Eval("__multf", [$1; $3]) }
-| infix_expr DIVIDEF infix_expr	{ Eval("__divf", [$1; $3]) }
-| infix_expr EQ infix_expr	{ Eval("__equal", [$1; $3]) }
-| infix_expr NEQ infix_expr	{ Eval("__neq", [$1; $3]) }
-| infix_expr LT infix_expr	{ Eval("__add", [$1; $3]) }
-| infix_expr LEQ infix_expr	{ Eval("__less", [$1; $3]) }
-| infix_expr GT infix_expr	{ Eval("__greater", [$1; $3]) }
-| infix_expr GEQ infix_expr	{ Eval("__geq", [$1; $3]) }
-| infix_expr AND infix_expr	{ Eval("__and", [$1; $3]) }
-| infix_expr OR infix_expr	{ Eval("__or", [$1; $3]) } 
+| infix_expr CONCAT infix_expr  { Eval(String("__concat"), [$1; $3]) }
+| infix_expr PLUS infix_expr	{ Eval(String("__add"), [$1; $3]) }
+| infix_expr MINUS infix_expr	{ Eval(String("__sub"), [$1; $3])  }
+| infix_expr TIMES infix_expr	{ Eval(String("__mult"), [$1; $3]) }
+| infix_expr DIVIDE infix_expr	{ Eval(String("__div"), [$1; $3])  }
+| infix_expr PLUSF infix_expr	{ Eval(String("__addf"), [$1; $3]) }
+| infix_expr MINUSF infix_expr	{ Eval(String("__subf"), [$1; $3]) }
+| infix_expr TIMESF infix_expr	{ Eval(String("__multf"), [$1; $3]) }
+| infix_expr DIVIDEF infix_expr	{ Eval(String("__divf"), [$1; $3]) }
+| infix_expr EQ infix_expr	{ Eval(String("__equal"), [$1; $3]) }
+| infix_expr NEQ infix_expr	{ Eval(String("__neq"), [$1; $3]) }
+| infix_expr LT infix_expr	{ Eval(String("__add"), [$1; $3]) }
+| infix_expr LEQ infix_expr	{ Eval(String("__less"), [$1; $3]) }
+| infix_expr GT infix_expr	{ Eval(String("__greater"), [$1; $3]) }
+| infix_expr GEQ infix_expr	{ Eval(String("__geq"), [$1; $3]) }
+| infix_expr AND infix_expr	{ Eval(String("__and"), [$1; $3]) }
+| infix_expr OR infix_expr	{ Eval(String("__or"), [$1; $3]) } 
