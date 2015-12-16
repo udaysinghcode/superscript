@@ -80,8 +80,8 @@ with
 | Parsing.Parse_error | Failure("lexing: empty token" ) -> 
 	fatal_error("Syntax error" ^ "TODO: ERROR MSG")
 in 
-let expression = Parser.program Scanner.token lexbuf in
-        exec_cmds ([], []) expression;
-let prog = Generator.generate_prog expression in
+let program = Parser.program Scanner.token lexbuf in
+        exec_cmds ([], []) program;
+let prog = Generator.generate_prog program in
 write prog;
 print_endline (String.concat "\n" (funct (Unix.open_process_in "node a.js")))
