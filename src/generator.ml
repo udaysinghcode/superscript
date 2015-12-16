@@ -1,6 +1,6 @@
 open Ast;;
 open Printf;;
-
+(* add (get '(1 2 3) 0) to return 1*)
 let sprintf = Printf.sprintf;;
 
 let cc l = String.concat "" l;;
@@ -37,9 +37,12 @@ let generate_js_func fname =
     | "int_of_str"   -> ("'function(s) { return __box(\\'int\\', parseInt(__unbox(s))); }'", ["string"], "int", [])
     | "str_of_float" -> ("'function(f) { return __box(\\'string\\', '' + __unbox(f)); }'", ["float"], "string", [])
     | "float_of_str" -> ("'function(s) { return __box(\\'float\\', parseFloat(__unbox(s))); }'", ["string"], "float", [])
-    | "str_of_bool"   -> ("'function(b) { return __box(\\'string\\', \\'\\' + __unbox(b)); }'", ["boolean"], "string", [])
+    | "str_of_bool"  -> ("'function(b) { return __box(\\'string\\', \\'\\' + __unbox(b)); }'", ["boolean"], "string", [])
     | "__concat"     -> ("'function() { return __box(\\'string\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'", ["string"; "string"], "string", [])
-    | "evaluate"      -> ("'function(l) { return eval(\\'(\\' + __unbox(__unbox(l)[0]) + \\').apply(null, \\' + JSON.stringify(__unbox(l).slice(1)) + \\')\\'); }'", ["string"], "string", [])
+    | "evaluate"     -> ("'function(l) { return eval(\\'(\\' + __unbox(__unbox(l)[0]) + \\').apply(null, \\' + JSON.stringify(__unbox(l).slice(1)) + \\')\\'); }'", ["string"], "string", [])
+    | "module"       -> ("'function(n) { return __box(\\'module\\', require(__unbox(n))); }'", ["string"], "string", [])
+    | "call"          -> ("'function(m) {  }'", ["string"], "string", [])
+    | "dot"           -> ("'function(s,e) {  }'", ["string"], "string", [])
     | _ -> ("", [], "", [])
   in
     let (fstr, arg_types, ret_type, deps) = helper fname in
@@ -85,7 +88,7 @@ let generate_prog p =
 
     | If(cond, thenb, elseb) ->
         sprintf
-          "(function() { var __c = __unbox(%s); return !(Array.isArray(__c) && __c.length === 0) && __c ? %s : %s; })()"
+          "(function() { var __c = __unbox(%s); return (!(Array.isArray(__c) && __c.length === 0) && __c) ? %s : %s; })()"
           (generate cond)
           (generate thenb)
           (generate elseb)
@@ -125,7 +128,10 @@ let generate_prog p =
       "Object.getOwnPropertyDescriptors = getOwnPropertyDescriptors;"::
       "function __dup(o) { return Object.create(Object.getPrototypeOf(o), Object.getOwnPropertyDescriptors(o)); }"::
       "function __flatten(o) { var result = Object.create(o); for(var key in result) { result[key] = result[key]; } return result; }"::
-      "function __box(t,v){return ({__t:t,__v:__clone(v)});};"::
+      "function __box(t,v){ return ({ __t: t, __v: (t === 'module') ? v : __clone(v) }); };"::
       "function __clone(o){return JSON.parse(JSON.stringify(o));};"::
-      "function __unbox(o){return __clone(o.__v);};"::
-      "function __fcall(name,args){ return eval('('+__unbox(eval(name))+').apply(null,__unbox(args))');};\n"::(generate_head p)::";\n"::(List.map wrap_exp p))
+      "function __unbox(o){ return (o.__t === 'module') ? o.__v : __clone(o.__v); };"::
+      "function __tojs(o) { if (o.__t === 'function') { return function() { var __temp = Array.prototype.slice.call(arguments); return eval('(' + o.__v + ').apply(null, __temp)'); }; } else { return __unbox(o); } };"::
+      "function __call(args) { var __temp = !args.__v[0].__t ? args.__v[0] : __unbox(args.__v[0]); __temp[__unbox(args.__v[1])].apply(__temp, args.__v.slice(2).map(__tojs)); };"::
+      "function __dot(args) { var __temp = args.__v; var res; for(var i = 1; i < __temp.length; i++) { res = (i === 1 ? __temp[0] : res)[__unbox(__temp[i])]; } return __box('json', res); };"::
+      "function __fcall(name,args){ var __temp = eval(name); return (__temp.__t === 'module') ? __box('module', __unbox(__temp).apply(null, __unbox(args).map(__unbox))) : name === 'dot' ? __dot(args) : name === 'call' ? __call(args) : eval('('+__unbox(__temp)+').apply(null,__unbox(args))'); };\n"::(generate_head p)::";\n"::(List.map wrap_exp p))
