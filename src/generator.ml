@@ -90,9 +90,6 @@ let generate_prog p =
           (generate thenb)
           (generate elseb)
 
-    | For(init, cond, update, exp) -> cc ["return "; generate Nil; ";"]
-    | While(cond, exp) -> cc ["return "; generate Nil; ";"] 
-
     | Let(n, v, exp) ->
         sprintf
           "(function() { var %s = %s; return %s; })()"
@@ -114,8 +111,6 @@ let generate_prog p =
       | List(el) -> List.flatten (List.map get_fnames el)
       | Fdecl(argl, exp) -> get_fnames exp
       | If(cond, thenb, elseb) -> (get_fnames cond) @ (get_fnames thenb) @ (get_fnames elseb)
-      | For(init, cond, update, exp) -> (get_fnames init) @ (get_fnames cond) @ (get_fnames update) @ (get_fnames exp)
-      | While(cond, exp) -> (get_fnames cond) @ (get_fnames exp)
       | Let(n, v, exp) -> (get_fnames v) @ (get_fnames exp)
       | _ -> [] in
     let generatable = (List.filter is_generatable (List.flatten (List.map get_fnames p))) in
