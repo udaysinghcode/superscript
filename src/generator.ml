@@ -76,7 +76,10 @@ let generate_prog p =
                                             (gen_pairs el))
 
     | Eval(first, el) -> (match first with
-                          String(x) -> sprintf "eval('(' + __unbox(eval('%s')) + ').apply(null, ' + JSON.stringify(__unbox(%s)) + ')')" x (generate (List(el)))
+                          String(x) -> (match x with 
+                                          "dot" -> sprintf "__dot(%s)" (generate (List(el)))
+                                        | "call" -> sprintf "__call(%s)" (generate (List(el)))
+                                        | _ -> sprintf "(function(_i, _a) { return _i.__t === 'module' ? __box('module', __unbox(_i).apply(null, __unbox(_a).map(__unbox))) : eval('(' + __unbox(_i) + ').apply(null, ' + JSON.stringify(__unbox(_a)) + ')'); })(eval('%s'), %s)" x (generate (List(el))))
                         | Fdecl(x, y) -> sprintf "eval('(' + __unbox(%s) + ').apply(null, ' + JSON.stringify(__unbox(%s)) + ')')" (generate (Fdecl(x, y))) (generate (List(el)))
                         | Eval(x, y) -> sprintf "eval('(' + __unbox(%s) + ').apply(null, ' + JSON.stringify(__unbox(%s)) + ')')" (generate (Eval(x, y))) (generate (List(el)))
                         | _ -> raise (Failure "foo"))
