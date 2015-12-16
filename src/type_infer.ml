@@ -100,7 +100,11 @@ let rec constraints_of gctx =
     | String _ -> TString, []
     | Boolean _ -> TBool, []
     | Nil -> TSomeList (fresh ()), []
-    | List _ -> TSomeList (TSome), []
+    | List thelist -> let rec addcnstr = function
+	| [] -> []
+	| hd::tl -> let ty1, eq1 = cnstr ctx hd in
+		eq1 @ addcnstr tl
+	in TSomeList(TSome), addcnstr thelist
 
     | If (e1, e2, e3) ->
 	let ty1, eq1 = cnstr ctx e1 in
@@ -161,10 +165,17 @@ let rec constraints_of gctx =
 			    let ty2, eq2 = cnstr ctx (Eval(Id(e1), tl)) in
 			    TString, (ty1,TString) :: (ty2,TString) :: eq1 @ eq2
 	)  
-	| "cons" -> 
-		let ty2, eq = cnstr ctx (List.hd (List.rev e2)) in
-		let ty = TSomeList(TSome) in
-		ty, (ty2, ty) :: eq
+	| "cons" -> (
+		if List.length e2 <> 2 then (invalid_args_error("Invalid arguments error: " ^ "cons takes 2 arguments. "))
+		else (
+			let newhd = List.hd e2
+			and thelist = List.hd (List.rev e2) 
+			in
+			let ty1, eq1 = cnstr ctx newhd in	(* ty1 can be anything *)
+			let ty2, eq2 = cnstr ctx thelist in
+			TSomeList(TSome), (ty2,TSomeList(TSome)) :: eq1 @ eq2
+		)	
+	)
 	| "pr" 
 	| "prn" -> ( 
 		let rec addcnstr = function
@@ -213,15 +224,14 @@ let rec constraints_of gctx =
 		if List.length e2 <> 1 then
 			(invalid_args_error("Invalid arguments error: int takes 1 atom as argument." ))
 		else (
-			(* DO NOT CHECK THE TYPE OF THE ARG (List.hd e2) AT COMPILE TIME --
-			i.e., casts on any type are allowed. int("hi") is allowed at compile time; 
-			however a run-time checker will throw an error if the types do not match. *)
+			let x = List.hd e2 in
+			let ty1, eq1 = cnstr ctx x in
 			match e1 with
-			  | "int" -> TInt, []
-			  | "float" -> TFloat, []
-			  | "bool" -> TBool, []
-			  | "str" -> TString, []
-			  | "list" -> TSomeList(TSome), []
+			  | "int" -> TInt, eq1
+			  | "float" -> TFloat, eq1
+			  | "boolean" -> TBool, eq1
+			  | "string" -> TString, eq1
+			  | "list" -> TSomeList(TSome), eq1
 		)	
 	  )
 	(* User-defined functions *)
