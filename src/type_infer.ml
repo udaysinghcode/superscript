@@ -27,10 +27,14 @@ let refresh ty =
 	(try
 	   List.assoc k s, s
 	 with Not_found -> let t = fresh () in t, (k,t)::s)
-    | TArrow (t1, t2) ->
-	let u1, s'  = refresh s t1 in
-	let u2, s'' = refresh s' t2 in
-	  TArrow (u1, u2), s''
+    | TArrow t_list ->
+    	let rec tarrow_refresh ts us s' = 
+    		match ts with
+    		| [] -> us, s'
+    		| hd::tl -> let u,s'' = refresh s' hd in
+    					tarrow_refresh tl (us@[u]) s'' in
+    	let u_list, s = tarrow_refresh t_list [] s in
+    	TArrow u_list, s
     | TSomeList t ->
 	let u, s' = refresh s t in
 	  TSomeList u, s'
@@ -48,7 +52,12 @@ let rec occurs k = function
   | TBool -> false
   | TUnit -> false
   | TParam j -> k = j
-  | TArrow (t1, t2) -> occurs k t1 || occurs k t2
+  | TArrow t_list -> 
+  		let rec tarrow_occurs ts o =
+  			match ts with
+  			| [] -> o
+  			| hd::tl -> (tarrow_occurs tl (o||occurs k hd)) in
+  		tarrow_occurs t_list false
   | TSomeList t1 -> occurs k t1
   | TSome t1 -> occurs k t1
 
@@ -71,16 +80,22 @@ let solve eq =
 	      (List.map (fun (ty1,ty2) -> (ts ty1, ts ty2)) eq)
 	      ((k,t)::(List.map (fun (n, u) -> (n, ts u)) sbst))
 	      
-      | (TArrow (u1,v1), TArrow (u2,v2)) :: eq ->
-	  solve ((u1,u2)::(v1,v2)::eq) sbst
+      | (TArrow ty1, TArrow ty2) :: eq when (List.length ty1) = (List.length ty2) ->
+      	let rec get_eq l1 l2 eq = 
+      		match l1 with 
+      		| [] -> eq
+      		| hd::tl -> get_eq tl (List.tl l2) ((hd, (List.hd) l2)::eq) in 
+      	solve (get_eq ty1 ty2 []) sbst
 	    
       | (TSomeList t1, TSomeList t2) :: eq ->
         	solve ((t1,t2) :: eq) sbst
       | (TSome t1, TSome t2) :: eq -> solve eq sbst 
+      
       | (t1,t2)::_ ->
 	  let u1, u2 = rename2 t1 t2 in
 	    type_error ("The types " ^ string_of_type u1 ^ " and " ^
 			  string_of_type u2 ^ " are incompatible")  
+	  
 in
     solve eq []
 
@@ -165,7 +180,26 @@ let rec constraints_of gctx =
 			TString, (ty, TInt) :: eq
 		)
 	)
-	| _ -> TString, [] (* TODO *)
+	| "type" -> (
+			if List.length e2 <> 1 then (invalid_args_error "ERROR: str_of_int takes 1 argument")
+		else (
+			let ty, eq = cnstr ctx (List.hd e2) in
+			TString, eq
+		)
+	)
+	| _ -> ( let ty1, eq1 = cnstr ctx (Id e1) in
+			let ty2 = fresh () in
+			match e2 with 
+			| [] -> ty2, (ty1, TArrow [TUnit; ty2])::eq1
+			| _ -> let tys = List.map (fun v -> let (ty,eq) = cnstr ctx v in ty) e2 in
+					let rec get_eqs exp_list eq_list = (
+						match exp_list with
+						| [] -> eq_list
+						| hd::tl -> let (ty, eq) = cnstr ctx hd in 
+							get_eqs tl (eq_list@eq)
+					) in
+					ty2, (ty1, TArrow (tys@[ty2]))::eq1@(get_eqs e2 [])
+    )
     )
     | Assign(e) -> TUnit, [] (* has no type per se: can assign values of any types to Identifiers,
 				e.g. (= x 2 y "hi" z true) *)
@@ -180,10 +214,22 @@ let rec constraints_of gctx =
 	let ty3, eq3 = cnstr ctx e3 in
 	  ty2, (ty1, TBool) :: (ty2, ty3) :: eq1 @ eq2 @ eq3
 
-    | Fdecl(x, e) -> TInt, [] (*
+    | Fdecl(x, e) ->
+    	let eqs = List.rev (List.map (fun v -> print_string v;(v, fresh ())) x)in
+    	let ty1, eq = cnstr (eqs@ctx) e in
+    	match eqs with 
+    		|[] -> TArrow [TUnit;ty1], eq
+    		| _ -> let func_types = List.map (fun (a,b) -> b) eqs in
+    					TArrow (func_types@[ty1]), eq
+	(**
+    	| Fdecl of string list * expr 	(* (fn (a b) {a + b}) *)
+
+	| Fun (x, e) ->
 	let ty1 = fresh () in
 	let ty2, eq = cnstr ((x,ty1)::ctx) e in
-	  ty1, (ty1, ty2) :: eq *)
+	  TArrow (ty1, ty2), eq
+
+	*)
   in
     cnstr []
 
