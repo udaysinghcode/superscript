@@ -1,3 +1,5 @@
+(* Author: Samurdha Jayasinghe *)
+
 open Ast;;
 open Printf;;
 
@@ -9,42 +11,111 @@ let box t v = sprintf "({ __t: '%s', __v: %s })" t v;;
 let generate_js_func fname =
   let helper fname =
     match fname with
-      "prn"       -> ("'function(s) { console.log(__unbox(s)); return s; }'", ["string"], "string", [])
-    | "exec"      -> ("'function() { var res; for(var i = 0; i < arguments.length; i++) { res = __fcall(\\'evaluate\\', [arguments[i]]); } return res; }'", ["string"], "string", ["evaluate"])
-    | "pr"        -> ("'function(s) { process.stdout.write(__unbox(s)); return s; }'", ["string"], "string", [])
-    | "type"      -> ("'function(o) { return __box(\\'string\\', o.__t); }'", ["ss_boxed"], "string", [])
-    | "float_head"      -> ("'function(l) { return __clone(__unbox(l)[0]); }'", ["list"], "ss_boxed", [])
-    | "head"      -> ("'function(l) { return __clone(__unbox(l)[0]); }'", ["list"], "ss_boxed", [])
-    | "int_head"      -> ("'function(l) { return __clone(__unbox(l)[0]); }'", ["list"], "ss_boxed", [])
-    | "str_head"      -> ("'function(l) { return __clone(__unbox(l)[0]); }'", ["list"], "ss_boxed", [])
-    | "list_head"      -> ("'function(l) { return __clone(__unbox(l)[0]); }'", ["list"], "ss_boxed", [])
-    | "bool_head"      -> ("'function(l) { return __clone(__unbox(l)[0]); }'", ["list"], "ss_boxed", [])
-    | "tail"      -> ("'function(l) { return __box(\\'list\\', __unbox(l).slice(1)); }'", ["list"], "list", [])
-    | "cons"      -> ("'function(i, l) { var __temp = __unbox(l); __temp.unshift(__clone(i)); return __box(\\'list\\', __temp); }'", ["ss_boxed"; "list"], "list", [])
-    | "__add"     -> ("'function() { return __box(\\'int\\', arguments.length === 0 ? 0 : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'", ["int"; "int"], "int", [])
-    | "__sub"     -> ("'function(a1) { return __box(\\'int\\', arguments.length === 1 ? -1 * __unbox(a1) : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a-b;})); }'", ["int"; "int"], "int", [])
-    | "__mult"    -> ("'function() { return __box(\\'int\\', arguments.length === 0 ? 1 : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a*b;})); }'", ["int"; "int"], "int", [])
-    | "__div"     -> ("'function() { return __box(\\'int\\', Math.floor(Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a/b;}))); }'", ["int"; "int"], "int", [])
-    | "mod"       -> ("'function(a1, a2) { return __box(\\'int\\', __unbox(a1) % __unbox(a2)); }'", ["int"; "int"], "int", [])
-    | "__addf"    -> ("'function(a1, a2) { return __box(\\'float\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'", ["float"; "float"], "float", [])
-    | "__subf"    -> ("'function(a1, a2) { return __box(\\'float\\', arguments.length === 1 ? -1 * __unbox(a1) : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a-b;})); }'", ["float"; "float"], "float", [])
-    | "__multf"   -> ("'function(a1, a2) { return __box(\\'float\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a*b;})); }'", ["float"; "float"], "float", [])
-    | "__divf"    -> ("'function(a1, a2) { return __box(\\'float\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a/b;})); }'", ["float"; "float"], "float", [])
-    | "__equal"   -> ("'function(a1, a2) { return __box(\\'boolean\\', JSON.stringify(__unbox(a1)) === JSON.stringify(__unbox(a2))); }'", ["ss_boxed"; "ss_boxed"], "boolean", [])
-    | "__neq"     -> ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) !== __unbox(a2)); }'", ["ss_boxed"; "ss_boxed"], "boolean", [])
-    | "__less"    -> ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) < __unbox(a2)); }'", ["ss_boxed"; "ss_boxed"], "boolean", [])
-    | "__leq"     -> ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) <= __unbox(a2)); }'", ["ss_boxed"; "ss_boxed"], "boolean", [])
-    | "__greater" -> ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) > __unbox(a2)); }'", ["ss_boxed"; "ss_boxed"], "boolean", [])
-    | "__geq"     -> ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) >= __unbox(a2)); }'", ["ss_boxed"; "ss_boxed"], "boolean", [])
-    | "__and"     -> ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) && __unbox(a2)); }'", ["ss_boxed"; "ss_boxed"], "boolean", [])
-    | "__or"      -> ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) || __unbox(a2)); }'", ["ss_boxed"; "ss_boxed"], "boolean", [])
-    | "str_of_int"   -> ("'function(i) { return __box(\\'string\\', \\'\\' + __unbox(i)); }'", ["int"], "string", [])
-    | "int_of_str"   -> ("'function(s) { return __box(\\'int\\', parseInt(__unbox(s))); }'", ["string"], "int", [])
-    | "str_of_float" -> ("'function(f) { return __box(\\'string\\', '' + __unbox(f)); }'", ["float"], "string", [])
-    | "float_of_str" -> ("'function(s) { return __box(\\'float\\', parseFloat(__unbox(s))); }'", ["string"], "float", [])
-    | "str_of_bool"   -> ("'function(b) { return __box(\\'string\\', \\'\\' + __unbox(b)); }'", ["boolean"], "string", [])
-    | "__concat"     -> ("'function() { return __box(\\'string\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'", ["string"; "string"], "string", [])
-    | "evaluate"      -> ("'function(l) { return eval(\\'(\\' + __unbox(__unbox(l)[0]) + \\').apply(null, \\' + JSON.stringify(__unbox(l).slice(1)) + \\')\\'); }'", ["string"], "string", [])
+      "prn" -> 
+      ("'function(s) { console.log(__unbox(s)); return s; }'",
+        ["string"], "string", [])
+    | "exec" -> 
+      ("'function() { var res; for(var i = 0; i < arguments.length; i++) { res = __fcall(\\'evaluate\\', [arguments[i]]); } return res; }'",
+        ["string"], "string", ["evaluate"])
+    | "pr" -> 
+      ("'function(s) { process.stdout.write(__unbox(s)); return s; }'",
+        ["string"], "string", [])
+    | "type" -> 
+      ("'function(o) { return __box(\\'string\\', o.__t); }'",
+        ["ss_boxed"], "string", [])
+    | "head" -> 
+      ("'function(l) { return __clone(__unbox(l)[0]); }'",
+        ["list"], "ss_boxed", [])
+    | "tail" -> 
+      ("'function(l) { return __box(\\'list\\', __unbox(l).slice(1)); }'",
+        ["list"], "list", [])
+    | "cons" -> 
+      ("'function(i, l) { var __temp = __unbox(l); __temp.unshift(__clone(i)); return __box(\\'list\\', __temp); }'",
+        ["ss_boxed"; "list"], "list", [])
+    | "__add" ->
+      ("'function() { return __box(\\'int\\', arguments.length === 0 ? 0 : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'",
+        ["int"; "int"], "int", [])
+    | "__sub" ->
+      ("'function(a1) { return __box(\\'int\\', arguments.length === 1 ? -1 * __unbox(a1) : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a-b;})); }'",
+        ["int"; "int"], "int", [])
+    | "__mult" ->
+      ("'function() { return __box(\\'int\\', arguments.length === 0 ? 1 : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a*b;})); }'",
+        ["int"; "int"], "int", [])
+    | "__div" ->
+      ("'function() { return __box(\\'int\\', Math.floor(Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a/b;}))); }'",
+        ["int"; "int"], "int", [])
+    | "mod" ->
+      ("'function(a1, a2) { return __box(\\'int\\', __unbox(a1) % __unbox(a2)); }'",
+        ["int"; "int"], "int", [])
+    | "__addf" ->
+      ("'function(a1) { return __box(\\'float\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'",
+        ["float"; "float"], "float", [])
+    | "__subf" ->
+      ("'function(a1) { return __box(\\'float\\', arguments.length === 1 ? -1 * __unbox(a1) : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a-b;})); }'",
+        ["float"; "float"], "float", [])
+    | "__multf" ->
+      ("'function(a1) { return __box(\\'float\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a*b;})); }'",
+        ["float"; "float"], "float", [])
+    | "__divf" ->
+      ("'function(a1, a2) { return __box(\\'float\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a/b;})); }'",
+        ["float"; "float"], "float", [])
+    | "__equal" ->
+      ("'function(a1, a2) { return __box(\\'boolean\\', JSON.stringify(__unbox(a1)) === JSON.stringify(__unbox(a2))); }'",
+        ["ss_boxed"; "ss_boxed"], "boolean", [])
+    | "__neq" ->
+      ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) !== __unbox(a2)); }'",
+        ["ss_boxed"; "ss_boxed"], "boolean", [])
+    | "__less" ->
+      ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) < __unbox(a2)); }'",
+        ["ss_boxed"; "ss_boxed"], "boolean", [])
+    | "__leq" ->
+      ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) <= __unbox(a2)); }'",
+        ["ss_boxed"; "ss_boxed"], "boolean", [])
+    | "__greater" ->
+      ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) > __unbox(a2)); }'",
+        ["ss_boxed"; "ss_boxed"], "boolean", [])
+    | "__geq" ->
+      ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) >= __unbox(a2)); }'",
+        ["ss_boxed"; "ss_boxed"], "boolean", [])
+    | "__and" ->
+      ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) && __unbox(a2)); }'",
+        ["ss_boxed"; "ss_boxed"], "boolean", [])
+    | "__or" ->
+      ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) || __unbox(a2)); }'",
+        ["ss_boxed"; "ss_boxed"], "boolean", [])
+    | "string_of_int" ->
+      ("'function(i) { return __box(\\'string\\', \\'\\' + __unbox(i)); }'",
+        ["int"], "string", [])
+    | "int_of_string" ->
+      ("'function(s) { return __box(\\'int\\', parseInt(__unbox(s))); }'",
+        ["string"], "int", [])
+    | "string_of_float" ->
+      ("'function(f) { return __box(\\'string\\', '' + __unbox(f)); }'",
+        ["float"], "string", [])
+    | "float_of_string" ->
+      ("'function(s) { return __box(\\'float\\', parseFloat(__unbox(s))); }'",
+        ["string"], "float", [])
+    | "string_of_boolean" ->
+      ("'function(b) { return __box(\\'string\\', \\'\\' + __unbox(b)); }'",
+        ["boolean"], "string", [])
+    | "__concat" ->
+      ("'function() { return __box(\\'string\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'",
+        ["string"; "string"], "string", [])
+    | "evaluate" ->
+      ("'function(l) { return eval(\\'(\\' + __unbox(__unbox(l)[0]) + \\').apply(null, \\' + JSON.stringify(__unbox(l).slice(1)) + \\')\\'); }'",
+        ["string"], "string", [])
+    | "int" ->
+      ("'function(i) { return __box(\\'string\\', \\'\\' + __unbox(i)); }'",
+        ["ss_boxed"], "int", ["type"])
+    | "string" ->
+      ("'function(i) { return __box(\\'string\\', \\'\\' + __unbox(i)); }'",
+        ["ss_boxed"], "string", ["type"])
+    | "float" ->
+      ("'function(i) { return __box(\\'string\\', \\'\\' + __unbox(i)); }'",
+        ["ss_boxed"], "float", ["type"])
+    | "boolean" ->
+      ("'function(i) { return __box(\\'string\\', \\'\\' + __unbox(i)); }'",
+        ["ss_boxed"], "boolean", ["type"])
     | _ -> ("", [], "", [])
   in
     let (fstr, arg_types, ret_type, deps) = helper fname in
@@ -77,13 +148,17 @@ let generate_prog p =
                                             (fun (Id(s), e) -> sprintf "eval('var %s = %s; %s;')" s (escape_quotes (generate e)) s)
                                             (gen_pairs el))
 
-    | Eval(first, el) -> (match first with
-                            String(x) -> (match x with 
-                                            "dot" -> sprintf "__dot(%s)" (generate (List(el)))
-                                          | "call" -> sprintf "__call(%s)" (generate (List(el)))
-                                          | _ -> sprintf "(function(_i, _a) { return _i.__t === 'module' ? __box('module', __unbox(_i).apply(null, __unbox(_a).map(__unbox))) : eval('(' + __unbox(_i) + ').apply(null, ' + JSON.stringify(__unbox(_a)) + ')'); })(eval('%s'), %s)" x (generate (List(el))))
-                          | Fdecl(x, y) -> sprintf "eval('(' + __unbox(%s) + ').apply(null, ' + JSON.stringify(__unbox(%s)) + ')')" (generate (Fdecl(x, y))) (generate (List(el)))
-                          | Eval(x, y) -> sprintf "eval('(' + __unbox(%s) + ').apply(null, ' + JSON.stringify(__unbox(%s)) + ')')" (generate (Eval(x, y))) (generate (List(el)))
+    | Eval(first, el) -> let argl = generate (List(el)) in
+                          (match first with
+                            Id(x) -> (match x with 
+                                        "dot" -> sprintf "__dot(%s)" argl
+                                      | "call" -> sprintf "__call(%s)" argl
+                                      | _ -> sprintf "(function(_i, _a) { return _i.__t === 'module' ? __box('module', __unbox(_i).apply(null, __unbox(_a).map(__unbox))) : eval('(' + __unbox(_i) + ').apply(null, ' + JSON.stringify(__unbox(_a)) + ')'); })(eval('%s'), %s)" x argl)
+
+                          | Fdecl(a, e) -> sprintf "eval('(' + __unbox(%s) + ').apply(null, ' + JSON.stringify(__unbox(%s)) + ')')" (generate (Fdecl(a, e))) argl
+
+                          | Eval(f, e) -> sprintf "eval('(' + __unbox(%s) + ').apply(null, ' + JSON.stringify(__unbox(%s)) + ')')" (generate (Eval(f, e))) argl
+
                           | _ -> raise (Failure "foo"))
 
     | Fdecl(argl, exp) -> box "function"
@@ -114,7 +189,11 @@ let generate_prog p =
       let (body, _, _, _) = generate_js_func fname in
       cc ["var "; fname; "="; body] in
     let rec get_fnames e = match e with
-        Eval(f, el) -> (match f with String(x) -> [x] | Fdecl(x, y) -> [] | Eval(x, y) -> get_fnames (Eval(x, y)) | _ -> []) @ (get_fnames (List(el)))
+        Eval(f, el) -> (match f with 
+                          Id(x) -> [x]
+                        | Fdecl(x, y) -> [] 
+                        | Eval(x, y) -> get_fnames (Eval(x, y)) 
+                        | _ -> []) @ (get_fnames (List(el)))
       | Id(s) -> [s]
       | Assign(el) -> get_fnames (List(el))
       | List(el) -> List.flatten (List.map get_fnames el)
