@@ -29,15 +29,15 @@ let rec exec_cmd (ctx, env) = function
 	let defs = (gen_pairs el) in
 	let rec addCtx ctx = function
 		| [] -> ctx
-		| (x,e)::tl ->
+		| (x,e)::tl -> 
 	    		(* convert x from Ast.htype into the actual identifier string *)
 	     		let x = match x with
 				| Id(s) -> s
 				| _ -> raise(Fatal_error("first operand of assignment must be an identifier!"))
 	     		in
 	     		(* type check [e], and store it unevaluated! *)
-	         	let ty = Ast.rename (Type_infer.type_of ctx e) in
-		 	print_endline ("val " ^ x ^ " : " ^ string_of_type ty) ;
+	         	let ty = Ast.rename (Type_infer.type_of ctx e) 
+        in print_endline ("val " ^ x ^ " : " ^ string_of_type ty) ;
 	     			(x,ty)::(addCtx ctx tl)
 	in
 	(addCtx ctx defs), env 

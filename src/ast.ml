@@ -7,7 +7,7 @@ type htype =
   | TBool                    (** booleans [bool] *)
   | TString		     (** strings [string] *)
   | TParam of int            (** parameter *)
-  | TArrow of htype * htype  (** Function type [a -> b -> c -> ... -> e] *)
+  | TArrow of htype list  (** Function type [s -> t] *)
   | TSomeList of htype          (** Lists *)
   | TUnit			(* unit type for printing *)
   | TSome			(* sometype - used only for lists *)
@@ -42,10 +42,15 @@ let rename (ty: htype) =
 	   TParam (List.assoc k s), c
 	 with 
 	     Not_found -> TParam j, (j+1, (k, j)::s))
-    | TArrow (t1, t2) ->
-	let u1, c'  = ren c t1 in
-	let u2, c'' = ren c' t2 in
-	  TArrow (u1,u2), c''
+    | TArrow t_list ->
+        let rec tarrow_ren ts us c' =
+          match ts with
+          | [] -> us, c'
+          | hd::tl -> 
+            (let u1, c'' = ren c' hd in
+            tarrow_ren tl (us@[u1]) c'')
+        in let u_list, final_c = (tarrow_ren t_list [] c) in
+        TArrow u_list, final_c
     | TSomeList t -> let u, c' = ren c t in TSomeList u, c'
     | TUnit -> TUnit, c 
   in
@@ -53,10 +58,12 @@ let rename (ty: htype) =
 
 (** [rename t1 t2] simultaneously renames types [t1] and [t2] so that
     parameters appearing in them are numbered from [0] on. *)
+
 let rename2 t1 t2 =
-match rename (TArrow (t1,t2)) with
-      TArrow (u1, u2) -> u1, u2
+match rename (TArrow [t1;t2]) with
+      TArrow [u1;u2] -> u1, u2
     | _ -> assert false
+
 
 (** [string_of_type] converts a Poly type to string. *)
 let string_of_type ty =
@@ -75,7 +82,16 @@ let string_of_type ty =
 	| TString -> (4, "string")
 	| TBool -> (4, "bool")
 	| TParam k -> (4, (if k < Array.length a then "'" ^ a.(k) else "'ty" ^ string_of_int k))
-	| TArrow (ty1, ty2) -> (1, (to_str 1 ty1) ^ " -> " ^ (to_str 0 ty2))
+	| TArrow t_list -> let len = (List.length t_list)-1 in
+                      let rec tarrow_type ts s =
+                        match ts with
+                        | [] -> s
+                        | hd::tl when (List.length tl > 0) -> 
+                            tarrow_type tl (s^(to_str ((List.length ts)-1) hd)^" -> ")
+                        | hd::tl when (List.length tl = 0) ->
+                            tarrow_type tl (s^(to_str ((List.length ts)-1) hd))
+                      in
+                      (len, tarrow_type t_list "")
     in
       if m > n then str else "(" ^ str ^ ")"
   in
@@ -125,5 +141,6 @@ let string_of_expr e =
 let rec tsubst s = function
   | (TInt | TBool | TFloat | TString | TUnit | TSome ) as t -> t
   | TParam k -> (try List.assoc k s with Not_found -> TParam k)
-  | TArrow (t1, t2) -> TArrow (tsubst s t1, tsubst s t2)
+  | TArrow t_list -> let u_list = List.map (fun t -> tsubst s t) t_list
+                      in TArrow u_list 
   | TSomeList t -> TSomeList (tsubst s t)
