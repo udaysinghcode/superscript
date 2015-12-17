@@ -243,6 +243,21 @@ let rec constraints_of gctx =
 				TSome, (ty, TSomeList(TSome)) :: eq
 		)
 	   )
+	| "tail" -> 
+		if List.length e2 <> 1 then
+			(invalid_args_error("Invalid arguments error: tail takes one list as argument. "))
+		else (
+			let thelist = (List.hd e2) in
+			let ty, eq = cnstr ctx thelist in
+			TSomeList(TSome), (ty, TSomeList(TSome)) :: eq
+		)
+	| "type" -> if List.length e2 <> 1 then
+			(invalid_args_error("Invalid arguments error: type takes one argument. "))
+		else (
+			let x = (List.hd e2) in
+			let ty, eq = cnstr ctx x in
+			TString, eq
+		)
 	| "int"
 	| "float"
 	| "boolean"
