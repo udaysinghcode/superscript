@@ -143,8 +143,22 @@ let rec constraints_of gctx =
        match e1 with
        | Let(a,b,c) -> TUnit, [] 
        | If(a,b,c) -> TUnit, []
-       | Fdecl(a,b) -> TUnit, []
-       | Id(e1) -> match e1 with
+       | Fdecl(a,b) -> (
+       		let ty1, eq1 = cnstr ctx e1 in
+       		let ty2 = fresh () in
+			match e2 with 
+			| [] -> ty2, (ty1, TArrow [TUnit; ty2])::eq1
+			| _ -> let tys = List.map (fun v -> let (ty,eq) = cnstr ctx v in ty) (List.rev e2) in
+					let rec get_eqs exp_list eq_list = (
+						match exp_list with
+						| [] -> eq_list
+						| hd::tl -> let (ty, eq) = cnstr ctx hd in 
+							get_eqs tl (eq_list@eq)
+					) in
+					ty2, (ty1, TArrow (tys@[ty2]))::eq1@(get_eqs e2 [])
+		)
+
+       | Id(e1) -> (match e1 with
  	| "__add"
 	| "__sub"
 	| "__mult"
@@ -290,6 +304,7 @@ let rec constraints_of gctx =
 					) in
 					ty2, (ty1, TArrow (tys@[ty2]))::eq1@(get_eqs e2 [])
     )
+   )
  )
   in
     cnstr []
