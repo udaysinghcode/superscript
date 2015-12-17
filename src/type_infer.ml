@@ -233,19 +233,6 @@ let rec constraints_of gctx =
 			TString, eq
 		)
 	)
-	| _ -> ( let ty1, eq1 = cnstr ctx (Id e1) in
-			let ty2 = fresh () in
-			match e2 with 
-			| [] -> ty2, (ty1, TArrow [TUnit; ty2])::eq1
-			| _ -> let tys = List.map (fun v -> let (ty,eq) = cnstr ctx v in ty) e2 in
-					let rec get_eqs exp_list eq_list = (
-						match exp_list with
-						| [] -> eq_list
-						| hd::tl -> let (ty, eq) = cnstr ctx hd in 
-							get_eqs tl (eq_list@eq)
-					) in
-					ty2, (ty1, TArrow (tys@[ty2]))::eq1@(get_eqs e2 [])
-    )
 	| "head" ->
 	   (
 		if List.length e2 <> 1 then 
@@ -275,6 +262,19 @@ let rec constraints_of gctx =
 			  | "list" -> TSomeList(TSome), eq1
 		)	
 	  )
+	| _ -> ( let ty1, eq1 = cnstr ctx (Id e1) in
+			let ty2 = fresh () in
+			match e2 with 
+			| [] -> ty2, (ty1, TArrow [TUnit; ty2])::eq1
+			| _ -> let tys = List.map (fun v -> let (ty,eq) = cnstr ctx v in ty) (List.rev e2) in
+					let rec get_eqs exp_list eq_list = (
+						match exp_list with
+						| [] -> eq_list
+						| hd::tl -> let (ty, eq) = cnstr ctx hd in 
+							get_eqs tl (eq_list@eq)
+					) in
+					ty2, (ty1, TArrow (tys@[ty2]))::eq1@(get_eqs e2 [])
+    )
  )
   in
     cnstr []
@@ -290,6 +290,9 @@ let type_of ctx e =
 		  | TParam k -> "TypeVar" ^ (string_of_int k)
 		  | TSome -> "SomeType"
 		  | TSomeList _ -> "List of sometype"
+		  | TString -> "TString"
+		  | TUnit -> "TUnit"
+		  | TFloat -> "TFloat"
 		  | TArrow t_list -> (
 		  	let rec print_types_list types str = 
 		  		( match types with 
@@ -297,9 +300,10 @@ let type_of ctx e =
 		  			| hd::tl when (List.length tl) = 0 -> str^(printType hd)
 		  			| hd::tl when (List.length tl > 0) -> str^(printType hd)^" -> "
 		  		) in
-		  	(print_types_list t_list "")
+		  	print_types_list t_list ""
 		  )
+		  | _ as t -> print_string (string_of_type t);"other case"
 		in let printpairs p = 
-		  print_int(fst p); print_endline(printType (snd p))
-	in ignore(List.iter (printpairs) ans);
+		 printType (snd p);()
+	in List.iter (printpairs) ans;
     tsubst (ans) ty

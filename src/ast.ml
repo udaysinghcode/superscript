@@ -86,7 +86,11 @@ let string_of_type ty =
                       let rec tarrow_type ts s =
                         match ts with
                         | [] -> s
-                        | hd::tl -> tarrow_type tl (s^" -> "^(to_str ((List.length ts)-1) hd))in
+                        | hd::tl when (List.length tl > 0) -> 
+                            tarrow_type tl (s^(to_str ((List.length ts)-1) hd)^" -> ")
+                        | hd::tl when (List.length tl = 0) ->
+                            tarrow_type tl (s^(to_str ((List.length ts)-1) hd))
+                      in
                       (len, tarrow_type t_list "")
     in
       if m > n then str else "(" ^ str ^ ")"
