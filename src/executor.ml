@@ -26,7 +26,7 @@ let rec exec_cmd (ctx, env) = function
 		| h1::h2::tl -> (h1, h2)::(gen_pairs tl)
 		| _::[] -> raise(Fatal_error("=operator used on odd numbered list!"))
 	in 
-	let defs = List.rev (gen_pairs el) in
+	let defs = (gen_pairs el) in
 	let rec addCtx ctx = function
 		| [] -> ctx
 		| (x,e)::tl -> 
