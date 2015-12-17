@@ -141,9 +141,9 @@ let rec constraints_of gctx =
 	ty, eq
     | Eval(e1, e2) -> (
        match e1 with
-       | Let(a,b,c) -> TUnit, [] 
-       | If(a,b,c) -> TUnit, []
-       | Fdecl(a,b) -> TUnit, []
+       | Let(a,b,c) -> TSome, [] 
+       | If(a,b,c) -> TSome, []
+       | Fdecl(a,b) -> TSome, []
        | Id(e1) -> match e1 with
  	| "__add"
 	| "__sub"
