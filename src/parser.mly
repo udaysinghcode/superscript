@@ -96,7 +96,7 @@ call:
 | unquoted_list args_opt	{ Eval($1, List.rev $2) }
 | operator args_opt 		{ Eval(Id($1), List.rev $2) }
 | two_args_operators two_args 	{ Eval(Id($1), List.rev $2)}
-| ASSIGN assign_args		{ Assign(List.rev $2) }
+| ASSIGN assign_args		{ Assign($2) }
 
 args_opt:
 /* nothing */ 		{ [] }
@@ -110,8 +110,8 @@ args:
 | args expr		{ $2 :: $1 }
   
 assign_args:
-  /*nothing*/		{ [] }
-| ID expr assign_args   { $2 :: Id($1) :: $3 }
+  ID expr		{ [Id($1); $2] }
+| ID expr assign_args   { Id($1) :: $2 :: $3 }
 
 infix_expr:
   constant			{ $1 }

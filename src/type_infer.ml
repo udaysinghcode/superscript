@@ -118,7 +118,7 @@ let rec constraints_of gctx =
 	  ty1, (ty1, ty2) :: eq *)
 
     | Assign(e) -> (* all ids/types were already added to ctx in the executor. just return the type of the last assignment *)
-	let last = List.hd(List.rev e) in
+	let last = List.hd (List.rev e) in
 	let ty, eq = cnstr ctx last in
 	ty, eq
     | Eval(e1, e2) -> (
