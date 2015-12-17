@@ -1,6 +1,6 @@
 open Ast;;
 open Type_infer;;
-(* open Generator;; *)
+open Generator;;
 open Scanner;;
 open Unix;;
 
@@ -83,7 +83,7 @@ with
 	fatal_error("Syntax error" ^ "TODO: ERROR MSG")
 in 
 let program = Parser.program Scanner.token lexbuf in
-	let types = fst(exec_cmds ([], []) program) in
+	let types = fst(exec_cmds (List.map (fun x -> (x, Generator.arrow_of(x))) (Generator.get_generatable_fnames program), []) program) in
 	(*PRINTING ALL IDENTIFIER AND TYPES from CTX *)
 	ignore(print_endline "\nIdentifier & Type");
 	List.iter(fun a -> ignore(print_string ((fst a) ^ ": ")); 
