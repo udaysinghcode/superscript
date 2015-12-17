@@ -19,7 +19,7 @@ let fatal_error msg = raise (Fatal_error msg)
     the given context [ctx] and environment [env]. It returns the
     new context and environment. *)
 let rec exec_cmd (ctx, env) = function
-    | Assign(el) as assignment ->
+    | Assign(el) ->
 	let rec gen_pairs l = 
 	match l with
 		| [] -> []
