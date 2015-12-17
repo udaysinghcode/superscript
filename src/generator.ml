@@ -108,16 +108,16 @@ let generate_js_func fname =
       ("'function(n) { return __box(\\'module\\', require(__unbox(n))); }'",
         ["string"], "string", [])
     | "int" ->
-      ("'function(i) { return __box(\\'string\\', \\'\\' + __unbox(i)); }'",
+      ("'function(i) { if (__fcall(\\'type\\', __box(\\'list\\', [i])).__v !== \\'int\\') { throw new TypeError(\\'not an int!\\'); } else { return i; } }'",
         ["ss_boxed"], "int", ["type"])
     | "string" ->
-      ("'function(i) { return __box(\\'string\\', \\'\\' + __unbox(i)); }'",
+      ("'function(i) { if (__fcall(\\'type\\', [i])).__v !== \\'string\\') { throw new TypeError(\\'not a string!\\'); } else { return i; } }'",
         ["ss_boxed"], "string", ["type"])
     | "float" ->
-      ("'function(i) { return __box(\\'string\\', \\'\\' + __unbox(i)); }'",
+      ("'function(i) { if (__fcall(\\'type\\', [i])).__v !== \\'float\\') { throw new TypeError(\\'not a float!\\'); } else { return i; } }'",
         ["ss_boxed"], "float", ["type"])
     | "boolean" ->
-      ("'function(i) { return __box(\\'string\\', \\'\\' + __unbox(i)); }'",
+      ("'function(i) { if (__fcall(\\'type\\', [i])).__v !== \\'boolean\\') { throw new TypeError(\\'not a boolean!\\'); } else { return i; } }'",
         ["ss_boxed"], "boolean", ["type"])
     | _ -> ("", [], "", [])
   in
@@ -148,21 +148,23 @@ let generate_prog p =
                       | _::[] -> raise (Failure("= operator used on odd numbered list!"))
                     in
                       sprintf "eval('%s')" (cc (List.map 
-                                                  (fun (Id(s), e) -> sprintf "var %s = %s; %s;" s (escape_quotes (generate e)) s)
+                                                  (function
+                                                   | (Id(s), e) -> sprintf "var %s = %s; %s;" s (escape_quotes (generate e)) s
+                                                   | _ -> raise (Failure "can only assign to identifier"))
                                                   (gen_pairs el)))
 
     | Eval(first, el) -> let argl = generate (List(el)) in
-                          (match first with
-                            Id(x) -> (match x with 
-                                        "dot" -> sprintf "__dot(%s)" argl
-                                      | "call" -> sprintf "__call(%s)" argl
-                                      | _ -> sprintf "(function(_i, _a) { return _i.__t === 'module' ? __box('module', __unbox(_i).apply(null, __unbox(_a).map(__unbox))) : eval('(' + __unbox(_i) + ').apply(null, ' + JSON.stringify(__unbox(_a)) + ')'); })(eval('%s'), %s)" x argl)
+        (match first with
+          Id(x) -> (match x with 
+                      "dot" -> sprintf "__dot(%s)" argl
+                    | "call" -> sprintf "__call(%s)" argl
+                    | _ -> sprintf "(function(_i, _a) { return _i.__t === 'module' ? __box('module', __unbox(_i).apply(null, __unbox(_a).map(__unbox))) : eval('(' + __unbox(_i) + ').apply(null, ' + JSON.stringify(__unbox(_a)) + ')'); })(eval('%s'), %s)" x argl)
 
-                          | Fdecl(a, e) -> sprintf "eval('(' + __unbox(%s) + ').apply(null, ' + JSON.stringify(__unbox(%s)) + ')')" (generate (Fdecl(a, e))) argl
+        | Fdecl(a, e) -> sprintf "eval('(' + __unbox(%s) + ').apply(null, ' + JSON.stringify(__unbox(%s)) + ')')" (generate (Fdecl(a, e))) argl
 
-                          | Eval(f, e) -> sprintf "eval('(' + __unbox(%s) + ').apply(null, ' + JSON.stringify(__unbox(%s)) + ')')" (generate (Eval(f, e))) argl
+        | Eval(f, e) -> sprintf "eval('(' + __unbox(%s) + ').apply(null, ' + JSON.stringify(__unbox(%s)) + ')')" (generate (Eval(f, e))) argl
 
-                          | _ -> raise (Failure "foo"))
+        | _ -> raise (Failure "foo"))
 
     | Fdecl(argl, exp) -> box "function"
         (sprintf
@@ -194,7 +196,7 @@ let generate_prog p =
     let rec get_fnames e = match e with
         Eval(f, el) -> (match f with 
                           Id(x) -> [x]
-                        | Fdecl(x, y) -> [] 
+                        | Fdecl(x, y) -> get_fnames y 
                         | Eval(x, y) -> get_fnames (Eval(x, y)) 
                         | _ -> []) @ (get_fnames (List(el)))
       | Id(s) -> [s]
