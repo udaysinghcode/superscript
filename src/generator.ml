@@ -110,6 +110,9 @@ let generate_js_func fname =
     | "module" ->
       ("'function(n) { return __box(\\'module\\', require(__unbox(n))); }'",
         [TString], TSome, [])
+    | "list" ->
+      ("'function(i) { if (__fcall(\\'type\\', __box(\\'list\\', [i])).__v !== \\'list\\') { throw new TypeError(\\'not a list!\\'); } else { return i; } }'",
+        [TSome], TSomeList(TSome), ["type"])
     | "int" ->
       ("'function(i) { if (__fcall(\\'type\\', __box(\\'list\\', [i])).__v !== \\'int\\') { throw new TypeError(\\'not an int!\\'); } else { return i; } }'",
         [TSome], TInt, ["type"])
