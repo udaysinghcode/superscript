@@ -46,7 +46,7 @@ rule token = parse
 	
 	| "(*" { comment lexbuf }
 
-	| '\n'[' ' '\t']*("let" | "if" | "for" | "do" | "while" ) as lxm 	(* Standard library functions *)
+	| '\n'[' ' '\t']*("let" | "if" ) as lxm 	(* Standard library functions *)
 					{ let spaces = countSp lxm 0 1 in
 					   ignore(Stack.push spaces curIndent); 
 					 StdFn(lxm) }
@@ -103,7 +103,7 @@ and comment = parse
   		close_in ic;
   		(s)
 	in
-	let lexbuf = Lexing.from_string (load_file infile) in	
+	let lexbuf = Lexing.from_string ("\n\n" ^ (load_file infile)) in	
 	
 	let wordlist =
 	  let rec next l  = match token lexbuf with
