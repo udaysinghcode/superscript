@@ -1,7 +1,7 @@
 %{ open Ast %}
 
 %token PLUS MINUS TIMES DIVIDE PLUSF MINUSF TIMESF DIVIDEF EOF
-%token ASSIGN QUOTE AND OR EQ NEQ LT LEQ GT GEQ CONCAT
+%token ASSIGN QUOTE AND OR NOT EQ NEQ LT LEQ GT GEQ CONCAT
 %token SEMI LPAREN RPAREN LBRACE RBRACE
 %token <int> INT
 %token FUNC LET IF DO EVAL
@@ -76,6 +76,7 @@ operator:
 | TIMESF		{ "__multf" }
 | AND			{ "__and" }
 | OR			{ "__or" }
+| NOT			{ "__not" }
 | CONCAT		{ "__concat" }
 | DO			{ "exec" }
 | EVAL			{ "evaluate" }
