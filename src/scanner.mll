@@ -39,7 +39,7 @@ rule token = parse
 | ['0'-'9']*'.'['0'-'9']+  as lxm { FLOAT(float_of_string lxm) }		(* Float *)
 | ['0'-'9']+'.'['0'-'9']*  as lxm { FLOAT(float_of_string lxm) }		(* Float *)
 | ['0'-'9']+ as lxm { INT(int_of_string lxm) }					(* Int *)
-| ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_' '-']* as lxm { ID(lxm) }	(* Identifier *)
+| ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }		(* Identifier *)
 | eof { EOF }
 | _ as char { raise (Failure("illegal input " ^ Char.escaped char)) }
 
