@@ -108,9 +108,7 @@ let rec constraints_of gctx =
 	      (* we call [refresh] here to get let-polymorphism *)
 	      refresh (List.assoc x gctx), []
 	    with Not_found -> 
-		(* try searching in built-in function identifiers *)
-		(try (Generator.arrow_of x), [] with Failure _ ->
-			type_error ("Unknown variable " ^ x))))
+			type_error ("Unknown variable " ^ x)))
 	)
     | Int _ ->  TInt, []
     | Float _ -> TFloat, []

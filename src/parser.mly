@@ -62,7 +62,6 @@ atom:
   constant		{ $1 }
 | ID			{ Id($1) }
 | NIL			{ Nil }
-| operator		{ Id($1) }
 | two_args_operators	{ Id($1) }
 
 operator:
@@ -118,6 +117,7 @@ assign_args:
 
 infix_expr:
   constant			{ $1 }
+| ID LBRACE args_opt RBRACE	{ Eval(Id($1), List.rev $3) }
 | ID				{ Id($1) }
 | MINUS INT			{ Int(-1 * $2) }
 | MINUS FLOAT			{ Float(-1.0 *. $2) }
