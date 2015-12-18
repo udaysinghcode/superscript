@@ -86,12 +86,17 @@ let exec_cmds ce cmds =
   List.fold_left (exec_cmd) ce cmds
 with
   Type_infer.Type_error msg -> fatal_error (msg)
-| Parsing.Parse_error | Failure("lexing: empty token" ) -> 
-	fatal_error("Syntax error" ^ "TODO: ERROR MSG")
 in 
-let program = Parser.program Scanner.token lexbuf in
-	let types = fst(exec_cmds (List.map (fun x -> (x, Generator.arrow_of(x))) (Generator.get_generatable_fnames program), []) program) in
-	(*PRINTING ALL IDENTIFIER AND TYPES from CTX *)
+let program = 
+   try
+     Parser.program Scanner.token lexbuf
+   with
+    | Failure("lexing: empty token")
+    | Parsing.Parse_error -> fatal_error (Message.syntax_error lexbuf)
+in
+   (*PRINTING ALL IDENTIFIER AND TYPES from CTX *)
+   let types = fst(exec_cmds (List.map (fun x -> (x, Generator.arrow_of(x))) 
+	(Generator.get_generatable_fnames program), []) program) in
 	ignore(print_endline "\nIdentifier & Type");
 	List.iter(fun a -> ignore(print_string ((fst a) ^ ": ")); 
 		let ty = Ast.rename(snd a) in
