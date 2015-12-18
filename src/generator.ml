@@ -23,9 +23,6 @@ let generate_js_func fname =
     | "type" -> 
       ("'function(o) { return __box(\\'string\\', o.__t); }'",
         [TSome], TString, [])
-    | "length" -> 
-      ("'function(l) { return __box(\\'int\\', l.__v.length); }'",
-        [TSomeList(TSome)], TInt, [])
     | "head" -> 
       ("'function(l) { return __clone(__unbox(l)[0]); }'",
         [TSomeList(TSome)], TSome, [])
