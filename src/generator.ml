@@ -48,7 +48,7 @@ let generate_js_func fname =
       ("'function(a1, a2) { return __box(\\'int\\', __unbox(a1) % __unbox(a2)); }'",
         [TInt; TInt], TInt, [])
     | "__addf" ->
-      ("'function(a1) { return __box(\\'float\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'",
+      ("'function(a1) { return __box(\\'float\\', arguments.length === 0 ? 0 : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'",
         [TFloat; TFloat], TFloat, [])
     | "__subf" ->
       ("'function(a1) { return __box(\\'float\\', arguments.length === 1 ? -1 * __unbox(a1) : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a-b;})); }'",
