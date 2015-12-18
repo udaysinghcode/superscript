@@ -1,3 +1,6 @@
+(* Author: Andrej Bauer, from plzoo / poly language *)
+(* USING THIS TEMPORARILY. TODO: MUST WRITE OUR OWN ERROR MESSAGE REPORTER *)
+
 (** Error messages. *)
 
 open Lexing
