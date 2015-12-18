@@ -1,5 +1,6 @@
 
 let get_stdlib = String.concat "" [
+"(= identity (fn (x) x));;";
 "(= map (fn (f l) (if (is (tail l) '()) (cons (f (head l)) '()) (cons (f (head l)) (map f (tail l))))));;";
 "(= fold_left (fn (f a l) (if (is l '()) a (fold_left f (eval '(f a (head l))) (tail l)) )));;";
 "(= fold_right (fn (f l a) (if (is l '()) (eval '(identity a)) (eval '(f (head l) (fold_right f (tail l) a))))));;";
@@ -20,7 +21,6 @@ let get_stdlib = String.concat "" [
 "(= tenth (fn (l) (nth 9 l)));;";
 "(= last (fn (l) (nth (- (length l) 1) l)));;";
 "(= reverse (fn (l) (if (is l '()) l (append (reverse (tail l)) (cons (head l) '())))));;";
-"(= return (fn (x) x));;";
 "(= member (fn (e l) (if (is l '()) false (if (boolean (eval '(is (head l) e))) true (member e (tail l))))));;";
 "(= intersperse (fn (e l) (if (or (is l '()) (is (tail l) '())) l (cons (head l) (cons e (intersperse e (tail l)))))));;";
 "(= print_list (fn (f l) (prn (++ \"[\"(fold_left ++ \"\" (intersperse \",\" (map f l))) \"]\"))));;";
