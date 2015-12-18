@@ -102,7 +102,7 @@ let generate_js_func fname =
       ("'function(b) { return __box(\\'string\\', \\'\\' + __unbox(b)); }'",
         [TBool], TString, [])
     | "__concat" ->
-      ("'function() { return __box(\\'string\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'",
+      ("'function() { return __box(\\'string\\', arguments.length === 0 ? \\'\\' : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'",
         [TString; TString], TString, [])
     | "evaluate" ->
       ("'function(l) { return eval(\\'(\\' + __unbox(__unbox(l)[0]) + \\').apply(null, \\' + JSON.stringify(__unbox(l).slice(1)) + \\')\\'); }'",
