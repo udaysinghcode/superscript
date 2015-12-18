@@ -4,11 +4,14 @@ open Ast;;
 
 exception Type_error of string
 exception Invalid_args of string
+exception Unknown_variable of string * string
 
 (** [type_error msg] reports a type error by raising [Type_error msg]. *)
 let type_error msg = raise (Type_error msg)
 (** [invalid_args_error msg] reports invalid argument exceptions by raising [Invalid_args msg]. *)
 let invalid_args_error msg = raise(Invalid_args msg)
+(** [unknown_var_error msg] reports unknown variable exceptions by raising [Unknown_variable msg]. *)
+let unknown_var_error msg var = raise(Unknown_variable (msg, var))
 
 (** [fresh ()] returns an unused type parameter. *)
 let fresh =
@@ -108,8 +111,9 @@ let rec constraints_of gctx =
 	      (* we call [refresh] here to get let-polymorphism *)
 	      refresh (List.assoc x gctx), []
 	    with Not_found -> 
-			type_error ("Unknown variable " ^ x)))
+			unknown_var_error ("Unknown variable " ^ x) x)
 	)
+    )
     | Int _ ->  TInt, []
     | Float _ -> TFloat, []
     | String _ -> TString, []

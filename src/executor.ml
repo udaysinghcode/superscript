@@ -19,7 +19,7 @@ let fatal_error msg = raise (Fatal_error msg)
     the given context [ctx] and environment [env]. It returns the
     new context and environment. *)
 let rec exec_cmd (ctx, env) = function
-    | Assign(el) ->
+    | Assign(el) -> (
 	let rec gen_pairs l = 
 	match l with
 		| [] -> []
@@ -27,28 +27,48 @@ let rec exec_cmd (ctx, env) = function
 		| _::[] -> raise(Fatal_error("=operator used on odd numbered list!"))
 	in 
 	let defs = (gen_pairs el) in
-	let rec addCtx ctx = function
+	let rec addCtx ctx = function 
 		| [] -> ctx
-		| (x,e)::tl -> 
+		| (x,e)::tl ->
 	    		(* convert x from Ast.htype into the actual identifier string *)
 	     		let x = match x with
 				| Id(s) -> s
 				| _ -> raise(Fatal_error("first operand of assignment must be an identifier!"))
-	     		in
-			(* due to recursive fn definitions, first store (x, TParam _) into the context
-			   to avoid undeclared variable errors *)
-				let tparam = Type_infer.fresh() in
-				let ctx = (x,tparam)::ctx in
-	         	(* type check [e], and store it unevaluated! *)
-			let ty = Ast.rename (Type_infer.type_of ctx e)
-				
-			(* remove (x, type TParam) from the context *)
-			in let ctx = List.tl ctx 
-        in print_endline ("val " ^ x ^ " : " ^ string_of_type ty) ;
-	     			(x,ty)::(addCtx ctx tl)
-	in
-	(addCtx ctx defs), env 
+	     		
+			in let ty =
+					(* type check [e], and store it unevaluated! *)
+			    try (Ast.rename (Type_infer.type_of ctx e))
+			
+		    	    with  
+			      (* Error: RHS of assignment contained an undeclared variable *)
+			      Type_infer.Unknown_variable (msg, id) ->
 
+				   (* Case: unknown var != LHS of assignment --> immediately reject *)
+				   if (String.compare x id) != 0 then
+					(Type_infer.unknown_var_error("Unknown variable " ^ id) id)
+
+				   (* Case: unknown var on RHS == LHS of assignment --> allow if RHS is a recursive fdecl *)
+				   else 
+				   (
+
+				     (* Assume RHS is recursive fn definition: 
+					store (x, TParam _) into the context to avoid unknown var errors *)
+
+				     let tparam = Type_infer.fresh() in
+				     let ctx = (x,tparam)::ctx in
+				     let recfun = Ast.rename(Type_infer.type_of ctx e) in
+
+				     (* Check that type of RHS was indeed a function definition *)
+
+				     let ty = match recfun with
+					| TArrow _ -> recfun
+					| _ -> Type_infer.unknown_var_error("Unknown variable " ^ x) x
+				     in
+					ty
+				  )
+		in (x,ty)::(addCtx ctx tl)
+	in
+	(addCtx ctx defs), env)
     | _ as e ->
       (* type check [e], evaluate, and print result *)
       let ty = Ast.rename (Type_infer.type_of ctx e) in
