@@ -121,14 +121,13 @@ let program =
     | Parsing.Parse_error -> fatal_error (Message.syntax_error lexbuf)
 in
    (*PRINTING ALL IDENTIFIER AND TYPES from CTX *)
-(*
    let types = fst(exec_cmds (List.map (fun x -> (x, Generator.arrow_of(x))) 
 	(Generator.get_generatable_fnames program), []) program) in
-	ignore(print_endline "\nIdentifier & Type");
+(*	ignore(print_endline "\nIdentifier & Type");
 	List.iter(fun a -> ignore(print_string ((fst a) ^ ": ")); 
 		let ty = Ast.rename(snd a) in
-		print_endline(string_of_type ty)) types; ignore(print_string "\n");
-*)
+		  print_endline(string_of_type ty)) types; ignore(print_string "\n"); *)
+
 let prog = Generator.generate_prog program in
 write prog;
 print_endline (String.concat "\n" (funct (Unix.open_process_in "node a.js")))
