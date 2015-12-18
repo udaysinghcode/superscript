@@ -100,15 +100,18 @@ in
     may refer to. *)
 let rec constraints_of gctx = 
   let rec cnstr ctx = function
-    | Id x ->  
+    | Id x -> ( 
 	(try
 	   List.assoc x ctx, []
 	 with Not_found ->
 	   (try
 	      (* we call [refresh] here to get let-polymorphism *)
 	      refresh (List.assoc x gctx), []
-	    with Not_found -> type_error ("Unknown variable " ^ x)))
-	  
+	    with Not_found -> 
+		(* try searching in built-in function identifiers *)
+		(try (Generator.arrow_of x), [] with Failure _ ->
+			type_error ("Unknown variable " ^ x))))
+	)
     | Int _ ->  TInt, []
     | Float _ -> TFloat, []
     | String _ -> TString, []
@@ -162,7 +165,8 @@ let rec constraints_of gctx =
  	| "__add"
 	| "__sub"
 	| "__mult"
-	| "__div" -> ( match e2 with
+	| "__div" 
+	| "__mod" -> ( match e2 with
 		| [] -> TInt, []
 		| hd::tl -> let ty1, eq1 = cnstr ctx hd in
 			    let ty2, eq2 = cnstr ctx (Eval(Id(e1), tl)) in

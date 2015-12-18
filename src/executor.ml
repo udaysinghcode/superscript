@@ -19,7 +19,7 @@ let fatal_error msg = raise (Fatal_error msg)
     the given context [ctx] and environment [env]. It returns the
     new context and environment. *)
 let rec exec_cmd (ctx, env) = function
-    | Assign(el) as assignment ->
+    | Assign(el) ->
 	let rec gen_pairs l = 
 	match l with
 		| [] -> []
@@ -35,8 +35,15 @@ let rec exec_cmd (ctx, env) = function
 				| Id(s) -> s
 				| _ -> raise(Fatal_error("first operand of assignment must be an identifier!"))
 	     		in
-	     		(* type check [e], and store it unevaluated! *)
-	         	let ty = Ast.rename (Type_infer.type_of ctx e) 
+			(* due to recursive fn definitions, first store (x, TParam _) into the context
+			   to avoid undeclared variable errors *)
+				let tparam = Type_infer.fresh() in
+				let ctx = (x,tparam)::ctx in
+	         	(* type check [e], and store it unevaluated! *)
+			let ty = Ast.rename (Type_infer.type_of ctx e)
+				
+			(* remove (x, type TParam) from the context *)
+			in let ctx = List.tl ctx 
         in print_endline ("val " ^ x ^ " : " ^ string_of_type ty) ;
 	     			(x,ty)::(addCtx ctx tl)
 	in
