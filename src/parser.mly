@@ -4,7 +4,7 @@
 %token ASSIGN QUOTE AND OR EQ NEQ LT LEQ GT GEQ CONCAT
 %token SEMI LPAREN RPAREN LBRACE RBRACE
 %token <int> INT
-%token FUNC LET IF FOR WHILE
+%token FUNC LET IF DO EVAL
 %token <string> ID
 %token <string> STRING
 %token <float> FLOAT
@@ -77,6 +77,8 @@ operator:
 | AND			{ "__and" }
 | OR			{ "__or" }
 | CONCAT		{ "__concat" }
+| DO			{ "exec" }
+| EVAL			{ "evaluate" }
 
 two_args_operators:
 | EQ      { "__equal" }

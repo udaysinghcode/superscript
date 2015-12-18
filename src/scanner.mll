@@ -32,9 +32,9 @@ rule token = parse
 | "++"     { CONCAT }
 | "fn"     { FUNC }
 | "if"     { IF }
-| "for"    { FOR }
 | "let"    { LET }
-| "while"  { WHILE }
+| "do" 	   { DO }
+| "eval"   { EVAL }
 | '\"'[^'\"']*'\"' as lxm { STRING(String.sub lxm 1 (String.length lxm - 2)) } 	(* String *)
 | ['0'-'9']*'.'['0'-'9']+  as lxm { FLOAT(float_of_string lxm) }		(* Float *)
 | ['0'-'9']+'.'['0'-'9']*  as lxm { FLOAT(float_of_string lxm) }		(* Float *)
