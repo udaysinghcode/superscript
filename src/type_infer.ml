@@ -209,15 +209,20 @@ let rec constraints_of gctx =
 		)	
 	    )
 
-	    (* check that every arg to print is of type TString *)
-	    | "pr" | "prn" -> ( 
-		let rec addcnstr = function
-		| [] -> []
-		| hd::tl -> let ty1, eq1 = cnstr ctx hd in
-			    (ty1,TString) :: eq1 @ addcnstr tl
-		    in TUnit, addcnstr e2
+	    (* check that every arg to print is of type TString, and every arg to exec is TSomeList(TSome) *)
+	    | "pr" | "prn" | "exec" -> ( 
+		let tarrow = Generator.arrow_of e1 in
+			match tarrow with
+			| TArrow(x) -> let a = List.hd(x) in
+					let b = List.hd(List.tl x) in
+				let rec addcnstr = function
+				    | [] -> []
+				    | hd::tl -> let ty1, eq1 = cnstr ctx hd in
+			    		(ty1,a) :: eq1 @ addcnstr tl
+		    		in b, addcnstr e2
+			| _ -> raise(Failure "Error: Generation of typing for built-in function failed. ")
 	    )
-
+	 
 	    | "int_of_string"
 	    | "string_of_float"
 	    | "float_of_string"
@@ -241,11 +246,13 @@ let rec constraints_of gctx =
 
 	    | "tail"
 	    | "head"
-	    | "evaluate"
-	    | "exec" ->
-	    ( 
-		if List.length e2 <> 1 then 
-			(invalid_args_error("Invalid arguments error: " ^ e1 ^ " takes 1 list as argument. ")) 
+	    | "evaluate" ->
+		if List.length e2 <> 1 then (  
+			let fname =  
+					if (String.compare e1 "evaluate") == 0 then "eval"
+					else e1
+				in
+				invalid_args_error("Invalid arguments error: " ^ fname ^ " takes 1 list as argument. ")) 
 		else (
 			let thelist = (List.hd e2) in
 			  let ty, eq = cnstr ctx thelist in
@@ -256,7 +263,7 @@ let rec constraints_of gctx =
 						b, (ty, a) :: eq)
 				| _ -> raise(Failure "Error: Generation of typing for built-in function failed. ")
 		)
-  	    )
+
 	    | "int" | "float" | "boolean" | "string" | "list"
 	    | "type" ->
 	    ( 
