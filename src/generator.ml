@@ -18,7 +18,7 @@ let generate_js_func fname =
       ("'function() { var res; for(var i = 0; i < arguments.length; i++) { res = __fcall(\\'evaluate\\', [arguments[i]]); } return res; }'",
         [TSomeList(TSome)], TSome, ["evaluate"])
     | "pr" -> 
-      ("'function(s) { Array.prototype.slice.call(arguments).forEach(function(i) { process.stdout.write(__unbox(i)); }); return s; }'",
+      ("'function(s) { Array.prototype.slice.call(arguments).forEach(function(i) { process.stdout.write(__unbox(i)); }); return __box(\\'unit\\', 0); }'",
         [TString], TUnit, [])
     | "type" -> 
       ("'function(o) { return __box(\\'string\\', o.__t); }'",
