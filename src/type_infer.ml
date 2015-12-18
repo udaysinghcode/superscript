@@ -13,7 +13,7 @@ let invalid_args_error msg = raise(Invalid_args msg)
 (** [fresh ()] returns an unused type parameter. *)
 let fresh =
   let k = ref 0 in
-    fun () -> incr k; print_int !k; TParam !k
+    fun () -> incr k; TParam !k
 
 (** [refresh t] replaces all parameters appearing in [t] with unused ones. *)
 let refresh ty =
