@@ -23,6 +23,9 @@ let generate_js_func fname =
     | "type" -> 
       ("'function(o) { return __box(\\'string\\', o.__t); }'",
         [TSome], TString, [])
+    | "length" -> 
+      ("'function(l) { return __box(\\'int\\', l.__v.length); }'",
+        [TSomeList(TSome)], TInt, [])
     | "head" -> 
       ("'function(l) { return __clone(__unbox(l)[0]); }'",
         [TSomeList(TSome)], TSome, [])
@@ -61,28 +64,31 @@ let generate_js_func fname =
         [TFloat; TFloat], TFloat, [])
     | "__equal" ->
       ("'function(a1, a2) { return __box(\\'boolean\\', JSON.stringify(__unbox(a1)) === JSON.stringify(__unbox(a2))); }'",
-        [TSome; TSome], TBool, [])
+        [TParam 1; TParam 1], TBool, [])
     | "__neq" ->
       ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) !== __unbox(a2)); }'",
-        [TSome; TSome], TBool, [])
+        [TParam 1; TParam 1], TBool, [])
     | "__less" ->
       ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) < __unbox(a2)); }'",
-        [TInt; TInt], TBool, [])
+        [TParam 1; TParam 1], TBool, [])
     | "__leq" ->
       ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) <= __unbox(a2)); }'",
-        [TInt; TInt], TBool, [])
+        [TParam 1; TParam 1], TBool, [])
     | "__greater" ->
       ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) > __unbox(a2)); }'",
-        [TInt; TInt], TBool, [])
+        [TParam 1; TParam 1], TBool, [])
     | "__geq" ->
       ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) >= __unbox(a2)); }'",
-        [TInt; TInt], TBool, [])
+        [TParam 1; TParam 1], TBool, [])
     | "__and" ->
       ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) && __unbox(a2)); }'",
         [TBool; TBool], TBool, [])
     | "__or" ->
       ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) || __unbox(a2)); }'",
         [TBool; TBool], TBool, [])
+    | "__not" ->
+      ("'function(a) { return __box(\\'boolean\\', !__unbox(a); }'",
+        [TBool], TBool, [])
     | "string_of_int" ->
       ("'function(i) { return __box(\\'string\\', \\'\\' + __unbox(i)); }'",
         [TInt], TString, [])
@@ -136,7 +142,8 @@ let get_generatable_fnames prog =
       Eval(f, el) -> (match f with 
                         Id(x) -> [x]
                       | Fdecl(x, y) -> get_fnames y 
-                      | Eval(x, y) -> get_fnames (Eval(x, y)) 
+                      | Eval(x, y) -> get_fnames (Eval(x, y))
+                      | Let(n, v, e) -> get_fnames (Let(n, v, e)) 
                       | _ -> []) @ (get_fnames (List(el)))
     | Id(s) -> [s]
     | Assign(el) -> get_fnames (List(el))
@@ -154,7 +161,7 @@ let arrow_of fname =
   match arg_types, ret_type with
   | [t1], t2 -> TArrow([t1; t2])
   | [t1; t2], t3 -> TArrow([t1; t2; t3])
-  | [], _ -> raise(Failure "unknown identifier")
+  | _ -> raise(Failure "unknown identifier")
 
 let generate_prog p =
   let escape_quotes s =
@@ -181,18 +188,22 @@ let generate_prog p =
                                                    | _ -> raise (Failure "can only assign to identifier"))
                                                   (gen_pairs el)))
 
-    | Eval(first, el) -> let argl = generate (List(el)) in
+    | Eval(first, el) -> 
+        let argl = generate (List(el)) in
         (match first with
           Id(x) -> (match x with 
                       "dot" -> sprintf "__dot(%s)" argl
                     | "call" -> sprintf "__call(%s)" argl
                     | _ -> sprintf "(function(_i, _a) { return _i.__t === 'module' ? __box('module', __unbox(_i).apply(null, __unbox(_a).map(__unbox))) : eval('(' + __unbox(_i) + ').apply(null, ' + JSON.stringify(__unbox(_a)) + ')'); })(eval('%s'), %s)" x argl)
-
-        | Fdecl(a, e) -> sprintf "eval('(' + __unbox(%s) + ').apply(null, ' + JSON.stringify(__unbox(%s)) + ')')" (generate (Fdecl(a, e))) argl
-
-        | Eval(f, e) -> sprintf "eval('(' + __unbox(%s) + ').apply(null, ' + JSON.stringify(__unbox(%s)) + ')')" (generate (Eval(f, e))) argl
-
-        | _ -> raise (Failure "foo"))
+        
+        | x -> sprintf
+                  "eval('(' + __unbox(%s) + ').apply(null, ' + JSON.stringify(__unbox(%s)) + ')')"
+                  (match x with
+                    Fdecl(a, e) -> generate (Fdecl(a, e))
+                  | Eval(f, e) -> generate (Eval(f, e))
+                  | Let(n, v, e) -> generate (Let(n, v, e))
+                  | _ -> raise (Failure "foo"))
+                  argl)
 
     | Fdecl(argl, exp) -> box "function"
         (sprintf
@@ -207,12 +218,12 @@ let generate_prog p =
           (generate thenb)
           (generate elseb)
 
-    | Let(n, v, exp) ->
+    | Let(n, v, e) ->
         sprintf
           "(function() { var %s = %s; return %s; })()"
           n
           (generate v)
-          (generate exp)
+          (generate e)
   in
   let generate_head p =
     let get_def fname =
