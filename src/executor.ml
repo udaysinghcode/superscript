@@ -3,6 +3,7 @@ open Type_infer;;
 open Generator;;
 open Scanner;;
 open Unix;;
+open Standard_lib;;
 
 exception Fatal_error of string
 
@@ -100,7 +101,12 @@ let write stuff =
 ;;
 
 let filename = Sys.argv.(1) in
-let lexbuf = Lexing.from_string (if filename = "-s" then Sys.argv.(2) else load_file filename) in
+let lexbuf = Lexing.from_string 
+		(let stdlib = Standard_lib.get_stdlib in 
+		    let filecontents = 
+			if filename = "-s" then Sys.argv.(2) 
+			else load_file filename
+		in stdlib ^ filecontents) in
 let exec_cmds ce cmds = 
   try 
   List.fold_left (exec_cmd) ce cmds
@@ -117,10 +123,11 @@ in
    (*PRINTING ALL IDENTIFIER AND TYPES from CTX *)
    let types = fst(exec_cmds (List.map (fun x -> (x, Generator.arrow_of(x))) 
 	(Generator.get_generatable_fnames program), []) program) in
-	ignore(print_endline "\nIdentifier & Type");
+(*	ignore(print_endline "\nIdentifier & Type");
 	List.iter(fun a -> ignore(print_string ((fst a) ^ ": ")); 
 		let ty = Ast.rename(snd a) in
-		print_endline(string_of_type ty)) types; ignore(print_string "\n");
+		  print_endline(string_of_type ty)) types; ignore(print_string "\n"); *)
+
 let prog = Generator.generate_prog program in
 write prog;
 print_endline (String.concat "\n" (funct (Unix.open_process_in "node a.js")))

@@ -35,6 +35,8 @@ rule token = parse
 | "let"    { LET }
 | "do" 	   { DO }
 | "eval"   { EVAL }
+| "evaluate"  { raise(Failure "Lexer error: evaluate is a reserved keyword and may not be used. ") } 
+| "exec"      { raise(Failure "Lexer error: exec is a reserved keyword and may not be used. ") }
 | '\"'[^'\"']*'\"' as lxm { STRING(String.sub lxm 1 (String.length lxm - 2)) } 	(* String *)
 | ['0'-'9']*'.'['0'-'9']+  as lxm { FLOAT(float_of_string lxm) }		(* Float *)
 | ['0'-'9']+'.'['0'-'9']*  as lxm { FLOAT(float_of_string lxm) }		(* Float *)
