@@ -36,7 +36,7 @@ let generate_js_func fname =
       ("'function() { return __box(\\'int\\', arguments.length === 0 ? 0 : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'",
         [TInt; TInt], TInt, [])
     | "__sub" ->
-      ("'function(a1) { return __box(\\'int\\', arguments.length === 1 ? -1 * __unbox(a1) : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a-b;})); }'",
+      ("'function(a1) { return __box(\\'int\\', arguments.length === 0 ? 0 : arguments.length === 1 ? -1 * __unbox(a1) : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a-b;})); }'",
         [TInt; TInt], TInt, [])
     | "__mult" ->
       ("'function() { return __box(\\'int\\', arguments.length === 0 ? 1 : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a*b;})); }'",
@@ -51,7 +51,7 @@ let generate_js_func fname =
       ("'function(a1) { return __box(\\'float\\', arguments.length === 0 ? 0 : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'",
         [TFloat; TFloat], TFloat, [])
     | "__subf" ->
-      ("'function(a1) { return __box(\\'float\\', arguments.length === 1 ? -1 * __unbox(a1) : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a-b;})); }'",
+      ("'function(a1) { return __box(\\'float\\', arguments.length === 0 ? 0 : arguments.length === 1 ? -1 * __unbox(a1) : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a-b;})); }'",
         [TFloat; TFloat], TFloat, [])
     | "__multf" ->
       ("'function(a1) { return __box(\\'float\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a*b;})); }'",
@@ -102,7 +102,7 @@ let generate_js_func fname =
       ("'function(b) { return __box(\\'string\\', \\'\\' + __unbox(b)); }'",
         [TBool], TString, [])
     | "__concat" ->
-      ("'function() { return __box(\\'string\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'",
+      ("'function() { return __box(\\'string\\', arguments.length === 0 ? \\'\\' : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'",
         [TString; TString], TString, [])
     | "evaluate" ->
       ("'function(l) { return eval(\\'(\\' + __unbox(__unbox(l)[0]) + \\').apply(null, \\' + JSON.stringify(__unbox(l).slice(1)) + \\')\\'); }'",
