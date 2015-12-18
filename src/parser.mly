@@ -118,10 +118,11 @@ assign_args:
 
 infix_expr:
   constant			{ $1 }
+| LPAREN ID args_opt RPAREN	{ Eval(Id($2), List.rev $3) }
 | ID				{ Id($1) }
 | MINUS INT			{ Int(-1 * $2) }
 | MINUS FLOAT			{ Float(-1.0 *. $2) }
-| LPAREN infix_expr RPAREN	{ $2 }
+| LBRACE infix_expr RBRACE	{ $2 }
 | ID ASSIGN infix_expr		{ Assign([Id($1); $3]) }
 | infix_expr CONCAT infix_expr  { Eval(Id("concat"), [$1; $3]) }
 | infix_expr PLUS infix_expr	{ Eval(Id("__add"), [$1; $3]) }

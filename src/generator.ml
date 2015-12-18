@@ -161,7 +161,7 @@ let arrow_of fname =
   match arg_types, ret_type with
   | [t1], t2 -> TArrow([t1; t2])
   | [t1; t2], t3 -> TArrow([t1; t2; t3])
-  | _ -> raise(Failure "unknown identifier")
+  | _ -> raise(Failure ("Unknown identifier: '" ^ fname ^ "' "))
 
 let generate_prog p =
   let escape_quotes s =

@@ -4,6 +4,7 @@ ocamlc -o preprocessor str.cma preprocessor.ml
 ocamllex scanner.mll # create scanner.ml
 ocamlyacc parser.mly # create parser.ml and parser.mli
 ocamlc -c ast.ml # compile AST types
+ocamlc -c message.ml # compile error message reporter
 ocamlc -c parser.mli # compile parser types
 ocamlc -c scanner.ml # compile the scanner
 ocamlc -c parser.ml # compile the parser
@@ -11,5 +12,5 @@ ocamlc -c str.cma generator.ml # compile the generator
 ocamlc -c finaltest.ml # compile the tester
 ocamlc -c type_infer.ml # compile type inference checker
 ocamlc -c executor.ml # compile the executor
-ocamlc -o tests unix.cma str.cma generator.cmo scanner.cmo ast.cmo parser.cmo type_infer.cmo finaltest.cmo  # generate test runner
-ocamlc -o exss unix.cma str.cma generator.cmo scanner.cmo ast.cmo parser.cmo type_infer.cmo executor.cmo # generate exss 
+ocamlc -o tests unix.cma str.cma generator.cmo scanner.cmo ast.cmo parser.cmo message.cmo type_infer.cmo finaltest.cmo  # generate test runner
+ocamlc -o exss unix.cma str.cma generator.cmo scanner.cmo ast.cmo parser.cmo message.cmo type_infer.cmo executor.cmo # generate exss 
