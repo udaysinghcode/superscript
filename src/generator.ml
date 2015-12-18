@@ -3,6 +3,11 @@
 open Ast;;
 open Printf;;
 
+exception Type_error of string
+
+(** [type_error msg] reports a type error by raising [Type_error msg]. *)
+let type_error msg = raise (Type_error msg)
+
 let sprintf = Printf.sprintf;;
 
 let cc l = String.concat "" l;;
@@ -154,6 +159,7 @@ let arrow_of fname =
   match arg_types, ret_type with
   | [t1], t2 -> TArrow([t1; t2])
   | [t1; t2], t3 -> TArrow([t1; t2; t3])
+  | [], _ -> type_error("Error: undeclared variable. ")
 
 let generate_prog p =
   let escape_quotes s =

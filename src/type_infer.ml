@@ -13,7 +13,7 @@ let invalid_args_error msg = raise(Invalid_args msg)
 (** [fresh ()] returns an unused type parameter. *)
 let fresh =
   let k = ref 0 in
-    fun () -> incr k; TParam !k
+    fun () -> incr k; print_int !k; TParam !k
 
 (** [refresh t] replaces all parameters appearing in [t] with unused ones. *)
 let refresh ty =
@@ -101,28 +101,15 @@ in
 let rec constraints_of gctx = 
   let rec cnstr ctx = function
     | Id x -> ( 
-	match x with
-	| "prn" | "pr" -> TArrow([TString; TUnit]), []
-	| "type" -> TArrow([TString]), []
-	| "head" -> TArrow([TSomeList(TSome); TSome]), []
-	| "tail" -> TArrow([TSomeList(TSome); TSomeList(TSome)]), []
-	| "cons" -> TArrow([TSome; TSomeList(TSome)]), []
-	| "__add" | "__sub" | "__mult" | "__div" | "__mod" -> TArrow([TInt; TInt; TInt]), []
-	| "__addf" | "__subf" | "__multf" | "__divf" -> TArrow([TFloat; TFloat; TFloat]), []
-	| "__equal" | "__neq" | "__less" | "__leq" | "__geq" -> TArrow([TParam 1; TParam 1; TBool]), []
-	| "__and" | "__or" | "__not" -> TArrow([TBool; TBool; TBool]), []
-	| "string_of_int" -> TArrow([TInt; TString]), []
-	| "int_of_string" -> TArrow([TString; TInt]), []
-	| "string_of_float" -> TArrow([TFloat; TString]), []
-	| "float_of_string" -> TArrow([TString; TFloat]), []
-	| _ ->
 	(try
 	   List.assoc x ctx, []
 	 with Not_found ->
 	   (try
 	      (* we call [refresh] here to get let-polymorphism *)
 	      refresh (List.assoc x gctx), []
-	    with Not_found -> type_error ("Unknown variable " ^ x)))
+	    with Not_found -> 
+		(try (Generator.arrow_of x), [] with Not_found ->
+			type_error ("Unknown variable " ^ x))))
 	)
     | Int _ ->  TInt, []
     | Float _ -> TFloat, []
