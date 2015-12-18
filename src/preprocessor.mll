@@ -46,7 +46,7 @@ rule token = parse
 	
 	| "(*" { comment lexbuf }
 
-	| '\n'[' ' '\t']*("let" | "if" ) as lxm 	(* Standard library functions *)
+	| '\n'[' ' '\t']*("let" | "if" | "do" | "eval" ) as lxm 	(* Standard library functions *)
 					{ let spaces = countSp lxm 0 1 in
 					   ignore(Stack.push spaces curIndent); 
 					 StdFn(lxm) }
