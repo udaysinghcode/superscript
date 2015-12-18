@@ -23,9 +23,6 @@ let generate_js_func fname =
     | "type" -> 
       ("'function(o) { return __box(\\'string\\', o.__t); }'",
         [TSome], TString, [])
-    | "length" -> 
-      ("'function(l) { return __box(\\'int\\', l.__v.length); }'",
-        [TSomeList(TSome)], TInt, [])
     | "head" -> 
       ("'function(l) { return __clone(__unbox(l)[0]); }'",
         [TSomeList(TSome)], TSome, [])
@@ -96,7 +93,7 @@ let generate_js_func fname =
       ("'function(s) { return __box(\\'int\\', parseInt(__unbox(s))); }'",
         [TString], TInt, [])
     | "string_of_float" ->
-      ("'function(f) { return __box(\\'string\\', '' + __unbox(f)); }'",
+      ("'function(f) { return __box(\\'string\\', \\'\\' + __unbox(f)); }'",
         [TFloat], TString, [])
     | "float_of_string" ->
       ("'function(s) { return __box(\\'float\\', parseFloat(__unbox(s))); }'",
