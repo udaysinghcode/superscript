@@ -12,13 +12,13 @@ let generate_js_func fname =
   let helper fname =
     match fname with
       "prn" -> 
-      ("'function(s) { console.log(__unbox(s)); return s; }'",
+      ("'function() { Array.prototype.slice.call(arguments).forEach(function(i) { console.log(__unbox(i)); }); return __box(\\'unit\\', 0); }'",
         [TString], TUnit, [])
     | "exec" -> 
       ("'function() { var res; for(var i = 0; i < arguments.length; i++) { res = __fcall(\\'evaluate\\', [arguments[i]]); } return res; }'",
         [TSomeList(TSome)], TSome, ["evaluate"])
     | "pr" -> 
-      ("'function(s) { process.stdout.write(__unbox(s)); return s; }'",
+      ("'function(s) { Array.prototype.slice.call(arguments).forEach(function(i) { process.stdout.write(__unbox(i)); }); return __box(\\'unit\\', 0); }'",
         [TString], TUnit, [])
     | "type" -> 
       ("'function(o) { return __box(\\'string\\', o.__t); }'",
