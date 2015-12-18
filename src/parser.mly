@@ -62,6 +62,7 @@ atom:
   constant		{ $1 }
 | ID			{ Id($1) }
 | NIL			{ Nil }
+| operator		{ Id($1) }
 | two_args_operators	{ Id($1) }
 
 operator:
