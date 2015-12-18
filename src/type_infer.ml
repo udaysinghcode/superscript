@@ -161,141 +161,106 @@ let rec constraints_of gctx =
 					ty2, (ty1, TArrow (tys@[ty2]))::eq1@(get_eqs e2 [])
 		)
 
-       | Id(e1) -> (match e1 with
- 	| "__add"
-	| "__sub"
-	| "__mult"
-	| "__div" 
-	| "__mod" -> ( match e2 with
-		| [] -> TInt, []
-		| hd::tl -> let ty1, eq1 = cnstr ctx hd in
+       | Id(e1) -> 
+       ( 
+	    match e1 with
+
+ 	    | "__add" | "__sub" | "__mult"| "__div" | "__mod"
+	    | "__addf" | "__subf" | "__multf" | "__divf" 
+	    | "__and" | "__or" | "not" 
+	    | "__concat" -> 
+	    (
+		let tarrow = Generator.arrow_of(e1) in
+		match tarrow with
+		| TArrow(x) -> (let a = List.hd x in
+				let b = List.hd (List.tl x) in
+				let c = List.hd (List.rev x) in
+
+			match e2 with
+			| [] -> c, []
+			| hd::tl -> let ty1, eq1 = cnstr ctx hd in
 			    let ty2, eq2 = cnstr ctx (Eval(Id(e1), tl)) in
-			    TInt, (ty1,TInt) :: (ty2,TInt) :: eq1 @ eq2
-	)
-	| "__addf"
-	| "__subf"
-	| "__multf"
-	| "__divf" -> ( match e2 with
-		| [] -> TFloat, []
-		| hd::tl -> let ty1, eq1 = cnstr ctx hd in
-			    let ty2, eq2 = cnstr ctx (Eval(Id(e1), tl)) in
-			    TFloat, (ty1,TFloat) :: (ty2,TFloat) :: eq1 @ eq2  
-	)
-	| "__equal"
-	| "__neq"
-	| "__less"
-	| "__leq"
-	| "__greater"
-	| "__geq" -> 
+			    c, (ty1,a) :: (ty2,b) :: eq1 @ eq2)
+		| _ -> raise(Failure "Error: Generation of typing for built-in function failed. ")
+	    )
+
+	    | "__equal" | "__neq" | "__less" | "__leq" 
+	    | "__greater" | "__geq" -> 
 		let ty1, eq1 = cnstr ctx (List.hd e2) in
 		let ty2, eq2 = cnstr ctx (List.hd(List.tl e2)) in
 		  TBool, (ty1, ty2) :: eq1 @ eq2
-	| "__and"
-	| "__or"
-	| "not" -> ( match e2 with
-		| [] -> TBool, []
-		| hd::tl -> let ty1, eq1 = cnstr ctx hd in
-			    let ty2, eq2 = cnstr ctx (Eval(Id(e1), tl)) in
-			    TBool, (ty1,TBool) :: (ty2,TBool) :: eq1 @ eq2  
-	)
-	| "__concat" -> ( match e2 with
-		| [] -> TString, []
-		| hd::tl -> let ty1, eq1 = cnstr ctx hd in
-			    let ty2, eq2 = cnstr ctx (Eval(Id(e1), tl)) in
-			    TString, (ty1,TString) :: (ty2,TString) :: eq1 @ eq2
-	)  
-	| "cons" -> (
+
+      	    | "cons" -> (
 		if List.length e2 <> 2 then (invalid_args_error("Invalid arguments error: " ^ "cons takes 2 arguments. "))
 		else (
 			let newhd = List.hd e2
-			and thelist = List.hd (List.rev e2) 
-			in
-			let ty1, eq1 = cnstr ctx newhd in	(* ty1 can be anything *)
-			let ty2, eq2 = cnstr ctx thelist in
-			TSomeList(TSome), (ty2,TSomeList(TSome)) :: eq1 @ eq2
+			and thelist = List.hd (List.rev e2) in
+				let ty1, eq1 = cnstr ctx newhd in	(* ty1 can be anything *)
+				let ty2, eq2 = cnstr ctx thelist in
+					TSomeList(TSome), (ty2,TSomeList(TSome)) :: eq1 @ eq2
 		)	
-	)
-	| "pr" 
-	| "prn" -> ( 
+	    )
+
+	    | "pr" | "prn" -> ( 
 		let rec addcnstr = function
 		| [] -> []
 		| hd::tl -> let ty1, eq1 = cnstr ctx hd in
 			    (ty1,TString) :: eq1 @ addcnstr tl
-		in TUnit, addcnstr e2
-		)
+		    in TUnit, addcnstr e2
+	    )
 
-	| "int_of_string"
-	| "string_of_float"
-	| "float_of_string"
-	| "string_of_boolean"
-	| "boolean_of_string"
-	| "string_of_int" -> (
+	    | "int_of_string"
+	    | "string_of_float"
+	    | "float_of_string"
+	    | "string_of_boolean"
+	    | "boolean_of_string"
+	    | "string_of_int" -> 
+	    (
 		if List.length e2 <> 1 then (invalid_args_error("Invalid arguments error: " ^ 
 								e1 ^ " takes 1 argument. "))
 		else (
 			let arg = List.hd e2 in
 			let ty, eq = cnstr ctx arg in
-			match e1 with
-				| "int_of_string" -> TInt, (ty, TString) :: eq
-				| "string_of_float" -> TString, (ty, TFloat) :: eq
-				| "float_of_string" -> TFloat, (ty, TString) :: eq
-				| "string_of_boolean" -> TString, (ty, TBool) :: eq
-				| "boolean_of_string" -> TBool, (ty, TString) :: eq
-				| "string_of_int" -> TString, (ty, TInt) :: eq
+			let tarrow = (Generator.arrow_of e1) in
+				match tarrow with
+				  | TArrow(x) -> (let a = List.hd(x) in
+					let b = List.hd(List.tl x) in
+					b, (ty, a) :: eq)
+				  | _ -> raise(Failure "Error: Generation of typing for built-in function failed. ")
 		)
-	)
-	| "type" -> (
-			if List.length e2 <> 1 then (invalid_args_error "ERROR: str_of_int takes 1 argument")
-		else (
-			let ty, eq = cnstr ctx (List.hd e2) in
-			TString, eq
-		)
-	)
-	| "head" ->
-	   (
+	    )
+
+	    | "tail"
+	    | "head" ->
+	    ( 
 		if List.length e2 <> 1 then 
-			(invalid_args_error("Invalid arguments error: head takes one list as argument. ")) 
+			(invalid_args_error("Invalid arguments error: " ^ e1 ^ " takes 1 list as argument. ")) 
 		else (
 			let thelist = (List.hd e2) in
 			  let ty, eq = cnstr ctx thelist in
-				TSome, (ty, TSomeList(TSome)) :: eq
+			    let tarrow = (Generator.arrow_of e1) in
+				match tarrow with
+				| TArrow(x) -> (let a = List.hd(x) in
+						let b = List.hd(List.tl x) in
+						b, (ty, a) :: eq)
+				| _ -> raise(Failure "Error: Generation of typing for built-in function failed. ")
 		)
-	   )
-	| "tail" -> 
+  	    )
+	    | "int" | "float" | "boolean" | "string" | "list"
+	    | "type" ->
+	    ( 
 		if List.length e2 <> 1 then
-			(invalid_args_error("Invalid arguments error: tail takes one list as argument. "))
-		else (
-			let thelist = (List.hd e2) in
-			let ty, eq = cnstr ctx thelist in
-			TSomeList(TSome), (ty, TSomeList(TSome)) :: eq
-		)
-	| "type" -> if List.length e2 <> 1 then
-			(invalid_args_error("Invalid arguments error: type takes one argument. "))
-		else (
-			let x = (List.hd e2) in
-			let ty, eq = cnstr ctx x in
-			TString, eq
-		)
-	| "int"
-	| "float"
-	| "boolean"
-	| "string"
-	| "list" ->
-	  ( 
-		if List.length e2 <> 1 then
-			(invalid_args_error("Invalid arguments error: int takes 1 atom as argument." ))
+			(invalid_args_error("Invalid arguments error: " ^ e1 ^ " takes 1 atom as argument." ))
 		else (
 			let x = List.hd e2 in
 			let ty1, eq1 = cnstr ctx x in
-			match e1 with
-			  | "int" -> TInt, eq1
-			  | "float" -> TFloat, eq1
-			  | "boolean" -> TBool, eq1
-			  | "string" -> TString, eq1
-			  | "list" -> TSomeList(TSome), eq1
-		)	
-	  )
-	| _ -> ( let ty1, eq1 = cnstr ctx (Id e1) in
+			let tarrow = (Generator.arrow_of e1) in
+				match tarrow with
+			 		| TArrow(x) -> List.hd(List.rev x), eq1
+					| _ -> raise(Failure "Error: Generation of typing for built-in function failed. ")
+		)
+	    ) 
+	    | _ -> ( let ty1, eq1 = cnstr ctx (Id e1) in
 			let ty2 = fresh () in
 			match e2 with 
 			| [] -> ty2, (ty1, TArrow [TUnit; ty2])::eq1
@@ -307,37 +272,18 @@ let rec constraints_of gctx =
 							get_eqs tl (eq_list@eq)
 					) in
 					ty2, (ty1, TArrow (tys@[ty2]))::eq1@(get_eqs e2 [])
-    )
-   )
- )
-  in
-    cnstr []
+	           )
+        ) (* end pattern matching for Id *)
+
+	| _ -> raise(Failure "Error: The first element of an unquoted list must either be a function identifier or an S-expression. ")
+
+    ) (* end pattern matching for Eval *)
+      in
+        cnstr []
 
 (** [type_of ctx e] computes the principal type of expression [e] in
     context [ctx]. *)
 let type_of ctx e =
   let ty, eq = constraints_of ctx e in
     let ans = solve eq in
-	    let rec printType = function
-          | TInt -> "TInt"
-		  | TBool -> "TBool"
-		  | TParam k -> "TypeVar" ^ (string_of_int k)
-		  | TSome -> "SomeType"
-		  | TSomeList _ -> "List of sometype"
-		  | TString -> "TString"
-		  | TUnit -> "TUnit"
-		  | TFloat -> "TFloat"
-		  | TArrow t_list -> (
-		  	let rec print_types_list types str = 
-		  		( match types with 
-		  			|[] -> str
-		  			| hd::tl when (List.length tl) = 0 -> str^(printType hd)
-		  			| hd::tl when (List.length tl > 0) -> str^(printType hd)^" -> "
-		  		) in
-		  	print_types_list t_list ""
-		  )
-		  | _ as t -> print_string (string_of_type t);"other case"
-		in let printpairs p = 
-		 printType (snd p);()
-	in List.iter (printpairs) ans;
     tsubst (ans) ty
