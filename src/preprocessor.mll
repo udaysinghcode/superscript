@@ -1,4 +1,5 @@
-{ 
+{
+ 
 type token = EOF 
 	     | String of string 	(* "sss" *) 
 	     | Fparen of string 	(* foo(a) *)
@@ -86,8 +87,23 @@ and comment = parse
 	| _	{ comment lexbuf }  	(* Ignore other characters *)
 {
 	let () = 
-	let oc = open_out "program.ss" in	
-	let lexbuf = Lexing.from_channel stdin in
+	let infile = Sys.argv.(1) in
+	let outfile = 
+		let endname = try (String.index infile '.')
+						with Not_found -> (String.length infile - 1) in
+		String.sub infile 0 endname ^ ".ss"
+	in 
+	let oc = open_out outfile in
+
+	let load_file f =
+  		let ic = open_in f in
+  		let n = in_channel_length ic in
+  		let s = String.create n in
+  		really_input ic s 0 n;
+  		close_in ic;
+  		(s)
+	in
+	let lexbuf = Lexing.from_string (load_file infile) in	
 	
 	let wordlist =
 	  let rec next l  = match token lexbuf with
