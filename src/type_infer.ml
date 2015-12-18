@@ -171,15 +171,20 @@ let rec constraints_of gctx =
 	    | "__addf" | "__subf" | "__multf" | "__divf" 
 	    | "__and" | "__or" | "__not" 
 	    | "__concat" -> 
-	    (
+		
 		let numargs = List.length e2 in
 		if numargs != 2 && (String.compare e1 "mod")==0 then (ignore(print_int (List.length e2));
 						 (invalid_args_error("Invalid arguments error: " ^
 							      "mod takes 2 ints as arguments. ")))
 		else(
-		   let tarrow = Generator.arrow_of(e1) in
-		   match tarrow with
-		   | TArrow(x) -> (let a = List.hd x in
+
+  		  if numargs != 1 && (String.compare e1 "__not")==0 then (ignore(print_int (List.length e2));
+						(invalid_args_error("Invalid arguments error: " ^
+							"not takes 1 boolean expression as argument. ")))
+		  else (
+		     let tarrow = Generator.arrow_of(e1) in
+		     match tarrow with
+		     | TArrow(x) -> (let a = List.hd x in
 				let b = List.hd (List.tl x) in
 				let c = List.hd (List.rev x) in
 
@@ -188,9 +193,9 @@ let rec constraints_of gctx =
 			| hd::tl -> let ty1, eq1 = cnstr ctx hd in
 			    let ty2, eq2 = cnstr ctx (Eval(Id(e1), tl)) in
 			    c, (ty1,a) :: (ty2,b) :: eq1 @ eq2)
-		   | _ -> raise(Failure "Error: Generation of typing for built-in function failed. ")
-		)
-	    )	
+		     | _ -> raise(Failure "Error: Generation of typing for built-in function failed. ")
+		  )
+		) 
 
 	    | "__equal" | "__neq" | "__less" | "__leq" 
 	    | "__greater" | "__geq" -> 
