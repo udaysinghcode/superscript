@@ -67,7 +67,10 @@ let rec exec_cmd (ctx, env) = function
 				     in
 					ty
 				  )
-		in (x,ty)::(addCtx ctx tl)
+		in
+		     print_string ("- : " ^ string_of_type ty ^ " = ") ;
+		     print_newline();
+		(x,ty)::(addCtx ctx tl)
 	in
 	(addCtx ctx defs), env)
     | _ as e ->
@@ -126,7 +129,7 @@ in
 (*	ignore(print_endline "\nIdentifier & Type");
 	List.iter(fun a -> ignore(print_string ((fst a) ^ ": ")); 
 		let ty = Ast.rename(snd a) in
-		  print_endline(string_of_type ty)) types; ignore(print_string "\n"); *)
+		  print_endline(string_of_type ty)) types; ignore(print_string "\n"); *) 
 
 let prog = Generator.generate_prog program in
 write prog;
