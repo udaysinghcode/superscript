@@ -3,6 +3,10 @@ let get_stdlib = String.concat "" [
 
   "(= identity (fn (x) x));;";
 
+  "(= length (fn (l) (if (is l '()) 0 (+ 1 (length (tail l))))));;";
+
+  "(= nth (fn (n l) (if (is n 0) (head l) (nth (- n 1) (tail l))) ));;"; (* change this *)
+
   "(= first (fn (l) (nth 0 l)));;";
 
   "(= second (fn (l) (nth 1 l)));;";
@@ -25,6 +29,8 @@ let get_stdlib = String.concat "" [
 
   "(= last (fn (l) (nth (- (length l) 1) l)));;";
 
+  "(= make (fn (n f) (if (> n 0) (if (> n 1) (cons (f n) (make f (- n 1))) '((f 1))) '())));;";
+
   "(= map (fn (f l) (if (is (tail l) '()) (cons (f (head l)) '()) (cons (f (head l)) (map f (tail l))))));;";
 
   "(= fold_left (fn (f a l) (if (is l '()) a (fold_left f (eval '(f a (head l))) (tail l)) )));;";
@@ -37,8 +43,6 @@ let get_stdlib = String.concat "" [
 
   "(= append (fn (a b) (if (is a '()) b (cons (head a) (append (tail a) b)))));;";
 
-  "(= length (fn (l) (if (is l '()) 0 (+ 1 (length (tail l))))));;";
-
   "(= take (fn (i l) (if (or (not (> i 0)) (is l '())) '() (cons (head l) (take (- i 1) (tail l))))));;";
 
   "(= drop (fn (i l) (if (< i 1) l (drop (- i 1) (tail l)))));;";
@@ -49,11 +53,9 @@ let get_stdlib = String.concat "" [
 
   "(= zip (fn (a b) (zipwith (fn (x y) (cons x (cons y '()))) a b)));;";
 
-  "(= zip3 (fn (a b c) (zipwith (fn (x y z) (cons x (cons y (cons z '())))) a b c)));;";
+  (*"(= zip3 (fn (a b c) (zipwith (fn (x y z) (cons x (cons y (cons z '())))) a b c)));;"; *)
 
   "(= unzip (fn (l) (fold_right (fn (x y) '((cons (first x) (first y)) (cons (second x) (second y)))) l '('() '()))));;";
-
-  "(= nth (fn (n l) (if (is n 0) (head l) (nth (- n 1) (tail l))) ));;"; (* change this *)
 
   "(= reverse (fn (l) (if (is l '()) l (append (reverse (tail l)) (cons (head l) '())))));;";
 
