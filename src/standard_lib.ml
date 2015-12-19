@@ -33,7 +33,7 @@ let get_stdlib = String.concat "" [
 
   "(= filter (fn (f l) (fold_right (fn (x y) (if (f x) (cons x y) y)) l '())));;";
 
-  "(= partition (fn () ()));;";
+  "(= partition (fn (f l) (fold_right (fn (x y) '((if (f x) (cons x (first y)) (first y)) (if (f x) (second y) (cons x (second y))))) l '('() '()))));;";
 
   "(= append (fn (a b) (if (is a '()) b (cons (head a) (append (tail a) b)))));;";
 
@@ -51,7 +51,7 @@ let get_stdlib = String.concat "" [
 
   "(= zip3 (fn (a b c) (zipwith (fn (x y z) (cons x (cons y (cons z '())))) a b c)));;";
 
-  "(= unzip (fn (l) (fold_right (fn (x y) '((cons (first x) (first y)) (cons (second x) (second y)))) l '('() '()))));;"
+  "(= unzip (fn (l) (fold_right (fn (x y) '((cons (first x) (first y)) (cons (second x) (second y)))) l '('() '()))));;";
 
   "(= nth (fn (n l) (if (is n 0) (head l) (nth (- n 1) (tail l))) ));;"; (* change this *)
 
