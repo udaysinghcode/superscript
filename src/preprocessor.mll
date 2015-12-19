@@ -44,7 +44,7 @@ rule token = parse
 			else (closeExpression "" curIndent) 
 			in Word(parens) }
 	
-	| "(*" { comment lexbuf }
+	| "/*" { comment lexbuf }
 
 	| '\n'[' ' '\t']*("let" | "if" | "do" | "eval" ) as lxm 	(* Standard library functions *)
 					{ let spaces = countSp lxm 0 1 in
@@ -83,7 +83,7 @@ rule token = parse
 	| _ as lxm { Word(String.make 1 lxm) }		(* All characters other than the above *) 
 
 and comment = parse
-	"*)"	{ token lexbuf }	(* Return to normal scanning *)
+	"*/"	{ token lexbuf }	(* Return to normal scanning *)
 	| _	{ comment lexbuf }  	(* Ignore other characters *)
 {
 	let () = 
