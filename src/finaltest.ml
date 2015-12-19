@@ -88,7 +88,6 @@ let tests = [
   ("prefix float div without conversion", "(prn (/. 10. 2. (-5.)));;", [], "-1") ;
   (*("use def to define factorial function", "(= bar (fn (x y) (+ x y))) ;;(= foo (fn (x) (baz x)));;(= baz (fn (z) (evaluate '(z 2 3))));;(prn (foo bar));;", [], "5" ); *)
   ("get first element (int) of list", "(prn (head \'(1 2 3 4 5 6 7 8 9 10)));;", [], "1");  
-  (*("get first element (function) of list", "(prn (head '(+ 1 2 3)));;", [], "+"); *)
   ("multiple expressions", "( prn \"hello\" );; ( prn \"world\" );;  ( prn \"people\");;", [], "hello\nworld\npeople");
   ("set add equal to anon func then call it", "(= add (fn (x y) (+ x y) )) ;;(prn (add 1 3));; ", [],  "4");
   ("print the 5 mod 6", "(prn (mod 5 6));;", [], "5");
