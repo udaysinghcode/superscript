@@ -18,6 +18,7 @@ rule token = parse
 | "/."     { DIVIDEF }
 | "and"	   { AND }
 | "or"     { OR }
+| "not"    { NOT }
 | '\''     { QUOTE }
 | '='      { ASSIGN }
 | "is"     { EQ }
