@@ -6,6 +6,12 @@ open Unix;;
 (*  File Foo_ast:
 	let asts = Lit(2)  *)
 
+(*
+ - catch exceptions  
+ - use standard error 
+ - stdlib tests
+*)
+
 
 (*ocamlc -o final unix.cma scanner.cmo parser.cmo finaltest.cmo  *)
 
@@ -86,14 +92,14 @@ let tests = [
   ("prefix float sub without conversion", "(prn (- 5.0 .2 .3));;", [], "4.5") ;
   ("prefix float mult without conversion", "(prn (* 1. 2. 3. 4.));;", [], "24") ;
   ("prefix float div without conversion", "(prn (/. 10. 2. (-5.)));;", [], "-1") ;
-  (*("use def to define factorial function", "(= bar (fn (x y) (+ x y))) ;;(= foo (fn (x) (baz x)));;(= baz (fn (z) (evaluate '(z 2 3))));;(prn (foo bar));;", [], "5" ); *)
+  ("use def to define factorial function", "(= bar (fn (x y) (+ x y))) ;;(= foo (fn (x) (baz x)));;(= baz (fn (z) (evaluate '(z 2 3))));;(prn (foo bar));;", [], "5" );
   ("get first element (int) of list", "(prn (head \'(1 2 3 4 5 6 7 8 9 10)));;", [], "1");  
   ("multiple expressions", "( prn \"hello\" );; ( prn \"world\" );;  ( prn \"people\");;", [], "hello\nworld\npeople");
   ("set add equal to anon func then call it", "(= add (fn (x y) (+ x y) )) ;;(prn (add 1 3));; ", [],  "4");
   ("print the 5 mod 6", "(prn (mod 5 6));;", [], "5");
   ("logical AND of true and false","(prn (and true false));;", [], "false");
   ("setting and testing inequality", "(= a \"a\");; (prn (is \"a\" a));;", [], "true");
-  (*("trying to add float and int", "( + 1 2 3 3.5);;", [], "Fatal error: exception Executor.Fatal_error(\"The types float and int are incompatible\")");*)
+  ("trying to add float and int", "( + 1 2 3 3.5);;", [], "Fatal error: exception Executor.Fatal_error(\"The types float and int are incompatible\")");
   ("testing relational comparison operators", "(prn (> 2 4));;", [], "false");
   ("testing string concatenation", "(prn (++ \"hello\" \" \" \"world\" ));;", [], "hello world");
   ("testing cons function", "(prn (head (cons \"a\" \'(\"b\" \"c\"))));;", [], "a");
@@ -104,9 +110,9 @@ let tests = [
  ("print out result of infix expr","(prn (string_of_int {3+ 5}));;", [], "8");
  ("print out int with string_of_int","(prn (string_of_int 3));;", [], "3");
  ("print out sum of list ","(prn (string_of_int (+ 3 4 2 5 3 2 5)));;", [], "24");
- (*("print out list using print_list","(print_list string '(\"a\" \"b\" \"c\" \"d\"));;", [], "[a,b,c,d]"); ***********************)
- (*("should fail because of single quotes","(prn 'string enclosed with single quote');;", [], ""); *)
- (*("should fail because a hasn't been defined","(prn a);;", [], ""); *)
+ ("print out list using print_list","(print_list string '(\"a\" \"b\" \"c\" \"d\"));;", [], "[a,b,c,d]");
+ ("should fail because of single quotes","(prn 'string enclosed with single quote');;", [], "FAIL"); 
+ ("should fail because a hasn't been defined","(prn a);;", [], "FAIL"); 
  ("should print 'letter a'", "(= a \"letter a\");; (prn a);;", [], "letter a");
  ("using curly infix expressions", "(prn (string_of_int {3 + 5}));;", [], "8");
  ("handle printing negative return value","(prn (string_of_int {7 - 9}));;", [], "-2"); 
@@ -114,13 +120,13 @@ let tests = [
  ("print function's return value, using infix", "(= square (fn (x) {x * x}));;  (prn (string_of_int (square 5) ));;", [], "25");
  ("printing return of assignment (int)", "(prn (string_of_int (= x 3)));;", [], "3");
  ("printing return of assignment (float)", "(prn (string_of_float {x = 3.5}));;", [], "3.5");
- (*("pr should fail because not cast to string", "(pr false);;", [], ""); *)
- (*("prn should fail because not cast to string", "(prn true);;", [], ""); *)
+ ("pr should fail because not cast to string", "(pr false);;", [], "FAIL"); 
+ ("prn should fail because not cast to string", "(prn true);;", [], "FAIL"); 
  ("use string_of_boolean to print", "(pr (string_of_boolean true));;(pr (string_of_boolean false));;", [], "truefalse");
  ("use string_of_boolean with prn", "(prn (string_of_boolean true));;(prn (string_of_boolean false));;", [], "true\nfalse");  (************************)
  ("print the type 'string'", "(prn (type {x = \"a string\"}));;", [], "string");
  ("print the type of return value of assignment", "(prn (type {x = 50}));;", [], "int");
- (*("should complain about undelcared var", "(prn (type a));;", [], ""); *)
+ ("should complain about undelcared var", "(prn (type a));;", [], "FAIL");
  ("print type of an list", "(prn (type '() ));;", [], "list");
  ("print type of var after assingment", "(= a 2);; (prn (type a));;", [], "int");
  ("print type of float", "(prn (type 3.5));;", [], "float");
@@ -152,18 +158,34 @@ let tests = [
 
 let unsuccess = ref 0 ;;
 
+
 List.iter (fun (desc, input, ast, expout) -> 
+  let lexbuf = Lexing.from_string input in 
+  try 
+    let expression = Parser.program Scanner.token lexbuf in
+    if (ast = expression || ast = []) then 
+      let prog = Generator.generate_prog expression in  (*instead of prog = Generator.generate_prog expr*)
+      write prog; 
+        (*print_endline (String.concat "" (funct (Unix.open_process_in "node a.js"))) *)
+      let actout = String.concat "\n" (funct (Unix.open_process_in "node a.js")) in
+      if  expout = actout then print_string "" else
+       print_endline (String.concat "" ["\027[38;5;1m"; desc; ": "; input; "... UNSUCCESSFUL Compilation....\ninput: "; input; "\nexpected out: "; expout; "\nActual out: "; actout; "\027[0m"]);
+    else (print_endline (String.concat "" ["\027[38;5;1m"; desc; ": "; input; "\027[0m"]) ; unsuccess := !unsuccess+1 ) ;
+  with 
+    | _ -> (*if (expout <> "FAIL")*) print_endline (String.concat "" ["**START REPORT**\n" ; "Parse Error:\ninput:";input ;"\n**END REPORT**"])) tests ;;
+
+
+
+
+(*List.iter (fun (desc, input, ast, expout) -> 
 	let lexbuf = Lexing.from_string input in 
-	let expression = Parser.program Scanner.token lexbuf in
-	if (ast = expression || ast = []) then 
-		let prog = Generator.generate_prog expression in  (*instead of prog = Generator.generate_prog expr*)
-		write prog;	
-			(*print_endline (String.concat "" (funct (Unix.open_process_in "node a.js"))) *)
-		let actout = String.concat "\n" (funct (Unix.open_process_in "node a.js")) in
-		if  expout = actout then print_string "" else
-		 print_endline (String.concat "" ["\027[38;5;1m"; desc; ": "; input; "... UNSUCCESSFUL Compilation....\ninput: "; input; "\nexpected out: "; expout; "\nActual out: "; actout; "\027[0m"]);
-		(*print_endline prog*)
-	else (print_endline (String.concat "" ["\027[38;5;1m"; desc; ": "; input; "\027[0m"]) ; unsuccess := !unsuccess+1 ) ) tests ;;
+  try 
+  	let expression = Parser.program Scanner.token lexbuf in
+  	if (ast = expression || ast = []) then 
+        print_endline "match!!!"
+  with 
+    | _ -> print_endline "parse error" ;;
+*)
 
 if !unsuccess = 0 then exit 0 else exit 1 ;;
 
