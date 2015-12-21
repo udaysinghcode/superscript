@@ -144,6 +144,7 @@ let get_generatable_fnames prog =
                       | Fdecl(x, y) -> get_fnames y 
                       | Eval(x, y) -> get_fnames (Eval(x, y))
                       | Let(n, v, e) -> get_fnames (Let(n, v, e)) 
+                      | If(c, t, e) -> get_fnames (If(c, t, e))
                       | _ -> []) @ (get_fnames (List(el)))
     | Id(s) -> [s]
     | Assign(el) -> get_fnames (List(el))
@@ -202,6 +203,7 @@ let generate_prog p =
                     Fdecl(a, e) -> generate (Fdecl(a, e))
                   | Eval(f, e) -> generate (Eval(f, e))
                   | Let(n, v, e) -> generate (Let(n, v, e))
+                  | If(c, t, e) -> generate (If(c, t, e))
                   | _ -> raise (Failure "foo"))
                   argl)
 

@@ -129,7 +129,7 @@ let rec constraints_of gctx =
 	let ty1, eq1 = cnstr ctx e1 in
 	let ty2, eq2 = cnstr ctx e2 in
 	let ty3, eq3 = cnstr ctx e3 in
-	  print_string "in if";print_string (string_of_type ty1);print_string (string_of_type ty2);print_string (string_of_type ty3);print_endline "";ty2, ((ty1, TBool)::(ty2, ty3)::eq1@eq2@eq3)
+	  ty2, ((ty1, TBool)::(ty2, ty3)::eq1@eq2@eq3)
 
     | Fdecl(x, e) ->
     	let eqs = List.rev (List.map (fun v -> (v, fresh ())) x)in
@@ -147,10 +147,7 @@ let rec constraints_of gctx =
     | Eval(e1, e2) -> (
     	print_string "***";
        match e1 with
-       | Let(a,b,c) -> TUnit, [] 
-      
-       
-       	| If(a,b,c)-> (
+       | If(a,b,c)-> (
        		let ty1, eq1 = cnstr ctx e1 in
        			match ty1 with 
        			| TArrow t_list -> (
@@ -164,11 +161,10 @@ let rec constraints_of gctx =
 								| hd::tl -> let (ty, eq) = cnstr ctx hd in 
 											get_eqs tl (eq_list@eq)
 							) in
-							print_string "testttt";print_string (string_of_type ty1);ty2, (ty1, TArrow (tys@[ty2]))::eq1@(get_eqs e2 [])
+							ty2, (ty1, TArrow (tys@[ty2]))::eq1@(get_eqs e2 [])
        			)
        			| _ -> raise(Failure "Error: The type of the first argument must be a function. ")
-       	)
-       
+       	)     
        | Fdecl(a,b) as e -> (
        		let ty1, eq1 = cnstr ctx e in
        		let ty2 = fresh () in
@@ -183,7 +179,20 @@ let rec constraints_of gctx =
 					) in
 					ty2, eq1@[(ty1, TArrow (tys@[ty2]))]@(get_eqs e2 [])
 		)
-
+       | Eval(a, b) -> (
+       		let ty1, eq1 = cnstr ctx e1 in 
+       		let ty2 = fresh() in 
+       		match e2 with 
+			| [] -> ty2, (ty1, TArrow [TUnit; ty2])::eq1
+			| _ -> let tys = List.map (fun v -> let (ty,eq) = cnstr ctx v in ty) (List.rev e2) in
+					let rec get_eqs exp_list eq_list = (
+						match exp_list with
+						| [] -> eq_list
+						| hd::tl -> let (ty, eq) = cnstr ctx hd in 
+							get_eqs tl (eq_list@eq)
+					) in
+					ty2, eq1@[(ty1, TArrow (tys@[ty2]))]@(get_eqs e2 [])
+       )
        | Id(e1) -> 
        ( 
 	    match e1 with
