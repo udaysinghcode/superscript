@@ -205,8 +205,8 @@ let rec constraints_of gctx =
 		let tarrow = Generator.arrow_of(e1) in
 		match tarrow with
 		| TArrow(x) -> (let a = List.hd x in
-				let b = List.nth x 2 in
-				let c = List.nth x 3 in
+				let b = List.nth x 1 in
+				let c = List.nth x 2 in
 			match e2 with
 			| [] -> c, []
 			| hd::tl -> let ty1, eq1 = cnstr ctx hd in
@@ -219,11 +219,11 @@ let rec constraints_of gctx =
 			   | 1 -> let ty1, eq1 = cnstr ctx (List.hd e2) in 
 			       		TJblob, (ty1, TJblob) :: eq1
 			   | 2 -> let ty1, eq1 = cnstr ctx (List.hd e2) in
-				  let ty2, eq2 = cnstr ctx (List.nth e2 2) in
+				  let ty2, eq2 = cnstr ctx (List.nth e2 1) in
 			        	TJblob, (ty1, TJblob) :: (ty2, TString) :: eq1 @ eq2
 			   | 3 -> let ty1, eq1 = cnstr ctx (List.hd e2) in
-			 	  let ty2, eq2 = cnstr ctx (List.nth e2 2) in
-				  let ty3, eq3 = cnstr ctx (List.nth e2 3) in
+			 	  let ty2, eq2 = cnstr ctx (List.nth e2 1) in
+				  let ty3, eq3 = cnstr ctx (List.nth e2 2) in
 			       		TJblob, (ty1, TJblob) :: (ty2, TString) :: (ty3, TSomeList(TSome)) :: eq1 @ eq2 @ eq3
 			   | _ -> invalid_args_error ("Invalid arguments error: call takes at most 3 arguments. ")
 	 	)
@@ -232,7 +232,7 @@ let rec constraints_of gctx =
 			else (
 			  let jblob = List.hd e2 in 
 			     let ty1, eq1 = cnstr ctx jblob in
-			     let ty2, eq2 = cnstr ctx (List.nth e2 2) in
+			     let ty2, eq2 = cnstr ctx (List.nth e2 1) in
 			  TJblob, (ty1, TJblob) :: (ty2, TSomeList(TSome)) :: eq1 @ eq2
 			)		
 	    | "module" ->
@@ -246,7 +246,7 @@ let rec constraints_of gctx =
 					"the modulo operation takes 2 ints as arguments. "))
 		else (
 			let hd = List.hd e2 in
-			let tl = List.nth e2 2 in
+			let tl = List.nth e2 1 in
 			let ty1, eq1 = cnstr ctx hd in
 			let ty2, eq2 = cnstr ctx tl in		
 			TInt, (ty1, TInt) :: (ty2, TInt) :: eq1 @ eq2
@@ -265,7 +265,7 @@ let rec constraints_of gctx =
 						e1 ^ "comparison takes 2 arguments. ")) 
 		else (
 		  let ty1, eq1 = cnstr ctx (List.hd e2) in
-		  let ty2, eq2 = cnstr ctx (List.nth e2 2) in
+		  let ty2, eq2 = cnstr ctx (List.nth e2 1) in
 		    TBool, (ty1, ty2) :: eq1 @ eq2
 		)
 
@@ -285,7 +285,7 @@ let rec constraints_of gctx =
 		let tarrow = Generator.arrow_of e1 in
 			match tarrow with
 			| TArrow(x) -> let a = List.hd(x) in
-					let b = List.nth x 2 in
+					let b = List.nth x 1 in
 				let rec addcnstr = function
 				    | [] -> []
 				    | hd::tl -> let ty1, eq1 = cnstr ctx hd in
