@@ -5,23 +5,15 @@ open Scanner;;
 open Unix;;
 open Message;;
 open Printf;;
+open Array;;
 
 exception Fatal_error of string
-
-type environment = (string * value ref) list
-and value = 
-    | VInt of int
-    | VBool of bool
-    | VNil
-    | VClosure of environment * expr
-
 let fatal_error msg = raise (Fatal_error msg)
 
-(** [exec_cmd (ctx, env) cmd] executes the toplevel command [cmd] in
-    the given context [ctx] and environment [env]. It returns the
-    new context and environment. *)
-let rec exec_cmd (ctx, env) = function
-    | Assign(el) -> (
+(** [exec_cmd ctx cmd] executes the toplevel command [cmd] in
+    the given context [ctx]. It returns the new context. *)
+let rec exec_cmd ctx = function
+    | Assign(el) ->
 	let rec gen_pairs l = 
 	match l with
 		| [] -> []
@@ -68,12 +60,12 @@ let rec exec_cmd (ctx, env) = function
 				     in
 					ty
 				  )
-         )
-		in
-		     print_endline ("val " ^ x ^ " : " ^ string_of_type ty) ;
+         		   )
+		      in
+		        print_endline ("val " ^ x ^ " : " ^ string_of_type ty);
 		(x,ty)::(addCtx ctx tl)
 	in
-	(addCtx ctx defs), env)
+	(addCtx ctx defs)
     | _ as e ->
       (* type check [e], evaluate, and print result *)
       let ty = 
@@ -81,11 +73,20 @@ let rec exec_cmd (ctx, env) = function
         Type_infer.Unknown_variable (msg, id) ->  raise (Failure (msg))
 
       in
-	print_string ("- : " ^ string_of_type ty) ;
-	print_newline () ;
- 
-	(ctx, env)
-      
+	     print_string ("- : " ^ string_of_type ty) ;
+             print_newline ();
+	ctx
+;;
+
+(** [exec_cmds ctx cmds] executes the list of 
+    expressions [cmds] in the given context [ctx].
+    It returns the new context. *)
+let exec_cmds ctx cmds =
+   try
+       List.fold_left (exec_cmd) ctx cmds
+   with
+       | Type_infer.Invalid_args msg -> raise (Failure (msg))
+       | Type_infer.Type_error msg -> raise (Failure (msg))
 ;;
 
 (** [load_file f] loads the file [f] and returns the contents as a string. *)
@@ -110,45 +111,88 @@ let write stuff =
     close_out oc;
 ;;
 
-
-(** The main program. *)
-let filename = Sys.argv.(1) in
-let lexbuf = Lexing.from_string 
+(** [exec_file ctx fn] executes the contents of file [fn] in
+    the given context [ctx]. It returns the new context. *)
+let exec_file ctx fn = 
+  let lexbuf = Message.lexer_from_string 
 		(let stdlib = load_file "stdlib.ss" in 
-		    let filecontents = 
-			if filename = "-s" then Sys.argv.(2) 
-			else load_file filename
+		    let filecontents = load_file fn
 		in stdlib ^ filecontents) in
-let exec_cmds ce cmds = 
-  try 
-  List.fold_left (exec_cmd) ce cmds
-with
-  | Type_infer.Invalid_args msg -> raise (Failure (msg))
-  | Type_infer.Type_error msg -> raise (Failure (msg))
-in 
-let program = 
-   try
-     Parser.program Scanner.token lexbuf
-   with
-    | Failure("lexing: empty token") -> print_position lexbuf "Lexing: empty token"; exit (-1)
-    | LexingErr msg -> print_position lexbuf msg; exit (-1)
-    | Parsing.Parse_error -> print_position lexbuf "Syntax error near"; exit (-1)
-
-in
+  let program = 
+    try 
+	 Parser.program Scanner.token lexbuf
+    with
+     | Failure("lexing: empty token") -> print_position lexbuf "Lexing: empty token"; exit (-1)
+     | LexingErr msg -> print_position lexbuf msg; exit (-1)
+     | Parsing.Parse_error -> print_position lexbuf "Syntax error near"; exit (-1)
+   in
    (* Perform type checking. Print all identifiers & types *)
     let types =
-	fst(
             exec_cmds (
 		(* Add types for built-in functions to the context *)
 		List.map (fun x -> (x, Generator.arrow_of(x))) 
-	         (Generator.get_generatable_fnames program), []) 
-	        program ) 
+	         (Generator.get_generatable_fnames program)) 
+	        program 
 	in
 	  ignore(print_endline "\nIdentifier & Type");
 	    List.iter(fun a -> ignore(print_string ((fst a) ^ ": ")); 
 		let ty = Ast.rename(snd a) in
 		  print_endline(string_of_type ty)) types; ignore(print_string "\n");
 
-let prog = Generator.generate_prog program in
-    write prog;
-       print_endline (String.concat "\n" (funct (Unix.open_process_in "node a.js")))
+       let prog = Generator.generate_prog program in
+          write prog;
+              print_endline (String.concat "\n" (funct (Unix.open_process_in "node a.js"))) 
+  
+(** [shell ctx] is the interactive shell. Here [ctx] is
+    the context of global definitions. *)
+let shell ctx  = 
+    print_string("Superscript. Press ") ;
+    print_string (match Sys.os_type with
+			| "Unix" -> "Ctrl-D"
+			| "Win32" -> "Ctrl-Z"
+			| _ -> "EOF" ) ;
+    print_endline " to exit. Type \"#stdlib\" to import the Standard Library. " ;
+
+    let global_ctx = ref ctx in
+      try
+	while true do
+	   try
+	     (* read a line, parse it and execute it *)
+	     print_string "Superscript> ";
+	     let input = read_line() in
+		let str = match input with
+		| "#stdlib" -> load_file "stdlib.ss"
+		| _ as s -> s
+	    in
+		let lexbuf = Message.lexer_from_string str
+	    in 
+	     let cmds = 
+		try
+		   Parser.program Scanner.token lexbuf
+		with
+	          | Failure("lexing: empty token") -> print_position lexbuf "Lexing: empty token"; exit (-1)
+      		  | LexingErr msg -> print_position lexbuf msg; exit (-1)
+      		  | Parsing.Parse_error -> print_position lexbuf "Syntax error near"; exit (-1)
+		in
+		let ctx = exec_cmds (!global_ctx) cmds in
+		   global_ctx := ctx;
+		with
+		  | Type_infer.Type_error msg -> raise(Failure(msg))
+		  | Type_infer.Invalid_args msg -> raise(Failure(msg))
+		done
+	      with
+		End_of_file -> print_endline "\nBye."
+;;
+
+(** The main program. *)
+let main = 
+   let argc = Array.length Sys.argv in
+	match argc with
+	| 1 -> shell []
+	| 2 -> 
+	    let filename = Sys.argv.(1) in
+		exec_file [] filename
+	| _ -> 
+	     raise
+	       (Failure "Usage: ./exss [file] or ./exss to run interactive shell ")
+
