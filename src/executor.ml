@@ -3,7 +3,8 @@ open Type_infer;;
 open Generator;;
 open Scanner;;
 open Unix;;
-open Standard_lib;;
+open Message;;
+open Printf;;
 
 exception Fatal_error of string
 
@@ -127,17 +128,25 @@ let program =
    try
      Parser.program Scanner.token lexbuf
    with
-    | Failure("lexing: empty token")
-    | Parsing.Parse_error -> fatal_error (Message.syntax_error lexbuf)
+    | Failure("lexing: empty token") -> print_position lexbuf "Lexing: empty token"; exit (-1)
+    | LexingErr msg -> print_position lexbuf msg; exit (-1)
+    | Parsing.Parse_error -> print_position lexbuf "Syntax error near"; exit (-1)
+
 in
-   (*PRINTING ALL IDENTIFIER AND TYPES from CTX *)
-   let types = fst(exec_cmds (List.map (fun x -> (x, Generator.arrow_of(x))) 
-	(Generator.get_generatable_fnames program), []) program) in
-	ignore(print_endline "\nIdentifier & Type");
-	List.iter(fun a -> ignore(print_string ((fst a) ^ ": ")); 
+   (* Perform type checking. Print all identifiers & types *)
+    let types =
+	fst(
+            exec_cmds (
+		(* Add types for built-in functions to the context *)
+		List.map (fun x -> (x, Generator.arrow_of(x))) 
+	         (Generator.get_generatable_fnames program), []) 
+	        program ) 
+	in
+	  ignore(print_endline "\nIdentifier & Type");
+	    List.iter(fun a -> ignore(print_string ((fst a) ^ ": ")); 
 		let ty = Ast.rename(snd a) in
 		  print_endline(string_of_type ty)) types; ignore(print_string "\n");
 
 let prog = Generator.generate_prog program in
-write prog;
-print_endline (String.concat "\n" (funct (Unix.open_process_in "node a.js")))
+    write prog;
+       print_endline (String.concat "\n" (funct (Unix.open_process_in "node a.js")))

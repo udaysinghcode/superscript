@@ -1,4 +1,8 @@
-{ open Parser }
+{ 
+  open Parser
+  open Message
+  open Lexing
+}
 
 rule token = parse
   [' ' '\t' '\\''\\''\n' '\r'] { token lexbuf } (* Whitespace *)
@@ -43,7 +47,7 @@ rule token = parse
 | ['0'-'9']+ as lxm { INT(int_of_string lxm) }					(* Int *)
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }		(* Identifier *)
 | eof { EOF }
-| _ as char { raise (Failure("illegal input " ^ Char.escaped char)) }
+| _ 	 { raise (Message.LexingErr("Illegal input")) }
 
 and comment = parse
    "*/"  { token lexbuf } (* comments *)

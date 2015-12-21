@@ -1,10 +1,20 @@
-(* Adapted from
-	Andrej Bauer's Poly - message.ml,
-	with minor changes by Michelle Zheng  *)
+(** Error messages for Lexing & Parsing *)
 
-(** Error messages for Lexing *)
-
+open Printf
 open Lexing
+open Parsing
+
+exception LexingErr of string
+
+let print_position lexbuf msg =
+  let start = lexeme_start_p lexbuf in
+   let finish = lexeme_end_p lexbuf in 
+    (fprintf stderr "Line %d: char %d..%d: %s: \"%s\" \n" 
+	start.pos_lnum
+	(start.pos_cnum - start.pos_bol) 
+	(finish.pos_cnum - finish.pos_bol) 
+	msg
+	(Lexing.lexeme lexbuf)) 
 
 (** [lexer_from_channel fname ch] returns a lexer stream which takes
     input from channel [ch]. The input filename (for reporting errors) is
@@ -25,15 +35,3 @@ let lexer_from_string str =
     lex.lex_curr_p <- { pos with pos_fname = ""; pos_lnum = 1; } ;
     lex
 
-let string_of_position {pos_fname=fname; pos_lnum=lnum; pos_bol=bol; pos_cnum=cn} =
-  let col_offset = cn - bol in
-    if fname = "" then
-      "Character " ^ string_of_int col_offset
-    else
-      "File \"" ^ fname ^ "\", line " ^ string_of_int lnum ^ ", character " ^ string_of_int col_offset
-
-let string_of msg pos  = string_of_position pos ^ ":\n" ^ msg
-
-let syntax_error {lex_curr_p=pos} = string_of "Syntax error" pos
-
-let report = print_endline
