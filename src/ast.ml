@@ -12,6 +12,7 @@ type htype =
   | TUnit			(* unit type for printing *)
   | TSome			(* sometype - used only for lists *)
   | TJblob			(* JavaScript object type *)
+  | TException 			(* Exceptions *)
 
 type expr =				(* Expressions *)
   Int of int				(* 4 *)
@@ -38,6 +39,7 @@ let rename (ty: htype) =
     | TString -> TString, c
     | TSome -> TSome, c
     | TJblob -> TJblob, c
+    | TException -> TException, c
     | TParam k ->
 	(try
 	   TParam (List.assoc k s), c
@@ -84,6 +86,7 @@ let string_of_type ty =
 	| TBool -> (4, "bool")
 	| TJblob -> (4, "JavaScript object")
 	| TParam k -> (4, (if k < Array.length a then "'" ^ a.(k) else "'ty" ^ string_of_int k))
+        | TException -> (1, "exception")
 	| TArrow t_list -> let len = (List.length t_list)-1 in
                       let rec tarrow_type ts s =
                         match ts with
@@ -143,7 +146,7 @@ let string_of_expr e =
 (** [tsubst [(k1,t1); ...; (kn,tn)] t] replaces in type [t] parameters
     [TParam ki] with types [ti]. *)
 let rec tsubst s = function
-  | (TInt | TBool | TFloat | TString | TUnit | TSome | TJblob ) as t -> t
+  | (TInt | TBool | TFloat | TString | TUnit | TSome | TJblob | TException ) as t -> t
   | TParam k -> (try List.assoc k s with Not_found -> TParam k)
   | TArrow t_list -> let u_list = List.map (fun t -> tsubst s t) t_list
                       in TArrow u_list 

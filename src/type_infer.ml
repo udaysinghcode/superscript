@@ -28,6 +28,7 @@ let refresh ty =
     | TUnit -> TUnit, s
     | TSome -> TSome, s
     | TJblob -> TJblob, s
+    | TException -> TException, s
     | TParam k ->
 	(try
 	   List.assoc k s, s
@@ -55,6 +56,7 @@ let rec occurs k = function
   | TUnit -> false
   | TSome -> false
   | TJblob -> false
+  | TException -> false
   | TParam j -> k = j
   | TArrow t_list -> 
   		let rec tarrow_occurs ts o =
@@ -83,6 +85,7 @@ let solve eq =
 	      (List.map (fun (ty1,ty2) -> (ts ty1, ts ty2)) eq)
 	      ((k,t)::(List.map (fun (n, u) -> (n, ts u)) sbst))
 	      
+      | (TException, _) :: eq | (_, TException) :: eq -> solve eq sbst
       | (TArrow ty1, TArrow ty2) :: eq when (List.length ty1) = (List.length ty2) ->
       	let rec get_eq l1 l2 eq = 
       		match l1 with 
@@ -242,6 +245,10 @@ let rec constraints_of gctx =
 				let ty, eq = cnstr ctx (List.hd e2) in
 				TJblob, (ty, TString) :: eq
 			)
+	    | "exception" ->
+			let e = List.hd e2 in
+			let ty, eq = cnstr ctx e in
+			TException, (ty, TString) :: eq
 	    | "mod" -> if (List.length e2 != 2) then (invalid_args_error("Invalid arguments error: " ^
 					"the modulo operation takes 2 ints as arguments. "))
 		else (
