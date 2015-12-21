@@ -116,7 +116,7 @@ let rec constraints_of gctx =
 	      (* we call [refresh] here to get let-polymorphism *)
 	      refresh (List.assoc x gctx), []
 	    with Not_found -> 
-			unknown_var_error ("Unknown Variable Error: variable "^x^"is unknown.") x
+			unknown_var_error ("Unknown Variable Error: variable " ^x^ " is unknown.") x
 	)
     ))
     | Int _ ->  TInt, []
