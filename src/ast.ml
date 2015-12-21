@@ -11,6 +11,7 @@ type htype =
   | TSomeList of htype          (** Lists *)
   | TUnit			(* unit type for printing *)
   | TSome			(* sometype - used only for lists *)
+  | TJblob			(* JavaScript object type *)
 
 type expr =				(* Expressions *)
   Int of int				(* 4 *)
@@ -24,7 +25,6 @@ type expr =				(* Expressions *)
   | List of expr list			(* list, mixed datatypes allowed in same list *)
   | Fdecl of string list * expr 	(* (fn (a b) {a + b}) *)
   | If of expr * expr * expr		(* (if a b c) *)
-  | Let of string * expr * expr		(* (let a b) *)
 
 type program = expr list
 
@@ -37,6 +37,7 @@ let rename (ty: htype) =
     | TFloat -> TFloat, c
     | TString -> TString, c
     | TSome -> TSome, c
+    | TJblob -> TJblob, c
     | TParam k ->
 	(try
 	   TParam (List.assoc k s), c
@@ -81,6 +82,7 @@ let string_of_type ty =
 	| TFloat -> (4, "float")
 	| TString -> (4, "string")
 	| TBool -> (4, "bool")
+	| TJblob -> (4, "JavaScript object")
 	| TParam k -> (4, (if k < Array.length a then "'" ^ a.(k) else "'ty" ^ string_of_int k))
 	| TArrow t_list -> let len = (List.length t_list)-1 in
                       let rec tarrow_type ts s =
@@ -141,7 +143,7 @@ let string_of_expr e =
 (** [tsubst [(k1,t1); ...; (kn,tn)] t] replaces in type [t] parameters
     [TParam ki] with types [ti]. *)
 let rec tsubst s = function
-  | (TInt | TBool | TFloat | TString | TUnit | TSome ) as t -> t
+  | (TInt | TBool | TFloat | TString | TUnit | TSome | TJblob ) as t -> t
   | TParam k -> (try List.assoc k s with Not_found -> TParam k)
   | TArrow t_list -> let u_list = List.map (fun t -> tsubst s t) t_list
                       in TArrow u_list 
