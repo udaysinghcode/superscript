@@ -5,7 +5,6 @@ open Lexing
 open Parsing
 
 exception LexingErr of string
-exception ParseErr of string
 
 let print_position lexbuf msg =
   let start = lexeme_start_p lexbuf in
