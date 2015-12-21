@@ -4,7 +4,7 @@
 %token ASSIGN QUOTE AND OR NOT EQ NEQ LT LEQ GT GEQ CONCAT
 %token SEMI LPAREN RPAREN LBRACE RBRACE
 %token <int> INT
-%token FUNC LET IF DO EVAL
+%token FUNC IF DO EVAL
 %token <string> ID
 %token <string> STRING
 %token <float> FLOAT
@@ -33,7 +33,6 @@ expr_list:
 | expr_list expr SEMI	{ $2 :: $1 }
 
 sexpr:
-  LET ID expr expr   		{ Let($2, $3, $4) }
 | IF expr expr expr		{ If($2, $3, $4) }
 | FUNC LPAREN formals_opt RPAREN expr { Fdecl(List.rev $3, $5) }
 | call				{ $1 }
