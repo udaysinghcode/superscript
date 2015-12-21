@@ -9,9 +9,9 @@ exception Unknown_variable of string * string
 (** [type_error msg] reports a type error by raising [Type_error msg]. *)
 let type_error msg = raise (Type_error msg)
 (** [invalid_args_error msg] reports invalid argument exceptions by raising [Invalid_args msg]. *)
-let invalid_args_error msg = raise(Invalid_args msg)
+let invalid_args_error msg = raise (Invalid_args msg)
 (** [unknown_var_error msg] reports unknown variable exceptions by raising [Unknown_variable msg]. *)
-let unknown_var_error msg var = raise(Unknown_variable (msg, var))
+let unknown_var_error msg var = raise (Unknown_variable (msg, var))
 
 (** [fresh ()] returns an unused type parameter. *)
 let fresh =
@@ -92,8 +92,8 @@ let solve eq =
         	solve ((t1,t2) :: eq) sbst
       | (t1,t2)::_ ->
 	  let u1, u2 = rename2 t1 t2 in
-	    type_error ("The types " ^ string_of_type u1 ^ " and " ^
-			  string_of_type u2 ^ " are incompatible")  
+	    type_error ("Type Incompatible Error: The types " ^ string_of_type u1 ^ " and " ^
+			  string_of_type u2 ^ " are incompatible.")
 	  
 in
     solve eq []
@@ -111,9 +111,9 @@ let rec constraints_of gctx =
 	      (* we call [refresh] here to get let-polymorphism *)
 	      refresh (List.assoc x gctx), []
 	    with Not_found -> 
-			unknown_var_error ("Unknown variable " ^ x) x)
+			unknown_var_error ("Unknown Variable Error: variable "^x^"is unknown.") x
 	)
-    )
+    ))
     | Int _ ->  TInt, []
     | Float _ -> TFloat, []
     | String _ -> TString, []
@@ -145,7 +145,6 @@ let rec constraints_of gctx =
 	let ty, eq = cnstr ctx last in
 	ty, eq
     | Eval(e1, e2) -> (
-    	print_string "***";
        match e1 with
        | If(a,b,c)-> (
        		let ty1, eq1 = cnstr ctx e1 in
@@ -163,7 +162,7 @@ let rec constraints_of gctx =
 							) in
 							ty2, (ty1, TArrow (tys@[ty2]))::eq1@(get_eqs e2 [])
        			)
-       			| _ -> raise(Failure "Error: The type of the first argument must be a function. ")
+       			| _ -> invalid_args_error ("Invalid Arguments Error: In function call expression the first argument has type "^(string_of_type ty1)^", but was expected of type function")
        	)     
        | Fdecl(a,b) as e -> (
        		let ty1, eq1 = cnstr ctx e in
@@ -213,7 +212,7 @@ let rec constraints_of gctx =
 			    c, (ty1,a) :: (ty2,b) :: eq1 @ eq2)
 	        | _ -> raise(Failure "Error: Generation of typing for built-in function failed. ")
 	    )
-	    | "mod" -> if (List.length e2 <> 2) then (invalid_args_error("Invalid arguments error: " ^
+	    | "mod" -> if (List.length e2 <> 2) then (invalid_args_error("Invalid Arguments Error: " ^
 					"mod takes 2 ints as arguments. "))
 		else (
 			let hd = List.hd e2 in
@@ -222,7 +221,7 @@ let rec constraints_of gctx =
 			let ty2, eq2 = cnstr ctx tl in		
 			TInt, (ty1, TInt) :: (ty2, TInt) :: eq1 @ eq2
 		)
-	    | "__not" -> if (List.length e2 <> 1) then (invalid_args_error("Invalid arguments error: " ^
+	    | "__not" -> if (List.length e2 <> 1) then (invalid_args_error("Invalid Arguments Error: " ^
 							"not takes 1 boolean expression as argument. "))
 		else (
 			let hd = List.hd e2 in
@@ -237,7 +236,7 @@ let rec constraints_of gctx =
 		  TBool, (ty1, ty2) :: eq1 @ eq2
 
       	    | "cons" -> (
-		if List.length e2 <> 2 then (invalid_args_error("Invalid arguments error: " ^ "cons takes 2 arguments. "))
+		if List.length e2 <> 2 then (invalid_args_error("Invalid Arguments Error: " ^ "cons takes 2 arguments. "))
 		else (
 			let newhd = List.hd e2
 			and thelist = List.hd (List.rev e2) in
@@ -268,7 +267,7 @@ let rec constraints_of gctx =
 	    | "boolean_of_string"
 	    | "string_of_int" -> 
 	    (
-		if List.length e2 <> 1 then (invalid_args_error("Invalid arguments error: " ^ 
+		if List.length e2 <> 1 then (invalid_args_error("Invalid Arguments Error: " ^ 
 								e1 ^ " takes 1 argument. "))
 		else (
 			let arg = List.hd e2 in
@@ -290,7 +289,7 @@ let rec constraints_of gctx =
 					if (String.compare e1 "evaluate") == 0 then "eval"
 					else e1
 				in
-				invalid_args_error("Invalid arguments error: " ^ fname ^ " takes 1 list as argument. ")) 
+				invalid_args_error("Invalid Arguments Error: " ^ fname ^ " takes 1 list as argument. ")) 
 		else (
 			let thelist = (List.hd e2) in
 			  let ty, eq = cnstr ctx thelist in
@@ -306,7 +305,7 @@ let rec constraints_of gctx =
 	    | "type" ->
 	    ( 
 		if List.length e2 <> 1 then
-			(invalid_args_error("Invalid arguments error: " ^ e1 ^ " takes 1 argument." ))
+			(invalid_args_error("Invalid Arguments Error: " ^ e1 ^ " takes 1 argument." ))
 		else (
 			let x = List.hd e2 in
 			let ty1, eq1 = cnstr ctx x in
@@ -331,7 +330,7 @@ let rec constraints_of gctx =
 	           )
         ) (* end pattern matching for Id *)
 
-	| _ -> raise(Failure "Error: The first element of an unquoted list must either be a function identifier or an S-expression. ")
+	| _ as e-> invalid_args_error ("Invalid Arguments Error: In function call expression the first argument is invalid.")
 
     ) (* end pattern matching for Eval *)
       in
@@ -340,7 +339,6 @@ let rec constraints_of gctx =
 (** [type_of ctx e] computes the principal type of expression [e] in
     context [ctx]. *)
 let type_of ctx e =
-	print_string "in type_of";
   let ty, eq = constraints_of ctx e in
     let ans = solve eq in
 	    let rec printType = function
@@ -361,7 +359,7 @@ let type_of ctx e =
 		  		) in
 		  	print_types_list t_list ""
 		  )
-		  | _ as t -> print_string (string_of_type t);"other case"
+		  | _ as t -> "other case"
 		in let printpairs p = 
 		 printType (snd p);()
 		in let print_eqs p = 
