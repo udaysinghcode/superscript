@@ -43,7 +43,7 @@ let rec exec_cmd (ctx, env) = function
 			
 		    	    with  
 			      (* Error: RHS of assignment contained an undeclared variable *)
-			      Type_infer.Unknown_variable (msg, id) ->
+			      | Type_infer.Unknown_variable (msg, id) -> (
 
 				   (* Case: unknown var != LHS of assignment --> immediately reject *)
 				   if (String.compare x id) != 0 then
@@ -68,6 +68,7 @@ let rec exec_cmd (ctx, env) = function
 				     in
 					ty
 				  )
+         )
 		in
 		     print_endline ("val " ^ x ^ " : " ^ string_of_type ty) ;
 		(x,ty)::(addCtx ctx tl)
@@ -75,10 +76,16 @@ let rec exec_cmd (ctx, env) = function
 	(addCtx ctx defs), env)
     | _ as e ->
       (* type check [e], evaluate, and print result *)
-      let ty = Ast.rename (Type_infer.type_of ctx e) in
+      let ty = 
+        try Ast.rename (Type_infer.type_of ctx e) with 
+        Type_infer.Unknown_variable (msg, id) ->  raise (Failure (msg))
+
+      in
 	print_string ("- : " ^ string_of_type ty) ;
 	print_newline () ;
+ 
 	(ctx, env)
+      
 ;;
 
 let load_file f =
@@ -114,7 +121,8 @@ let exec_cmds ce cmds =
   try 
   List.fold_left (exec_cmd) ce cmds
 with
-  Type_infer.Type_error msg -> fatal_error (msg)
+  | Type_infer.Invalid_args msg -> raise (Failure (msg))
+  | Type_infer.Type_error msg -> raise (Failure (msg))
 in 
 let program = 
    try
