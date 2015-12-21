@@ -214,19 +214,21 @@ let rec constraints_of gctx =
 			    c, (ty1,a) :: (ty2,b) :: eq1 @ eq2)
 	        | _ -> raise(Failure "Error: Generation of typing for built-in function failed. ")
 	    )
-	    | "dot" -> if (List.length e2 != 3) then (invalid_args_error("Invalid arguments error: " ^ 
-							"dot takes 1 JBlob, 1 String, and 1 list as arguments. " ))
-			else (
-			let jblob = List.hd e2 in 
-			let strings = (List.nth e2 2) in
-			let elist = (List.nth e2 3) in
-			   let ty1, eq1 = cnstr ctx jblob in
-			   let ty2, eq2 = cnstr ctx strings in
-			   let ty3, eq3 = cnstr ctx elist in
-		    TJblob, (ty1, TJblob) :: (ty2, TString) :: (ty3, TSomeList(TSome)) :: eq1 @ eq2 @ eq3)
-
-	    | "call" -> if (List.length e2 <> 2) then (invalid_args_error("Invalid arguments error: " ^
-							"call takes 1 JBlob and 1 list as arguments. "))
+	    | "call" -> (let len = List.length e2 in  
+			match len with 
+			   | 1 -> let ty1, eq1 = cnstr ctx (List.hd e2) in 
+			       		TJblob, (ty1, TJblob) :: eq1
+			   | 2 -> let ty1, eq1 = cnstr ctx (List.hd e2) in
+				  let ty2, eq2 = cnstr ctx (List.nth e2 2) in
+			        	TJblob, (ty1, TJblob) :: (ty2, TString) :: eq1 @ eq2
+			   | 3 -> let ty1, eq1 = cnstr ctx (List.hd e2) in
+			 	  let ty2, eq2 = cnstr ctx (List.nth e2 2) in
+				  let ty3, eq3 = cnstr ctx (List.nth e2 3) in
+			       		TJblob, (ty1, TJblob) :: (ty2, TString) :: (ty3, TSomeList(TSome)) :: eq1 @ eq2 @ eq3
+			   | _ -> invalid_args_error ("Invalid arguments error: call takes at most 3 arguments. ")
+	 	)
+	   | "dot" -> if (List.length e2 != 2) then (invalid_args_error("Invalid arguments error: " ^
+							"dot takes 1 JBlob and 1 list as arguments. "))
 			else (
 			  let jblob = List.hd e2 in 
 			     let ty1, eq1 = cnstr ctx jblob in
@@ -371,7 +373,6 @@ let rec constraints_of gctx =
 (** [type_of ctx e] computes the principal type of expression [e] in
     context [ctx]. *)
 let type_of ctx e =
-	print_string "in type_of";
   let ty, eq = constraints_of ctx e in
     let ans = solve eq in
 	    let rec printType = function
