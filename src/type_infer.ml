@@ -27,6 +27,7 @@ let refresh ty =
     | TString -> TString, s
     | TUnit -> TUnit, s
     | TSome -> TSome, s
+    | TJblob -> TJblob, s
     | TParam k ->
 	(try
 	   List.assoc k s, s
@@ -53,6 +54,7 @@ let rec occurs k = function
   | TBool -> false
   | TUnit -> false
   | TSome -> false
+  | TJblob -> false
   | TParam j -> k = j
   | TArrow t_list -> 
   		let rec tarrow_occurs ts o =
@@ -145,9 +147,8 @@ let rec constraints_of gctx =
 	let ty, eq = cnstr ctx last in
 	ty, eq
     | Eval(e1, e2) -> (
-    	print_string "***";
        match e1 with
-       | If(a,b,c)-> (
+       	| If(a,b,c)-> (
        		let ty1, eq1 = cnstr ctx e1 in
        			match ty1 with 
        			| TArrow t_list -> (
@@ -204,8 +205,8 @@ let rec constraints_of gctx =
 		let tarrow = Generator.arrow_of(e1) in
 		match tarrow with
 		| TArrow(x) -> (let a = List.hd x in
-				let b = List.hd (List.tl x) in
-				let c = List.hd (List.rev x) in
+				let b = List.nth x 2 in
+				let c = List.nth x 3 in
 			match e2 with
 			| [] -> c, []
 			| hd::tl -> let ty1, eq1 = cnstr ctx hd in
@@ -213,16 +214,42 @@ let rec constraints_of gctx =
 			    c, (ty1,a) :: (ty2,b) :: eq1 @ eq2)
 	        | _ -> raise(Failure "Error: Generation of typing for built-in function failed. ")
 	    )
-	    | "mod" -> if (List.length e2 <> 2) then (invalid_args_error("Invalid arguments error: " ^
-					"mod takes 2 ints as arguments. "))
+	    | "dot" -> if (List.length e2 != 3) then (invalid_args_error("Invalid arguments error: " ^ 
+							"dot takes 1 JBlob, 1 String, and 1 list as arguments. " ))
+			else (
+			let jblob = List.hd e2 in 
+			let strings = (List.nth e2 2) in
+			let elist = (List.nth e2 3) in
+			   let ty1, eq1 = cnstr ctx jblob in
+			   let ty2, eq2 = cnstr ctx strings in
+			   let ty3, eq3 = cnstr ctx elist in
+		    TJblob, (ty1, TJblob) :: (ty2, TString) :: (ty3, TSomeList(TSome)) :: eq1 @ eq2 @ eq3)
+
+	    | "call" -> if (List.length e2 <> 2) then (invalid_args_error("Invalid arguments error: " ^
+							"call takes 1 JBlob and 1 list as arguments. "))
+			else (
+			  let jblob = List.hd e2 in 
+			     let ty1, eq1 = cnstr ctx jblob in
+			     let ty2, eq2 = cnstr ctx (List.nth e2 2) in
+			  TJblob, (ty1, TJblob) :: (ty2, TSomeList(TSome)) :: eq1 @ eq2
+			)		
+	    | "module" ->
+			if (List.length e2 != 1) then (invalid_args_error ("Invalid arguments error: " ^ 
+							"module takes 1 String as argument. "))
+			else (
+				let ty, eq = cnstr ctx (List.hd e2) in
+				TJblob, (ty, TString) :: eq
+			)
+	    | "mod" -> if (List.length e2 != 2) then (invalid_args_error("Invalid arguments error: " ^
+					"the modulo operation takes 2 ints as arguments. "))
 		else (
 			let hd = List.hd e2 in
-			let tl = List.hd (List.tl e2) in
+			let tl = List.nth e2 2 in
 			let ty1, eq1 = cnstr ctx hd in
 			let ty2, eq2 = cnstr ctx tl in		
 			TInt, (ty1, TInt) :: (ty2, TInt) :: eq1 @ eq2
 		)
-	    | "__not" -> if (List.length e2 <> 1) then (invalid_args_error("Invalid arguments error: " ^
+	    | "__not" -> if (List.length e2 != 1) then (invalid_args_error("Invalid arguments error: " ^
 							"not takes 1 boolean expression as argument. "))
 		else (
 			let hd = List.hd e2 in
@@ -231,13 +258,17 @@ let rec constraints_of gctx =
 		)
 
 	    | "__equal" | "__neq" | "__less" | "__leq" 
-	    | "__greater" | "__geq" -> 
-		let ty1, eq1 = cnstr ctx (List.hd e2) in
-		let ty2, eq2 = cnstr ctx (List.hd(List.tl e2)) in
-		  TBool, (ty1, ty2) :: eq1 @ eq2
+	    | "__greater" | "__geq" ->
+		if (List.length e2 != 2) then (invalid_args_error("Invalid arguments error: " ^ 
+						e1 ^ "comparison takes 2 arguments. ")) 
+		else (
+		  let ty1, eq1 = cnstr ctx (List.hd e2) in
+		  let ty2, eq2 = cnstr ctx (List.nth e2 2) in
+		    TBool, (ty1, ty2) :: eq1 @ eq2
+		)
 
       	    | "cons" -> (
-		if List.length e2 <> 2 then (invalid_args_error("Invalid arguments error: " ^ "cons takes 2 arguments. "))
+		if List.length e2 != 2 then (invalid_args_error("Invalid arguments error: " ^ "cons takes 2 arguments. "))
 		else (
 			let newhd = List.hd e2
 			and thelist = List.hd (List.rev e2) in
@@ -252,7 +283,7 @@ let rec constraints_of gctx =
 		let tarrow = Generator.arrow_of e1 in
 			match tarrow with
 			| TArrow(x) -> let a = List.hd(x) in
-					let b = List.hd(List.tl x) in
+					let b = List.nth x 2 in
 				let rec addcnstr = function
 				    | [] -> []
 				    | hd::tl -> let ty1, eq1 = cnstr ctx hd in
@@ -268,7 +299,7 @@ let rec constraints_of gctx =
 	    | "boolean_of_string"
 	    | "string_of_int" -> 
 	    (
-		if List.length e2 <> 1 then (invalid_args_error("Invalid arguments error: " ^ 
+		if List.length e2 != 1 then (invalid_args_error("Invalid arguments error: " ^ 
 								e1 ^ " takes 1 argument. "))
 		else (
 			let arg = List.hd e2 in
@@ -285,7 +316,7 @@ let rec constraints_of gctx =
 	    | "tail"
 	    | "head"
 	    | "evaluate" ->
-		if List.length e2 <> 1 then (  
+		if List.length e2 != 1 then (  
 			let fname =  
 					if (String.compare e1 "evaluate") == 0 then "eval"
 					else e1
@@ -305,7 +336,7 @@ let rec constraints_of gctx =
 	    | "int" | "float" | "boolean" | "string" | "list"
 	    | "type" ->
 	    ( 
-		if List.length e2 <> 1 then
+		if List.length e2 != 1 then
 			(invalid_args_error("Invalid arguments error: " ^ e1 ^ " takes 1 argument." ))
 		else (
 			let x = List.hd e2 in

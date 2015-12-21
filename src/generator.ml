@@ -143,7 +143,6 @@ let get_generatable_fnames prog =
                         Id(x) -> [x]
                       | Fdecl(x, y) -> get_fnames y 
                       | Eval(x, y) -> get_fnames (Eval(x, y))
-                      | Let(n, v, e) -> get_fnames (Let(n, v, e)) 
                       | If(c, t, e) -> get_fnames (If(c, t, e))
                       | _ -> []) @ (get_fnames (List(el)))
     | Id(s) -> [s]
@@ -151,7 +150,6 @@ let get_generatable_fnames prog =
     | List(el) -> List.flatten (List.map get_fnames el)
     | Fdecl(argl, exp) -> get_fnames exp
     | If(cond, thenb, elseb) -> (get_fnames cond) @ (get_fnames thenb) @ (get_fnames elseb)
-    | Let(n, v, exp) -> (get_fnames v) @ (get_fnames exp)
     | _ -> [] in
   let generatable = (List.filter is_generatable (List.flatten (List.map get_fnames prog))) in
   let dependencies = List.map get_deps generatable in
@@ -202,7 +200,6 @@ let generate_prog p =
                   (match x with
                     Fdecl(a, e) -> generate (Fdecl(a, e))
                   | Eval(f, e) -> generate (Eval(f, e))
-                  | Let(n, v, e) -> generate (Let(n, v, e))
                   | If(c, t, e) -> generate (If(c, t, e))
                   | _ -> raise (Failure "foo"))
                   argl)
@@ -220,12 +217,6 @@ let generate_prog p =
           (generate thenb)
           (generate elseb)
 
-    | Let(n, v, e) ->
-        sprintf
-          "(function() { var %s = %s; return %s; })()"
-          n
-          (generate v)
-          (generate e)
   in
   let generate_head p =
     let get_def fname =

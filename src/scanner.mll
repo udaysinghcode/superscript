@@ -33,7 +33,6 @@ rule token = parse
 | "++"     { CONCAT }
 | "fn"     { FUNC }
 | "if"     { IF }
-| "let"    { LET }
 | "do" 	   { DO }
 | "eval"   { EVAL }
 | "evaluate"  { raise(Failure "Lexer error: evaluate is a reserved keyword and may not be used. ") } 
