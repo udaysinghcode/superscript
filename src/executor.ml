@@ -68,15 +68,14 @@ let rec exec_cmd (ctx, env) = function
 					ty
 				  )
 		in
-		     print_string ("- : " ^ string_of_type ty ^ " = ") ;
-		     print_newline();
+		     print_endline ("val " ^ x ^ " : " ^ string_of_type ty) ;
 		(x,ty)::(addCtx ctx tl)
 	in
 	(addCtx ctx defs), env)
     | _ as e ->
       (* type check [e], evaluate, and print result *)
       let ty = Ast.rename (Type_infer.type_of ctx e) in
-	print_string ("- : " ^ string_of_type ty ^ " = ") ;
+	print_string ("- : " ^ string_of_type ty) ;
 	print_newline () ;
 	(ctx, env)
 ;;
