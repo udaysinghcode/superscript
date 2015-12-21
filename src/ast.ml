@@ -104,45 +104,6 @@ let string_of_type ty =
   in
     to_str (-1) ty
 
-(** [string_of_expr e] converts expression [e] to string. *)
-let string_of_expr e =
-  let rec to_str n e =
-    let (m, str) =
-      match e with
-	  Int n ->          (10, string_of_int n)
-	| List l -> 	    (10, "list from ast.ml line 98")
-	| Boolean b ->         (10, string_of_bool b)
-	| String s -> 	(10, s)
-	| Id x ->          (10, x)
-	| Nil ->            (10, "[]")
-	(*
-	| Assign (e1, e2) -> (10, "assignment")
-	| Eval (e1, e2) ->  (10, "<app>")
-	    (* (9, (to_str 8 e1) ^ " " ^ (to_str 9 e2)) *)
-	| Divide (e1, e2) -> (8, (to_str 7 e1) ^ " / " ^ (to_str 8 e2))
-	| Mod (e1, e2) ->    (8, (to_str 7 e1) ^ " % " ^ (to_str 8 e2))
-	| Plus (e1, e2) ->   (7, (to_str 6 e1) ^ " + " ^ (to_str 7 e2))
-	| Minus (e1, e2) ->  (7, (to_str 6 e1) ^ " - " ^ (to_str 7 e2))
-	| Cons (e1, e2) ->   (6, (to_str 6 e1) ^ " :: " ^ (to_str 5 e2))
-	| Equal (e1, e2) ->  (5, (to_str 5 e1) ^ " = " ^ (to_str 5 e2))
-	| Less (e1, e2) ->   (5, (to_str 5 e1) ^ " < " ^ (to_str 5 e2))
-	| If (e1, e2, e3) -> (4, "if " ^ (to_str 4 e1) ^ " then " ^
-				(to_str 4 e2) ^ " else " ^ (to_str 4 e3))
-	| Match (e1, e2, x, y, e3) ->
-	    (3, "match " ^ (to_str 3 e1) ^ " with " ^
-	       "[] -> " ^ (to_str 3 e2) ^ " | " ^
-	       x ^ "::" ^ y ^ " -> " ^ (to_str 3 e3))
-	| Fun (x, e) -> (10, "<fun>")
-	    (* (2, "fun " ^ x ^  " -> " ^ (to_str 0 e)) *)
-	| Rec (x, e) -> (10, "<rec>")
-	    (* (1, "rec " ^ x ^ " is " ^ (to_str 0 e)) *)
-	*)
-	| _ -> (20, "TO DO")   
-    in
-      if m > n then str else "(" ^ str ^ ")"
-  in
-    to_str (-1) e
-
 (** [tsubst [(k1,t1); ...; (kn,tn)] t] replaces in type [t] parameters
     [TParam ki] with types [ti]. *)
 let rec tsubst s = function

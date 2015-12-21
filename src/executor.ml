@@ -88,6 +88,7 @@ let rec exec_cmd (ctx, env) = function
       
 ;;
 
+(** [load_file f] loads the file [f] and returns the contents as a string. *)
 let load_file f =
   let ic = open_in f in
   let n = in_channel_length ic in
@@ -95,7 +96,6 @@ let load_file f =
   really_input ic s 0 n;
   close_in ic;
   (s) ;;
-
 
 let rec funct foo =
   try 
@@ -110,6 +110,8 @@ let write stuff =
     close_out oc;
 ;;
 
+
+(** The main program. *)
 let filename = Sys.argv.(1) in
 let lexbuf = Lexing.from_string 
 		(let stdlib = load_file "stdlib.ss" in 

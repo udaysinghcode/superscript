@@ -167,7 +167,8 @@ let rec constraints_of gctx =
 							) in
 							ty2, (ty1, TArrow (tys@[ty2]))::eq1@(get_eqs e2 [])
        			)
-       			| _ -> invalid_args_error ("Invalid Arguments Error: In function call expression the first argument has type "^(string_of_type ty1)^", but was expected of type function")
+       			| _ -> invalid_args_error ("Invalid Arguments Error: In function call expression 
+					the first argument has type "^(string_of_type ty1)^", but an expression was expected of type function")
        	)     
        | Fdecl(a,b) as e -> (
        		let ty1, eq1 = cnstr ctx e in
