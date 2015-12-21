@@ -86,7 +86,7 @@ let solve eq =
       		match l1 with 
       		| [] -> eq
       		| hd::tl -> get_eq tl (List.tl l2) ((hd, (List.hd) l2)::eq) in 
-      	solve (get_eq ty1 ty2 []) sbst
+      	solve (get_eq ty1 ty2 eq) sbst
 	    
       | (TSomeList t1, TSomeList t2) :: eq ->
         	solve ((t1,t2) :: eq) sbst
@@ -129,7 +129,7 @@ let rec constraints_of gctx =
 	let ty1, eq1 = cnstr ctx e1 in
 	let ty2, eq2 = cnstr ctx e2 in
 	let ty3, eq3 = cnstr ctx e3 in
-	  ty2, (ty1, TBool) :: (ty2, ty3) :: eq1 @ eq2 @ eq3
+	  print_string "in if";print_string (string_of_type ty1);print_string (string_of_type ty2);print_string (string_of_type ty3);print_endline "";ty2, ((ty1, TBool)::(ty2, ty3)::eq1@eq2@eq3)
 
     | Fdecl(x, e) ->
     	let eqs = List.rev (List.map (fun v -> (v, fresh ())) x)in
@@ -145,11 +145,32 @@ let rec constraints_of gctx =
 	let ty, eq = cnstr ctx last in
 	ty, eq
     | Eval(e1, e2) -> (
+    	print_string "***";
        match e1 with
        | Let(a,b,c) -> TUnit, [] 
-       | If(a,b,c) -> TUnit, []
-       | Fdecl(a,b) -> (
+      
+       
+       	| If(a,b,c)-> (
        		let ty1, eq1 = cnstr ctx e1 in
+       			match ty1 with 
+       			| TArrow t_list -> (
+       				let ty2 = fresh() in 
+       				match e2 with 
+       				| [] -> ty2, (ty1, TArrow [TUnit; ty2])::eq1
+       				| _ -> let tys = List.map (fun v -> let (ty,eq) = cnstr ctx v in ty) (List.rev e2) in
+							let rec get_eqs exp_list eq_list = (
+								match exp_list with
+								| [] -> eq_list
+								| hd::tl -> let (ty, eq) = cnstr ctx hd in 
+											get_eqs tl (eq_list@eq)
+							) in
+							print_string "testttt";print_string (string_of_type ty1);ty2, (ty1, TArrow (tys@[ty2]))::eq1@(get_eqs e2 [])
+       			)
+       			| _ -> raise(Failure "Error: The type of the first argument must be a function. ")
+       	)
+       
+       | Fdecl(a,b) as e -> (
+       		let ty1, eq1 = cnstr ctx e in
        		let ty2 = fresh () in
 			match e2 with 
 			| [] -> ty2, (ty1, TArrow [TUnit; ty2])::eq1
@@ -160,7 +181,7 @@ let rec constraints_of gctx =
 						| hd::tl -> let (ty, eq) = cnstr ctx hd in 
 							get_eqs tl (eq_list@eq)
 					) in
-					ty2, (ty1, TArrow (tys@[ty2]))::eq1@(get_eqs e2 [])
+					ty2, eq1@[(ty1, TArrow (tys@[ty2]))]@(get_eqs e2 [])
 		)
 
        | Id(e1) -> 
@@ -297,7 +318,7 @@ let rec constraints_of gctx =
 						| hd::tl -> let (ty, eq) = cnstr ctx hd in 
 							get_eqs tl (eq_list@eq)
 					) in
-					ty2, (ty1, TArrow (tys@[ty2]))::eq1@(get_eqs e2 [])
+					ty2, eq1@[(ty1, TArrow (tys@[ty2]))]@(get_eqs e2 [])
 	           )
         ) (* end pattern matching for Id *)
 
@@ -310,7 +331,31 @@ let rec constraints_of gctx =
 (** [type_of ctx e] computes the principal type of expression [e] in
     context [ctx]. *)
 let type_of ctx e =
+	print_string "in type_of";
   let ty, eq = constraints_of ctx e in
     let ans = solve eq in
+	    let rec printType = function
+          | TInt -> "TInt"
+		  | TBool -> "TBool"
+		  | TParam k -> "TypeVar" ^ (string_of_int k)
+		  | TSome -> "SomeType"
+		  | TSomeList _ -> "List of sometype"
+		  | TString -> "TString"
+		  | TUnit -> "TUnit"
+		  | TFloat -> "TFloat"
+		  | TArrow t_list -> (
+		  	let rec print_types_list types str = 
+		  		( match types with 
+		  			|[] -> str
+		  			| hd::tl when (List.length tl) = 0 -> str^(printType hd)
+		  			| hd::tl when (List.length tl > 0) -> str^(printType hd)^" -> "
+		  		) in
+		  	print_types_list t_list ""
+		  )
+		  | _ as t -> print_string (string_of_type t);"other case"
+		in let printpairs p = 
+		 printType (snd p);()
+		in let print_eqs p = 
+		 printType (snd p);()
+	in List.iter (printpairs) ans; List.iter (print_eqs) eq;
     tsubst (ans) ty
-
