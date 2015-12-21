@@ -1,13 +1,7 @@
-{ open Parser 
-open Lexing
-exception LexingErr of string
-
-let error msg start finish =
-    Printf.sprintf "( line %d: char %d..%d): %s " start.pos_lnum
-		(start.pos_cnum - start.pos_bol) (finish.pos_cnum - finish.pos_bol) msg
-
-let lex_error lexbuf = 
-    raise ( LexingErr (error ("Illegal input : " ^ (lexeme lexbuf)) (lexeme_start_p lexbuf) (lexeme_end_p lexbuf)))
+{ 
+  open Parser
+  open Message
+  open Lexing
 }
 
 rule token = parse
@@ -53,7 +47,7 @@ rule token = parse
 | ['0'-'9']+ as lxm { INT(int_of_string lxm) }					(* Int *)
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }		(* Identifier *)
 | eof { EOF }
-| _ 	 { lex_error lexbuf }
+| _ 	 { raise (Message.LexingErr("Illegal input")) }
 
 and comment = parse
    "*/"  { token lexbuf } (* comments *)
