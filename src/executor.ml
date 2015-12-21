@@ -104,7 +104,7 @@ let write stuff =
 
 let filename = Sys.argv.(1) in
 let lexbuf = Lexing.from_string 
-		(let stdlib = "" (* Standard_lib.get_stdlib *) in 
+		(let stdlib = load_file "stdlib.ss" in 
 		    let filecontents = 
 			if filename = "-s" then Sys.argv.(2) 
 			else load_file filename
