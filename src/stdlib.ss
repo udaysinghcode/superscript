@@ -81,17 +81,17 @@
   (if (is l '()) (eval '(identity a))
     (eval '(f (head l) (fold_right f (tail l) a))))));;
 
-/* filter takes a function p and HOMOGENOUS list l. The function p should
-   take 1 argument and return a boolean.  Filter returns a list
-   of those elements of the list where the predicate evaluates to true. */
+/* filter takes a function p and HOMOGENOUS list l. The function should
+   take 1 argument and return a BOOLEAN.  Filter returns a list
+   of those elements of l, on which the predicate evaluates to true. */
 (= filter (fn (p l)
   (list (fold_right (fn (x y) (if (p x) (cons x y) y)) l '()))));;
 
 /* partition takes a function f and HOMOEGENOUS list l. The function should
-   return a boolean when it is evaluated on an element of the list l.
+   take 1 argument and return a BOOLEAN.
    The partition returns a list containing two lists: 
-   the first has elements of l where f return true on those elements;
-   the second has elements of l where f returns false on those elements. */
+   the first contains each element of l, on which f evlautes to true;
+   the second contains each element of l, on which f evalutes to false. */
 (= partition 
   (fn (p l) 
     (fold_right 
@@ -111,14 +111,14 @@
   )
 );;
 
-/* append takes an element a, and a list b, and returns a list
+/* append takes an element a, and list b. It returns a list
    where a is appended onto the front of b. */
 (= append (fn (a b) 
   (if (is a '()) 
     b 
     (cons (head a) (append (tail a) b)))));;
 
-/* reverse takes a list l, and returns a list that is l reversed. */
+/* reverse takes a list l. It returns the list reversed. */
 (= reverse (fn (l) 
   (if (is l '()) 
     l 
@@ -131,14 +131,14 @@
     l 
     (drop (- i 1) (tail l)))));;
 
-/* take takes an int i and a list l. It returns a list containing
-   the first i elements of the list l. */
+/* take takes an int i and list l. It returns a list containing
+   the first i elements of the list. */
 (= take (fn (i l) 
   (if (or (not (> i 0)) (is l '())) 
     '() 
     (cons (head l) (take (- i 1) (tail l))))));;
 
-/* intersperse takes an expression and a list. It inserts the
+/* intersperse takes an expression e and list l. It inserts the
    expression between each pair of elements in the list,
    and returns the resulting list. */
 (= intersperse (fn (e l) 
@@ -160,15 +160,15 @@
   )
 );;
 
-/* zipwith takes a function f which should take 2 arguments; list a; and list b.
-   It returns a list where each element is the result of evaluating (f a b). */
+/* zipwith takes function f, list a, and list b. The function should take 2 arguments.
+   zipwith returns a list where each element is the result of evaluating (f a b). */
 (= zipwith (fn (f a b) 
   (if (or (is a '()) (is b '())) 
     '() 
     (cons (f (head a) (head b)) (zipwith f (tail a) (tail b))))));;
 
-/* zipwith3 takes a function f which should take 3 arguments; list a; list b; and list c.
-   It returns a list where each element is the result of evaluating (f a b c). */
+/* zipwith3 takes a function f, list a, list b, and list c. The function should take 3 arguments.
+   zipwith3 returns a list where each element is the result of evaluating (f a b c). */
 (= zipwith3 (fn (f a b c) 
 	(if (or (or (is a '()) (is b '())) (is c '())) 
 	  '() 
@@ -185,8 +185,8 @@
 
 /* unzip takes list l, which should be a list of pairs (2-element lists).
    It returns a list of 2 lists, where the first sublist contains all the
-   first elements of each pair; and the second sublist contains all of the
-   second elements of each pair from the input list. 
+   first elements, and the second sublist contains all of the
+   second elements, from each pair of the input list l. 
    Example: (unzip '( '(1 a) '(2 b) '(3 c) '(4 d) )) ---> '( '(1 2 3 4) '(a b c d) )   */ 
 (= unzip (fn (l) 
   (fold_right 
@@ -201,27 +201,54 @@
 **
 ** * * * * * * * * * * * * * * * * * * * */
 
-/* format_boolean returns a function which takes a boolean and returns a string;
-   it can be passed as the formatting function into print_list or stringify_list. */
+/* format_boolean returns a function which stringifies a boolean value.
+   format_boolean can be passed as the formatting function into print_list or stringify_list. */
 (= format_boolean (fn (x) (string_of_boolean (boolean x))));;
 
-/* format_int returns a function which takes an int and returns a string;
-   it can be passed as the formatting function into print_list or stringify_list. */
+/* format_int returns a function which stringifies an int value.
+   format_int can be passed as the formatting function into print_list or stringify_list. */
 (= format_int (fn (x) (string_of_int (int x))));;
 
+/* format_string returns a function which takes a string and returns it.
+   format_string can be passed as the formatting function into print_list or stringify_list. */
+(= format_string (fn (x) (string x)));;
+
+/* format_float returns a function which stringifies a float.
+   format_float can be passed as the formatting function into print_list or stringify_list. */
+(= format_float (fn (x) (string_of_float (float x))));;
+
+
 /* stringify_list takes a function f and list l. The function f should
-   be an anonymous function declaration which can transform each element
-   of the list l into a string. The transformed list is stringified, with
-   commas separating the elements, and returned as a string. */
+   return a function that can transform each element of the list into a string.
+   The stringified elements of the list are concatenated, with "," as delimiter, 
+   and returned altogether as a string. */
 (= stringify_list (fn (f l) 
   (++
     "[" 
     (fold_left ++ "" (intersperse "," (map f l))) 
     "]")));;
 
-/* print_list takes a function f and list l. The function f should be an
-   anonymous function declaration which can transform each element of the list l
-   into a string.  The transformed list is stringified, and this string is printed. */
+
+/* format_boolean2d returns a function that takes a HOMOGENEOUS list of BOOLEANS and stringifies it.
+   format_boolean2d can be passed as the formatting function into print_list or stringify_list. */
+(= format_boolean2d (fn (x) (stringify_list format_boolean x)));;
+
+/* format_int2d returns a function that takes a HOMOGENEOUS list of INTS and stringifies it.
+   format_int2d can be passed as the formatting function into print_list or stringify_list. */
+(= format_int2d (fn (x) (stringify_list format_int x)));;
+
+/* format_float2d returns a function that takes a HOMOGENEOUS list of FLOATS and stringifies it.
+   format_float2d can be passed as the formatting function into print_list or stringify_list. */
+(= format_float2d (fn (x) (stringify_list format_float x)));;
+
+/* format_string2d returns a function that takes a HOMOGENEOUS list of STRINGS and stringifies it.
+   format_string2d can be passed as the formatting function into print_list or stringify_list. */
+(= format_string2d (fn (x) (stringify_list format_string x)));;
+
+
+/* print_list takes a function f and list l. The function f should return
+   a function that can transform each element of the list into a string.
+   The stringified list is printed to console. */
 (= print_list (fn (f l)
   (prn (stringify_list f l))));;
 
