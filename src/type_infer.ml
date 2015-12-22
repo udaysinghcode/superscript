@@ -72,6 +72,31 @@ let rec occurs k = function
   		tarrow_occurs t_list false
   | TSomeList t1 -> occurs k t1
 
+(* [get_name_of_functions fname] takes the intermediate function name inside of
+	compiler and returns the actual function name users use. *)
+let get_name_of_functions = function 
+	| "exec" -> "do"
+	| "__add" -> "+"
+	| "__sub" -> "-"
+	| "__mult" -> "*"
+	| "__div" -> "/"
+	| "__addf" -> "+."
+	| "__subf" -> "-."
+	| "__multf" -> "*."
+	| "__divf" -> "/."
+	| "__equal" -> "is"
+	| "__neq" -> "isnt"
+	| "__less" -> "<"
+	| "__leq" -> "<="
+	| "__greater" -> ">"
+	| "__geq" -> ">="
+	| "__and" -> "and"
+	| "__or" -> "or"
+	| "__not" -> "not"
+	| "__concat" -> "++"
+	| "__evaluate" -> "eval"
+	| _ as s -> s
+
 (** [solve [(t1,u1); ...; (tn,un)] solves the system of equations
     [t1=u1], ..., [tn=un]. The solution is represented by a list of
     pairs [(k,t)], meaning that [TParam k] equals [t]. A type error is
@@ -83,28 +108,28 @@ let solve eq =
     match eq with
       | [] -> sbst
 	  
-      | (t1, t2) :: eq when t1 = t2 -> solve eq sbst
+      | (t1, t2 , f) :: eq when t1 = t2 -> solve eq sbst
 	  
-      | ((TParam k, t) :: eq | (t, TParam k) :: eq) when (not (occurs k t)) ->
+      | ((TParam k, t, f) :: eq | (t, TParam k, f) :: eq) when (not (occurs k t)) ->
 	  let ts = Ast.tsubst [(k,t)] in
 	    solve
-	      (List.map (fun (ty1,ty2) -> (ts ty1, ts ty2)) eq)
+	      (List.map (fun (ty1,ty2,fn) -> (ts ty1, ts ty2, fn)) eq)
 	      ((k,t)::(List.map (fun (n, u) -> (n, ts u)) sbst))
 	      
-      | (TException, _) :: eq | (_, TException) :: eq -> solve eq sbst
-      | (TArrow ty1, TArrow ty2) :: eq when (List.length ty1) = (List.length ty2) ->
+      | (TException, _, f) :: eq | (_, TException, f) :: eq -> solve eq sbst
+      | (TArrow ty1, TArrow ty2, f) :: eq when (List.length ty1) = (List.length ty2) ->
       	let rec get_eq l1 l2 eq = 
       		match l1 with 
       		| [] -> eq
-      		| hd::tl -> get_eq tl (List.tl l2) ((hd, (List.hd) l2)::eq) in 
+      		| hd::tl -> get_eq tl (List.tl l2) ((hd, (List.hd) l2, f)::eq) in 
       	solve (get_eq ty1 ty2 eq) sbst
 	    
-      | (TSomeList t1, TSomeList t2) :: eq ->
-        	solve ((t1,t2) :: eq) sbst
-      | (t1,t2)::_ ->
+      | (TSomeList t1, TSomeList t2, f) :: eq ->
+        	solve ((t1,t2,f) :: eq) sbst
+      | (t1,t2,f)::_ ->
 	  let u1, u2 = rename2 t1 t2 in
 	    type_error ("Type Incompatible Error: The types " ^ string_of_type u1 ^ " and " ^
-			  string_of_type u2 ^ " are incompatible.")
+			  string_of_type u2 ^ " are incompatible in " ^ (get_name_of_functions f) ^ "." )
 	  
 in
     solve eq []
@@ -140,7 +165,7 @@ let rec constraints_of gctx =
 	let ty1, eq1 = cnstr ctx e1 in
 	let ty2, eq2 = cnstr ctx e2 in
 	let ty3, eq3 = cnstr ctx e3 in
-	  ty2, ((ty1, TBool)::(ty2, ty3)::eq1@eq2@eq3)
+	  ty2, ((ty1, TBool, "if")::(ty2, ty3, "if")::eq1@eq2@eq3)
 
     | Fdecl(x, e) ->
     	let eqs = List.rev (List.map (fun v -> (v, fresh ())) x)in
@@ -163,7 +188,7 @@ let rec constraints_of gctx =
        			| TArrow t_list -> (
        				let ty2 = fresh() in 
        				match e2 with 
-       				| [] -> ty2, (ty1, TArrow [TUnit; ty2])::eq1
+       				| [] -> ty2, (ty1, TArrow [TUnit; ty2], "function call")::eq1
        				| _ -> let tys = List.map (fun v -> let (ty,eq) = cnstr ctx v in ty) (List.rev e2) in
 							let rec get_eqs exp_list eq_list = (
 								match exp_list with
@@ -171,7 +196,7 @@ let rec constraints_of gctx =
 								| hd::tl -> let (ty, eq) = cnstr ctx hd in 
 											get_eqs tl (eq_list@eq)
 							) in
-							ty2, (ty1, TArrow (tys@[ty2]))::eq1@(get_eqs e2 [])
+							ty2, (ty1, TArrow (tys@[ty2]), "function call")::eq1@(get_eqs e2 [])
        			)
        			| _ -> invalid_args_error ("Invalid Arguments Error: In function call expression 
 					the first argument has type "^(string_of_type ty1)^", but an expression was expected of type function")
@@ -180,7 +205,7 @@ let rec constraints_of gctx =
        		let ty1, eq1 = cnstr ctx e in
        		let ty2 = fresh () in
 			match e2 with 
-			| [] -> ty2, (ty1, TArrow [TUnit; ty2])::eq1
+			| [] -> ty2, (ty1, TArrow [TUnit; ty2], "function call")::eq1
 			| _ -> let tys = List.map (fun v -> let (ty,eq) = cnstr ctx v in ty) (List.rev e2) in
 					let rec get_eqs exp_list eq_list = (
 						match exp_list with
@@ -188,13 +213,13 @@ let rec constraints_of gctx =
 						| hd::tl -> let (ty, eq) = cnstr ctx hd in 
 							get_eqs tl (eq_list@eq)
 					) in
-					ty2, eq1@[(ty1, TArrow (tys@[ty2]))]@(get_eqs e2 [])
+					ty2, eq1@[(ty1, TArrow (tys@[ty2]), "function call")]@(get_eqs e2 [])
 		)
        | Eval(a, b) -> (
        		let ty1, eq1 = cnstr ctx e1 in 
        		let ty2 = fresh() in 
        		match e2 with 
-			| [] -> ty2, (ty1, TArrow [TUnit; ty2])::eq1
+			| [] -> ty2, (ty1, TArrow [TUnit; ty2], "function call")::eq1
 			| _ -> let tys = List.map (fun v -> let (ty,eq) = cnstr ctx v in ty) (List.rev e2) in
 					let rec get_eqs exp_list eq_list = (
 						match exp_list with
@@ -202,7 +227,7 @@ let rec constraints_of gctx =
 						| hd::tl -> let (ty, eq) = cnstr ctx hd in 
 							get_eqs tl (eq_list@eq)
 					) in
-					ty2, eq1@[(ty1, TArrow (tys@[ty2]))]@(get_eqs e2 [])
+					ty2, eq1@[(ty1, TArrow (tys@[ty2]), "function call")]@(get_eqs e2 [])
        )
        | Id(e1) -> 
        ( 
@@ -220,20 +245,20 @@ let rec constraints_of gctx =
 			| [] -> c, []
 			| hd::tl -> let ty1, eq1 = cnstr ctx hd in
 			    let ty2, eq2 = cnstr ctx (Eval(Id(e1), tl)) in
-			    c, (ty1,a) :: (ty2,b) :: eq1 @ eq2)
+			    c, (ty1,a,e1) :: (ty2,b,e1) :: eq1 @ eq2)
 	        | _ -> raise(Failure "Error: Generation of typing for built-in function failed. ")
 	    )
 	    | "call" -> (let len = List.length e2 in  
 			match len with 
 			   | 1 -> let ty1, eq1 = cnstr ctx (List.hd e2) in 
-			       		TJblob, (ty1, TJblob) :: eq1
+			       		TJblob, (ty1, TJblob, e1) :: eq1
 			   | 2 -> let ty1, eq1 = cnstr ctx (List.hd e2) in
 				  let ty2, eq2 = cnstr ctx (List.nth e2 1) in
-			        	TJblob, (ty1, TJblob) :: (ty2, TString) :: eq1 @ eq2
+			        	TJblob, (ty1, TJblob, e1) :: (ty2, TString, e1) :: eq1 @ eq2
 			   | 3 -> let ty1, eq1 = cnstr ctx (List.hd e2) in
 			 	  let ty2, eq2 = cnstr ctx (List.nth e2 1) in
 				  let ty3, eq3 = cnstr ctx (List.nth e2 2) in
-			       		TJblob, (ty1, TJblob) :: (ty2, TString) :: (ty3, TSomeList(TSome)) :: eq1 @ eq2 @ eq3
+			       		TJblob, (ty1, TJblob, e1) :: (ty2, TString, e1) :: (ty3, TSomeList(TSome), e1) :: eq1 @ eq2 @ eq3
 			   | _ -> invalid_args_error ("Invalid arguments error: call takes at most 3 arguments. ")
 	 	)
 	   | "dot" -> if (List.length e2 != 2) then (invalid_args_error("Invalid arguments error: " ^
@@ -242,19 +267,19 @@ let rec constraints_of gctx =
 			  let jblob = List.hd e2 in 
 			     let ty1, eq1 = cnstr ctx jblob in
 			     let ty2, eq2 = cnstr ctx (List.nth e2 1) in
-			  TJblob, (ty1, TJblob) :: (ty2, TSomeList(TSome)) :: eq1 @ eq2
+			  TJblob, (ty1, TJblob, e1) :: (ty2, TSomeList(TSome), e1) :: eq1 @ eq2
 			)		
 	    | "module" ->
 			if (List.length e2 != 1) then (invalid_args_error ("Invalid arguments error: " ^ 
 							"module takes 1 String as argument. "))
 			else (
 				let ty, eq = cnstr ctx (List.hd e2) in
-				TJblob, (ty, TString) :: eq
+				TJblob, (ty, TString, e1) :: eq
 			)
 	    | "exception" ->
 			let e = List.hd e2 in
 			let ty, eq = cnstr ctx e in
-			TException, (ty, TString) :: eq
+			TException, (ty, TString, e1) :: eq
 
 	    | "mod" | "__and" | "__or" -> if (List.length e2 != 2) then 
 	           (invalid_args_error("Invalid arguments error: the (" 
@@ -268,7 +293,7 @@ let rec constraints_of gctx =
 			  let tl = List.nth e2 1 in
 			    let ty1, eq1 = cnstr ctx hd in
 			    let ty2, eq2 = cnstr ctx tl in		
-			  expected, (ty1, expected) :: (ty2, expected) :: eq1 @ eq2
+			  expected, (ty1, expected, e1) :: (ty2, expected, e1) :: eq1 @ eq2
 		)
 
 	    | "__not" -> if (List.length e2 != 1) then (invalid_args_error("Invalid Arguments Error: " ^
@@ -276,7 +301,7 @@ let rec constraints_of gctx =
 		else (
 			let hd = List.hd e2 in
 			let ty, eq = cnstr ctx hd in
-			TBool, (ty, TBool) :: eq
+			TBool, (ty, TBool, e1) :: eq
 		)
 	    | "__equal" | "__neq" | "__less" | "__leq" 
 	    | "__greater" | "__geq" ->
@@ -286,7 +311,7 @@ let rec constraints_of gctx =
 		else (
 		  let ty1, eq1 = cnstr ctx (List.hd e2) in
 		  let ty2, eq2 = cnstr ctx (List.nth e2 1) in
-		    TBool, (ty1, ty2) :: eq1 @ eq2
+		    TBool, (ty1, ty2, e1) :: eq1 @ eq2
 		)
 
       	    | "cons" -> (
@@ -296,7 +321,7 @@ let rec constraints_of gctx =
 			and thelist = List.hd (List.rev e2) in
 				let ty1, eq1 = cnstr ctx newhd in	(* ty1 can be anything *)
 				let ty2, eq2 = cnstr ctx thelist in
-					TSomeList(TSome), (ty2,TSomeList(TSome)) :: eq1 @ eq2
+					TSomeList(TSome), (ty2,TSomeList(TSome), e1) :: eq1 @ eq2
 		)	
 	    )
 
@@ -309,7 +334,7 @@ let rec constraints_of gctx =
 				let rec addcnstr = function
 				    | [] -> []
 				    | hd::tl -> let ty1, eq1 = cnstr ctx hd in
-			    		(ty1,a) :: eq1 @ addcnstr tl
+			    		(ty1,a,e1) :: eq1 @ addcnstr tl
 		    		in b, addcnstr e2
 			| _ -> raise(Failure "Error: Generation of typing for built-in function failed. ")
 	    )
@@ -330,7 +355,7 @@ let rec constraints_of gctx =
 				match tarrow with
 				  | TArrow(x) -> (let a = List.hd(x) in
 					let b = List.hd(List.tl x) in
-					b, (ty, a) :: eq)
+					b, (ty, a, e1) :: eq)
 				  | _ -> raise(Failure "Error: Generation of typing for built-in function failed. ")
 		)
 	    )
@@ -351,7 +376,7 @@ let rec constraints_of gctx =
 				match tarrow with
 				| TArrow(x) -> (let a = List.hd(x) in
 						let b = List.hd(List.tl x) in
-						b, (ty, a) :: eq)
+						b, (ty, a, e1) :: eq)
 				| _ -> raise(Failure "Error: Generation of typing for built-in function failed. ")
 		)
 
@@ -372,7 +397,7 @@ let rec constraints_of gctx =
 	    | _ -> ( let ty1, eq1 = cnstr ctx (Id e1) in
 			let ty2 = fresh () in
 			match e2 with 
-			| [] -> ty2, (ty1, TArrow [TUnit; ty2])::eq1
+			| [] -> ty2, (ty1, TArrow [TUnit; ty2], e1)::eq1
 			| _ -> let tys = List.map (fun v -> let (ty,eq) = cnstr ctx v in ty) (List.rev e2) in
 					let rec get_eqs exp_list eq_list = (
 						match exp_list with
@@ -380,7 +405,7 @@ let rec constraints_of gctx =
 						| hd::tl -> let (ty, eq) = cnstr ctx hd in 
 							get_eqs tl (eq_list@eq)
 					) in
-					ty2, eq1@[(ty1, TArrow (tys@[ty2]))]@(get_eqs e2 [])
+					ty2, eq1@[(ty1, TArrow (tys@[ty2]),e1)]@(get_eqs e2 [])
 	           )
         ) (* end pattern matching for Id *)
 
@@ -416,7 +441,5 @@ let type_of ctx e =
 		  | _ as t -> "other case"
 		in let printpairs p = 
 		 printType (snd p);()
-		in let print_eqs p = 
-		 printType (snd p);()
-	in List.iter (printpairs) ans; List.iter (print_eqs) eq;
+	in List.iter (printpairs) ans;
     tsubst (ans) ty
