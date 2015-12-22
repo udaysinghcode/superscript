@@ -90,7 +90,7 @@
 	(= last (fn (l) (nth (- (length l) 1) l)));;
 
 /* 
- *  map takes a function f and a HOMOGENEOUS list l. It performs the function
+ *  map takes a function f and a HOMOGENEOUS list l. It evaluates f
  *  on each element of the list, and returns a list of the results.
  */
 	(= map (fn (f l)
@@ -98,8 +98,8 @@
     	    (cons (f (head l)) (map f (tail l))))));;
 
 /* 
- *  fold_left takes a function f, HOMOGENEOUS list a, and list l. It performs the
- *  function f on each element of list l, starting from the left,
+ *  fold_left takes a function f, HOMOGENEOUS list a, and list l.
+ *  It evaluates f on each element of list l, starting from the left,
  *  and stores the results in the accumulator list a.  It returns a.
  */
 	(= fold_left (fn (f a l) 
@@ -107,8 +107,8 @@
     	    (fold_left f (eval '(f a (head l))) (tail l)))));;
 
 /* 
- *  fold_right takes a function f, HOMOGENEOUS list l, and list a. It performs
- *  the function f on each element of list l, starting from the right,
+ *  fold_right takes a function f, HOMOGENEOUS list l, and list a.
+ *  It evaluates f on each element of list l, starting from the right,
  *  and stores the results in the accumulator list a. It returns a.
  */
 	(= fold_right (fn (f l a)
@@ -116,17 +116,17 @@
     	    (eval '(f (head l) (fold_right f (tail l) a))))));;
 
 /* 
- *  filter takes a function p and HOMOGENOUS list l. The function should
- *  take 1 argument and return a BOOLEAN.  Filter returns a list
- *  of those elements of l, on which the predicate evaluates to true.
+ *  filter takes a function p and HOMOGENOUS list l. The function must
+ *  take 1 argument and return a BOOLEAN.  Filter returns a list of
+ *  those elements of l, on which the predicate evaluates to true.
  */
 	(= filter (fn (p l)
   	  (list (fold_right (fn (x y) (if (p x) (cons x y) y)) l '()))));;
 
 /* 
- *  partition takes a function f and HOMOEGENOUS list l. The function should
- *  take 1 argument and return a BOOLEAN.
- *  The partition returns a list containing two lists: 
+ *  partition takes a function f and HOMOEGENOUS list l. The function
+ *  must take 1 argument and return a BOOLEAN. The partition returns 
+ *  a list containing two lists: 
  *  the first contains each element of l, on which f evlautes to true;
  *  the second contains each element of l, on which f evalutes to false.
  */
@@ -145,7 +145,7 @@
 	       ) 
 	       l 
                '( '()  '()  )
-             )
+            )
  	  )
 	);;
 
@@ -211,8 +211,9 @@
 	);;
 
 /* 
- *  zipwith takes function f, list a, and list b. The function should take 2 arguments.
- *  zipwith returns a list where each element is the result of evaluating (f a b).
+ *  zipwith takes function f, list a, and list b. The function should 
+ *  take 2 arguments. zipwith returns a list where each element is the 
+ *  result of evaluating (f a b).
  */
 	(= zipwith (fn (f a b) 
 	  (if (or (is a '()) (is b '())) 
@@ -220,13 +221,15 @@
 	    (cons (f (head a) (head b)) (zipwith f (tail a) (tail b))))));;
 
 /* 
- *  zipwith3 takes a function f, list a, list b, and list c. The function should take 3 arguments.
- *  zipwith3 returns a list where each element is the result of evaluating (f a b c).
+ *  zipwith3 takes a function f, list a, list b, and list c. The function 
+ *  should take 3 arguments. zipwith3 returns a list where each element 
+ *  is the result of evaluating (f a b c).
  */
 	(= zipwith3 (fn (f a b c) 
 		(if (or (or (is a '()) (is b '())) (is c '())) 
 		  '() 
-		  (cons (f (head a) (head b) (head c)) (zipwith3 f (tail a) (tail b) (tail c))))));;
+		  (cons (f (head a) (head b) (head c)) 
+		    (zipwith3 f (tail a) (tail b) (tail c))))));;
 
 /* 
  *  zip takes list a and list b.  It iterates through both lists and
@@ -244,7 +247,8 @@
  *  It returns a list of 2 lists, where the first sublist contains all the
  *  first elements, and the second sublist contains all of the
  *  second elements, from each pair of the input list l. 
- *  Example: (unzip '( '(1 a) '(2 b) '(3 c) '(4 d) )) ---> '( '(1 2 3 4) '(a b c d) )
+ *  Example: (unzip '( '(1 a) '(2 b) '(3 c) '(4 d) )) 
+ *		--> '( '(1 2 3 4) '(a b c d) )
  */ 
 	(= unzip (fn (l) 
 	  (fold_right 
@@ -296,10 +300,10 @@
 	(= format_float (fn (x) (string_of_float (float x))));;
 
 /* 
- *  stringify_list takes a function f and list l. The function f should
- *  return a function that can transform each element of the list into a string.
- *  The stringified elements of the list are concatenated, with "," as delimiter, 
- *  and returned altogether as a string.
+ *  stringify_list takes a function f and list l. The function f 
+ *  should return a function that can transform each element of the 
+ *  list into a string. The stringified elements are concatenated,
+ *  with "," as delimiter, and returned altogether as a string.
  */
 	(= stringify_list (fn (f l) 
 	  (++
@@ -308,22 +312,26 @@
 	    "]")));;
 
 /* 
- *  format_boolean2d returns a function that takes a HOMOGENEOUS list of BOOLEANS and stringifies it.
+ *  format_boolean2d returns a function that takes a HOMOGENEOUS list 
+ *  of BOOLEANS and stringifies it.
  */
 	(= format_boolean2d (fn (x) (stringify_list format_boolean x)));;
 
 /* 
- *  format_int2d returns a function that takes a HOMOGENEOUS list of INTS and stringifies it.
+ *  format_int2d returns a function that takes a HOMOGENEOUS list 
+ *  of INTS and stringifies it.
  */
 	(= format_int2d (fn (x) (stringify_list format_int x)));;
 
 /* 
- *  format_float2d returns a function that takes a HOMOGENEOUS list of FLOATS and stringifies it.
+ *  format_float2d returns a function that takes a HOMOGENEOUS list 
+ *  of FLOATS and stringifies it.
  */
 	(= format_float2d (fn (x) (stringify_list format_float x)));;
 
 /* 
- *  format_string2d returns a function that takes a HOMOGENEOUS list of STRINGS and stringifies it.
+ *  format_string2d returns a function that takes a HOMOGENEOUS list 
+ *  of STRINGS and stringifies it.
  */
 	(= format_string2d (fn (x) (stringify_list format_string x)));;
 
