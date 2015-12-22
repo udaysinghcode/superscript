@@ -1,4 +1,11 @@
-%{ open Ast %}
+%{ 
+   open Ast 
+   open Scanner
+   open Message
+   let parse_error s = (* called by parser function on error *)
+      print_endline (s ^ "HELLO");
+      flush stdout 
+%}
 
 %token PLUS MINUS TIMES DIVIDE PLUSF MINUSF TIMESF DIVIDEF EOF
 %token ASSIGN QUOTE AND OR NOT EQ NEQ LT LEQ GT GEQ CONCAT
@@ -31,6 +38,7 @@ program:
 expr_list:
 /* nothing */		{ [] }
 | expr_list expr SEMI	{ $2 :: $1 }
+| expr_list error SEMI  { (parse_error "syntax error" ); $1 }
 
 sexpr:
 | IF expr expr expr		{ If($2, $3, $4) }
