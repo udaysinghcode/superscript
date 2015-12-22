@@ -4,7 +4,7 @@ open Scanner;;
 open Unix;;
 
 (*  File Foo_ast:
-	let asts = Lit(2)  *)
+  let asts = Lit(2)  *)
 
 (*
  - catch exceptions  
@@ -21,28 +21,26 @@ open Unix;;
 *)
 
 (*let _ = 
-	let lexbuf = Lexing.from_string "2" in
-	let expr = Parser.expr Scanner.token lexbuf in
-	- probably use shell scrpit to pass a bunch of file (code) as arguments.
-	- lex
-
-
-	-- lexbuf is the code
-	print_endline (if (Lit(2) = expr ) then "success" else "nope" ) ;;   *)
+  let lexbuf = Lexing.from_string "2" in
+  let expr = Parser.expr Scanner.token lexbuf in
+  - probably use shell scrpit to pass a bunch of file (code) as arguments.
+  - lex
+  -- lexbuf is the code
+  print_endline (if (Lit(2) = expr ) then "success" else "nope" ) ;;   *)
 let load_file f =
   let ic = open_in f in
   let n = in_channel_length ic in
-  let s = String.create n in
+  let s = Bytes.create n in
   really_input ic s 0 n;
   close_in ic;
   (s) ;;
 
  let rec funct foo =
-	try 
-		let l = input_line foo in 
-		match l with 
-		| _ -> l::(funct foo)
-	with End_of_file -> [] ;;
+  try 
+    let l = input_line foo in 
+    match l with 
+    | _ -> l::(funct foo)
+  with End_of_file -> [] ;;
 
 
 let write stuff =
@@ -213,8 +211,14 @@ List.iter (fun (desc, input, ast, expout) ->
 
 
 
+(*List.iter (fun (desc, input, ast, expout) -> 
+  let lexbuf = Lexing.from_string input in 
+  try 
+    let expression = Parser.program Scanner.token lexbuf in
+    if (ast = expression || ast = []) then 
+        print_endline "match!!!"
+  with 
+    | _ -> print_endline "parse error" ;;
+*)
+
 if !unsuccess = 0 then exit 0 else exit 1 ;;
-
-
-
-
