@@ -113,11 +113,25 @@ let write stuff =
 
 (** [exec_file ctx fn] executes the contents of file [fn] in
     the given context [ctx]. It returns the new context. *)
-let exec_file ctx fn = 
-  let lexbuf = Message.lexer_from_string 
-		(let stdlib = load_file "stdlib.ss" in 
-		    let filecontents = load_file fn
-		in stdlib ^ filecontents) in
+let exec_file ctx (sysargs) = 
+  let filename = sysargs.(1) in
+  let filecontents =
+	if filename = "-s" then 
+		if Array.length sysargs != 3
+		  then
+		   raise(Failure "Usage: ./exss [file] or ./exss -s [input] ")
+		  else
+			sysargs.(2)
+	else
+		if Array.length sysargs != 2
+		  then
+		   raise(Failure "Usage: ./exss [file] or ./exss -s [input] ")
+		else
+			load_file filename
+      in
+         let lexbuf = Message.lexer_from_string 
+		(let stdlib = load_file "stdlib.ss" in
+			stdlib ^ filecontents) in
   let program = 
     try 
 	 Parser.program Scanner.token lexbuf
@@ -143,56 +157,9 @@ let exec_file ctx fn =
           write prog;
               print_endline (String.concat "\n" (funct (Unix.open_process_in "node a.js"))) 
   
-(** [shell ctx] is the interactive shell. Here [ctx] is
-    the context of global definitions. *)
-let shell ctx  = 
-    print_string("Superscript. Press ") ;
-    print_string (match Sys.os_type with
-			| "Unix" -> "Ctrl-D"
-			| "Win32" -> "Ctrl-Z"
-			| _ -> "EOF" ) ;
-    print_endline " to exit. Type \"#stdlib\" to import the Standard Library. " ;
-
-    let global_ctx = ref ctx in
-      try
-	while true do
-	   try
-	     (* read a line, parse it and execute it *)
-	     print_string "Superscript> ";
-	     let input = read_line() in
-		let str = match input with
-		| "#stdlib" -> load_file "stdlib.ss"
-		| _ as s -> s
-	    in
-		let lexbuf = Message.lexer_from_string str
-	    in 
-	     let cmds = 
-		try
-		   Parser.program Scanner.token lexbuf
-		with
-	          | Failure("lexing: empty token") -> print_position lexbuf "Lexing: empty token"; exit (-1)
-      		  | LexingErr msg -> print_position lexbuf msg; exit (-1)
-      		  | Parsing.Parse_error -> print_position lexbuf "Syntax error near"; exit (-1)
-		in
-		let ctx = exec_cmds (!global_ctx) cmds in
-		   global_ctx := ctx;
-		with
-		  | Type_infer.Type_error msg -> raise(Failure(msg))
-		  | Type_infer.Invalid_args msg -> raise(Failure(msg))
-		done
-	      with
-		End_of_file -> print_endline "\nBye."
-;;
-
 (** The main program. *)
 let main = 
-   let argc = Array.length Sys.argv in
-	match argc with
-	| 1 -> shell []
-	| 2 -> 
-	    let filename = Sys.argv.(1) in
-		exec_file [] filename
-	| _ -> 
-	     raise
-	       (Failure "Usage: ./exss [file] or ./exss to run interactive shell ")
-
+	if(Array.length Sys.argv < 2) then
+		raise(Failure "Usage: ./exss [file] or ./exss -s [input] ")
+	else
+	     exec_file [] (Sys.argv)
