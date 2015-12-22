@@ -12,104 +12,104 @@ let generate_js_func fname =
   let helper fname =
     match fname with
       "prn" -> 
-      ("'function() { Array.prototype.slice.call(arguments).forEach(function(i) { console.log(__unbox(i)); }); return __box(\\'unit\\', 0); }'",
+      ("'function() { for(var i=0; i < arguments.length; i++) { __assert_type(\\'string\\', arguments[i], \\'prn\\', (i+1) + \\'th\\'); console.log(__unbox(arguments[i]));} return __box(\\'unit\\', 0); }'",
         [TString], TUnit, [])
     | "exec" -> 
-      ("'function() { var res; for(var i = 0; i < arguments.length; i++) { res = eval(\\'(\\' + __unbox(__unbox(arguments[i])[0]) + \\').apply(null, \\' + JSON.stringify(__unbox(arguments[i]).slice(1)) + \\')\\'); } return res; }'",
+      ("'function() { var res; for(var i = 0; i < arguments.length; i++) { __assert_type(\\'list\\', arguments[i], \\'do\\', (i+1) + \\'th\\'); res = eval(\\'(\\' + __unbox(__unbox(arguments[i])[0]) + \\').apply(null, \\' + JSON.stringify(__unbox(arguments[i]).slice(1)) + \\')\\'); } return res; }'",
         [TSomeList(TSome)], TSome, ["evaluate"])
     | "pr" -> 
-      ("'function(s) { Array.prototype.slice.call(arguments).forEach(function(i) { process.stdout.write(__unbox(i)); }); return __box(\\'unit\\', 0); }'",
+      ("'function(s) { for(var i=0; i < arguments.length; i++) { __assert_type(\\'string\\', arguments[i], \\'pr\\', (i+1) + \\'th\\'); process.stdout.write(__unbox(arguments[i]));} return __box(\\'unit\\', 0); }'",
         [TString], TUnit, [])
     | "type" -> 
       ("'function(o) { return __box(\\'string\\', o.__t); }'",
         [TSome], TString, [])
     | "head" -> 
-      ("'function(l) { return __clone(__unbox(l)[0]); }'",
+      ("'function(l) { __assert_type(\\'list\\', l, \\'head\\', \\'first\\'); return __clone(__unbox(l)[0]); }'",
         [TSomeList(TSome)], TSome, [])
     | "tail" -> 
-      ("'function(l) { return __box(\\'list\\', __unbox(l).slice(1)); }'",
+      ("'function(l) { __assert_type(\\'list\\', l, \\'tail\\', \\'first\\'); return __box(\\'list\\', __unbox(l).slice(1)); }'",
         [TSomeList(TSome)], TSomeList(TSome), [])
     | "cons" -> 
-      ("'function(i, l) { var __temp = __unbox(l); __temp.unshift(__clone(i)); return __box(\\'list\\', __temp); }'",
+      ("'function(i, l) { __assert_type(\\'list\\', l, \\'cons\\', \\'second\\'); var __temp = __unbox(l); __temp.unshift(__clone(i)); return __box(\\'list\\', __temp); }'",
         [TSome; TSomeList(TSome)], TSomeList(TSome), [])
     | "__add" ->
-      ("'function() { return __box(\\'int\\', arguments.length === 0 ? 0 : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'",
+      ("'function() { for(var i=0; i < arguments.length; i++) { __assert_type(\\'int\\', arguments[i], \\'+\\', (i+1) + \\'th\\');} return __box(\\'int\\', arguments.length === 0 ? 0 : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'",
         [TInt; TInt], TInt, [])
     | "__sub" ->
-      ("'function(a1) { return __box(\\'int\\', arguments.length === 0 ? 0 : arguments.length === 1 ? -1 * __unbox(a1) : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a-b;})); }'",
+      ("'function(a1) { for(var i=0; i < arguments.length; i++) { __assert_type(\\'int\\', arguments[i], \\'-\\', (i+1) + \\'th\\');}  return __box(\\'int\\', arguments.length === 0 ? 0 : arguments.length === 1 ? -1 * __unbox(a1) : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a-b;})); }'",
         [TInt; TInt], TInt, [])
     | "__mult" ->
-      ("'function() { return __box(\\'int\\', arguments.length === 0 ? 1 : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a*b;})); }'",
+      ("'function() { for(var i=0; i < arguments.length; i++) { __assert_type(\\'int\\', arguments[i], \\'*\\', (i+1) + \\'th\\');}  return __box(\\'int\\', arguments.length === 0 ? 1 : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a*b;})); }'",
         [TInt; TInt], TInt, [])
     | "__div" ->
-      ("'function() { return __box(\\'int\\', Math.floor(Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a/b;}))); }'",
+      ("'function() { for(var i=0; i < arguments.length; i++) { __assert_type(\\'int\\', arguments[i], \\'/\\', (i+1) + \\'th\\');}  return __box(\\'int\\', Math.floor(Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a/b;}))); }'",
         [TInt; TInt], TInt, [])
     | "mod" ->
-      ("'function(a1, a2) { return __box(\\'int\\', __unbox(a1) % __unbox(a2)); }'",
+      ("'function(a1, a2) { for(var i=0; i < arguments.length; i++) { __assert_type(\\'int\\', arguments[i], \\'mod\\', (i+1) + \\'th\\');}  return __box(\\'int\\', __unbox(a1) % __unbox(a2)); }'",
         [TInt; TInt], TInt, [])
     | "__addf" ->
-      ("'function(a1) { return __box(\\'float\\', arguments.length === 0 ? 0 : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'",
+      ("'function(a1) { for(var i=0; i < arguments.length; i++) { __assert_type(\\'float\\', arguments[i], \\'+.\\', (i+1) + \\'th\\');}  return __box(\\'float\\', arguments.length === 0 ? 0 : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'",
         [TFloat; TFloat], TFloat, [])
     | "__subf" ->
-      ("'function(a1) { return __box(\\'float\\', arguments.length === 0 ? 0 : arguments.length === 1 ? -1 * __unbox(a1) : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a-b;})); }'",
+      ("'function(a1) { for(var i=0; i < arguments.length; i++) { __assert_type(\\'float\\', arguments[i], \\'-.\\', (i+1) + \\'th\\');} return __box(\\'float\\', arguments.length === 0 ? 0 : arguments.length === 1 ? -1 * __unbox(a1) : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a-b;})); }'",
         [TFloat; TFloat], TFloat, [])
     | "__multf" ->
-      ("'function(a1) { return __box(\\'float\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a*b;})); }'",
+      ("'function(a1) { for(var i=0; i < arguments.length; i++) { __assert_type(\\'float\\', arguments[i], \\'*.\\', (i+1) + \\'th\\');} return __box(\\'float\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a*b;})); }'",
         [TFloat; TFloat], TFloat, [])
     | "__divf" ->
-      ("'function(a1, a2) { return __box(\\'float\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a/b;})); }'",
+      ("'function(a1, a2) { for(var i=0; i < arguments.length; i++) { __assert_type(\\'float\\', arguments[i], \\'/.\\', (i+1) + \\'th\\');} return __box(\\'float\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a/b;})); }'",
         [TFloat; TFloat], TFloat, [])
     | "__equal" ->
-      ("'function(a1, a2) { return __box(\\'boolean\\', JSON.stringify(__unbox(a1)) === JSON.stringify(__unbox(a2))); }'",
+      ("'function(a1, a2) { if (a1.__t !== a2.__t) { throw new TypeError(\\'expected arguments of function is to be the same, but found \\' + a1.__t + \\' and \\' + a2.__t +\\'.\\'); } return __box(\\'boolean\\', JSON.stringify(__unbox(a1)) === JSON.stringify(__unbox(a2))); }'",
         [TParam 1; TParam 1], TBool, [])
     | "__neq" ->
-      ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) !== __unbox(a2)); }'",
+      ("'function(a1, a2) { if (a1.__t !== a2.__t) { throw new TypeError(\\'expected arguments of function isnt to be the same, but found \\' + a1.__t + \\' and \\' + a2.__t +\\'.\\'); } return __box(\\'boolean\\', __unbox(a1) !== __unbox(a2)); }'",
         [TParam 1; TParam 1], TBool, [])
     | "__less" ->
-      ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) < __unbox(a2)); }'",
+      ("'function(a1, a2) { if (a1.__t !== a2.__t) { throw new TypeError(\\'expected arguments of function < to be the same, but found \\' + a1.__t + \\' and \\' + a2.__t +\\'.\\'); } return __box(\\'boolean\\', __unbox(a1) < __unbox(a2)); }'",
         [TParam 1; TParam 1], TBool, [])
     | "__leq" ->
-      ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) <= __unbox(a2)); }'",
+      ("'function(a1, a2) { if (a1.__t !== a2.__t) { throw new TypeError(\\'expected arguments of function <= to be the same, but found \\' + a1.__t + \\' and \\' + a2.__t +\\'.\\'); } return __box(\\'boolean\\', __unbox(a1) <= __unbox(a2)); }'",
         [TParam 1; TParam 1], TBool, [])
     | "__greater" ->
-      ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) > __unbox(a2)); }'",
+      ("'function(a1, a2) { if (a1.__t !== a2.__t) { throw new TypeError(\\'expected arguments of function > to be the same, but found \\' + a1.__t + \\' and \\' + a2.__t +\\'.\\'); } return __box(\\'boolean\\', __unbox(a1) > __unbox(a2)); }'",
         [TParam 1; TParam 1], TBool, [])
     | "__geq" ->
-      ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) >= __unbox(a2)); }'",
+      ("'function(a1, a2) { if (a1.__t !== a2.__t) { throw new TypeError(\\'expected arguments of function >= to be the same, but found \\' + a1.__t + \\' and \\' + a2.__t +\\'.\\'); } return __box(\\'boolean\\', __unbox(a1) >= __unbox(a2)); }'",
         [TParam 1; TParam 1], TBool, [])
     | "__and" ->
-      ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) && __unbox(a2)); }'",
+      ("'function(a1, a2) { __assert_type(\\'boolean\\', a1, \\'and\\', \\'first\\'); __assert_type(\\'boolean\\', a2, \\'and\\', \\'second\\'); return __box(\\'boolean\\', __unbox(a1) && __unbox(a2)); }'",
         [TBool; TBool], TBool, [])
     | "__or" ->
-      ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) || __unbox(a2)); }'",
+      ("'function(a1, a2) { __assert_type(\\'boolean\\', a1, \\'or\\', \\'first\\'); __assert_type(\\'boolean\\', a2, \\'or\\', \\'second\\'); return __box(\\'boolean\\', __unbox(a1) || __unbox(a2)); }'",
         [TBool; TBool], TBool, [])
     | "__not" ->
-      ("'function(a) { return __box(\\'boolean\\', !__unbox(a); }'",
+      ("'function(a) { __assert_type(\\'boolean\\', a, \\'not\\', \\'first\\'); return __box(\\'boolean\\', !__unbox(a)); }'",
         [TBool], TBool, [])
     | "string_of_int" ->
-      ("'function(i) { return __box(\\'string\\', \\'\\' + __unbox(i)); }'",
+      ("'function(i) { __assert_type(\\'int\\', i, \\'string_of_int\\', \\'first\\'); return __box(\\'string\\', \\'\\' + __unbox(i)); }'",
         [TInt], TString, [])
     | "int_of_string" ->
-      ("'function(s) { return __box(\\'int\\', parseInt(__unbox(s))); }'",
+      ("'function(s) { __assert_type(\\'string\\', s, \\'int_of_string\\', \\'first\\'); return __box(\\'int\\', parseInt(__unbox(s))); }'",
         [TString], TInt, [])
     | "string_of_float" ->
-      ("'function(f) { return __box(\\'string\\', \\'\\' + __unbox(f)); }'",
+      ("'function(f) { __assert_type(\\'float\\', f, \\'string_of_float\\', \\'first\\'); return __box(\\'string\\', \\'\\' + __unbox(f)); }'",
         [TFloat], TString, [])
     | "float_of_string" ->
-      ("'function(s) { return __box(\\'float\\', parseFloat(__unbox(s))); }'",
+      ("'function(s) { __assert_type(\\'string\\', s, \\'float_of_string\\', \\'first\\'); return __box(\\'float\\', parseFloat(__unbox(s))); }'",
         [TString], TFloat, [])
     | "string_of_boolean" ->
-      ("'function(b) { return __box(\\'string\\', \\'\\' + __unbox(b)); }'",
+      ("'function(b) { __assert_type(\\'boolean\\', b, \\'string_of_boolean\\', \\'first\\'); return __box(\\'string\\', \\'\\' + __unbox(b)); }'",
         [TBool], TString, [])
     | "__concat" ->
-      ("'function() { return __box(\\'string\\', arguments.length === 0 ? \\'\\' : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'",
+      ("'function() { for(var i=0; i < arguments.length; i++) { __assert_type(\\'string\\', arguments[i], \\'++\\', (i+1) + \\'th\\');} return __box(\\'string\\', arguments.length === 0 ? \\'\\' : Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); }'",
         [TString; TString], TString, [])
     | "evaluate" ->
       ("'function(l) { return eval(\\'(\\' + __unbox(__unbox(l)[0]) + \\').apply(null, \\' + JSON.stringify(__unbox(l).slice(1)) + \\')\\'); }'",
         [TSomeList(TSome)], TSome, [])
     | "module" ->
-      ("'function(n) { return __box(\\'module\\', require(__unbox(n))); }'",
-        [TString], TSome, [])
+      ("'function(n) { __assert_type(\\'string\\', n, \\'module\\', \\'first\\'); return __box(\\'module\\', require(__unbox(n))); }'",
+        [TString], TJblob, [])
     | "list" ->
       ("'function(i) { if (__fcall(\\'type\\', __box(\\'list\\', [i])).__v !== \\'list\\') { throw new TypeError(\\'not a list!\\'); } else { return i; } }'",
         [TSome], TSomeList(TSome), ["type"])
@@ -126,7 +126,7 @@ let generate_js_func fname =
       ("'function(i) { if (__fcall(\\'type\\', __box(\\'list\\', [i])).__v !== \\'boolean\\') { throw new TypeError(\\'not a boolean!\\'); } else { return i; } }'",
         [TSome], TBool, ["type"])
     | "exception" ->
-      ("'function(i) { }'",
+      ("'function(i) { __assert_type(\\'string\\', i, \\'exception\\', \\'first\\'); }'",
         [TString], TUnit, [])
     | _ -> ("", [], TSome, [])
   in
@@ -234,7 +234,7 @@ let generate_prog p =
       "function __box(t,v){ return ({ __t: t, __v: (t === 'module') ? v : __clone(v) }); };"::
       "function __clone(o){return JSON.parse(JSON.stringify(o));};"::
       "function __unbox(o){ return (o.__t === 'module') ? o.__v : __clone(o.__v); };"::
-      "function __assert_type(t, o, f) { if (o.__t !== t) { throw new TypeError('expected type ' + t + ' to ' + f + ' but found ' + o.__t); } else { return true; } }"::
+      "function __assert_type(t, o, f, nth) { if (o.__t !== t) { throw new TypeError('expected type of ' + nth + ' argument of function ' + f + ' to be ' + t + ' but found ' + o.__t); } else { return true; } }"::
       "function __tojs(o) { if (o.__t === 'function') { return function() { var __temp = Array.prototype.slice.call(arguments); return eval('(' + o.__v + ').apply(null, __temp)'); }; } else { return __unbox(o); } };"::
       "function __call(args) { var __temp = !args.__v[0].__t ? args.__v[0] : __unbox(args.__v[0]); __temp[__unbox(args.__v[1])].apply(__temp, args.__v.slice(2).map(__tojs)); };"::
       "function __dot(args) { var __temp = args.__v; var res; for(var i = 1; i < __temp.length; i++) { res = (i === 1 ? __temp[0] : res)[__unbox(__temp[i])]; } return __box('json', res); };"::
