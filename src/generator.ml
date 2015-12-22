@@ -19,6 +19,7 @@ let generate_js_func fname =
           }\
           return __box(\\'unit\\', 0);\
         }'", [TString], TUnit, [])
+
     | "exec" -> 
       ("'function() {\
           var res;\
@@ -29,6 +30,7 @@ let generate_js_func fname =
           } \
           return res; \
         }'", [TSomeList(TSome)], TSome, ["evaluate"])
+
     | "pr" -> 
       ("'function(s) { \
           for(var i=0; i < arguments.length; i++) {\
@@ -37,23 +39,27 @@ let generate_js_func fname =
           } \
           return __box(\\'unit\\', 0); \
         }'", [TString], TUnit, [])
+
     | "type" -> 
       ("'function(o) { \
           __assert_arguments_num(arguments.length, 1, \\'type\\'); \
           return __box(\\'string\\', o.__t); \
         }'", [TSome], TString, [])
+
     | "head" -> 
       ("'function(l) { \
           __assert_arguments_num(arguments.length, 1, \\'head\\'); \
           __assert_type(\\'list\\', l, \\'head\\', \\'1\\'); \
           return __clone(__unbox(l)[0]); \
         }'", [TSomeList(TSome)], TSome, [])
+
     | "tail" -> 
       ("'function(l) { \
           __assert_arguments_num(arguments.length, 1, \\'tail\\'); \
           __assert_type(\\'list\\', l, \\'tail\\', \\'1\\'); \
           return __box(\\'list\\', __unbox(l).slice(1)); \
         }'", [TSomeList(TSome)], TSomeList(TSome), [])
+
     | "cons" -> 
       ("'function(i, l) { \
           __assert_arguments_num(arguments.length, 2, \\'cons\\'); \
@@ -62,6 +68,7 @@ let generate_js_func fname =
           __temp.unshift(__clone(i)); \
           return __box(\\'list\\', __temp); \
         }'", [TSome; TSomeList(TSome)], TSomeList(TSome), [])
+
     | "__add" ->
       ("'function() { \
           for(var i=0; i < arguments.length; i++) { \
@@ -70,6 +77,7 @@ let generate_js_func fname =
           return __box(\\'int\\', arguments.length === 0 ? 0 : \
             Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;}));\
         }'", [TInt; TInt], TInt, [])
+
     | "__sub" ->
       ("'function(a1) { \
           for(var i=0; i < arguments.length; i++) { \
@@ -78,6 +86,7 @@ let generate_js_func fname =
           return __box(\\'int\\', arguments.length === 0 ? 0 : arguments.length === 1 ? -1 * __unbox(a1) : \
             Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a-b;}));\
         }'", [TInt; TInt], TInt, [])
+
     | "__mult" ->
       ("'function() { \
           for(var i=0; i < arguments.length; i++) { \
@@ -86,6 +95,7 @@ let generate_js_func fname =
           return __box(\\'int\\', arguments.length === 0 ? 1 : \
             Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a*b;})); \
         }'", [TInt; TInt], TInt, [])
+
     | "__div" ->
       ("'function() { \
           for(var i=0; i < arguments.length; i++) { \
@@ -94,6 +104,7 @@ let generate_js_func fname =
           return __box(\\'int\\', \
             Math.floor(Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a/b;}))); \
         }'", [TInt; TInt], TInt, [])
+
     | "mod" ->
       ("'function(a1, a2) { \
           for(var i=0; i < arguments.length; i++) { \
@@ -102,6 +113,7 @@ let generate_js_func fname =
           }  \
           return __box(\\'int\\', __unbox(a1) % __unbox(a2)); \
           }'", [TInt; TInt], TInt, [])
+
     | "__addf" ->
       ("'function(a1) { \
           for(var i=0; i < arguments.length; i++) { \
@@ -110,14 +122,16 @@ let generate_js_func fname =
           return __box(\\'float\\', arguments.length === 0 ? 0 : \
             Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); \
         }'", [TFloat; TFloat], TFloat, [])
+
     | "__subf" ->
       ("'function(a1) { \
           for(var i=0; i < arguments.length; i++) { \
             __assert_type(\\'float\\', arguments[i], \\'-.\\', (i+1) + \\'\\');\
           } \
-          return __box(\\'float\\', arguments.length === 0 ? 0 : arguments.length === 1 ? -1 * __unbox(a1) : 
+          return __box(\\'float\\', arguments.length === 0 ? 0 : arguments.length === 1 ? -1 * __unbox(a1) : \
             Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a-b;})); \
         }'", [TFloat; TFloat], TFloat, [])
+
     | "__multf" ->
       ("'function(a1) { \
           for(var i=0; i < arguments.length; i++) { \
@@ -125,6 +139,7 @@ let generate_js_func fname =
           } \
           return __box(\\'float\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a*b;})); \
           }'", [TFloat; TFloat], TFloat, [])
+
     | "__divf" ->
       ("'function(a1, a2) { \
           for(var i=0; i < arguments.length; i++) { \
@@ -132,6 +147,7 @@ let generate_js_func fname =
           } \
           return __box(\\'float\\', Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a/b;})); \
         }'", [TFloat; TFloat], TFloat, [])
+
     | "__equal" ->
       ("'function(a1, a2) { \
           __assert_arguments_num(arguments.length, 2, \\'is\\'); \
@@ -141,6 +157,7 @@ let generate_js_func fname =
           } \
           return __box(\\'boolean\\', JSON.stringify(__unbox(a1)) === JSON.stringify(__unbox(a2))); \
         }'", [TParam 1; TParam 1], TBool, [])
+
     | "__neq" ->
       ("'function(a1, a2) { \
           __assert_arguments_num(arguments.length, 2, \\'isnt\\'); \
@@ -150,6 +167,7 @@ let generate_js_func fname =
           } \
           return __box(\\'boolean\\', __unbox(a1) !== __unbox(a2)); \
         }'", [TParam 1; TParam 1], TBool, [])
+
     | "__less" ->
       ("'function(a1, a2) { \
           __assert_arguments_num(arguments.length, 2, \\'<\\'); \
@@ -159,6 +177,7 @@ let generate_js_func fname =
           } \
           return __box(\\'boolean\\', __unbox(a1) < __unbox(a2)); \
         }'", [TParam 1; TParam 1], TBool, [])
+
     | "__leq" ->
       ("'function(a1, a2) { \
           __assert_arguments_num(arguments.length, 2, \\'<=\\'); \
@@ -168,6 +187,7 @@ let generate_js_func fname =
           } \
           return __box(\\'boolean\\', __unbox(a1) <= __unbox(a2)); \
         }'",[TParam 1; TParam 1], TBool, [])
+
     | "__greater" ->
       ("'function(a1, a2) { \
           __assert_arguments_num(arguments.length, 2, \\'>\\'); \
@@ -177,6 +197,7 @@ let generate_js_func fname =
           } \
           return __box(\\'boolean\\', __unbox(a1) > __unbox(a2)); \
         }'", [TParam 1; TParam 1], TBool, [])
+
     | "__geq" ->
       ("'function(a1, a2) { \
           __assert_arguments_num(arguments.length, 2, \\'<=\\'); \
@@ -186,6 +207,7 @@ let generate_js_func fname =
           } \
           return __box(\\'boolean\\', __unbox(a1) >= __unbox(a2)); \
         }'", [TParam 1; TParam 1], TBool, [])
+
     | "__and" ->
       ("'function(a1, a2) { \
           __assert_arguments_num(arguments.length, 2, \\'and\\'); \
@@ -193,6 +215,7 @@ let generate_js_func fname =
           __assert_type(\\'boolean\\', a2, \\'and\\', \\'2\\'); \
           return __box(\\'boolean\\', __unbox(a1) && __unbox(a2)); \
         }'", [TBool; TBool], TBool, [])
+
     | "__or" ->
       ("'function(a1, a2) { \
           __assert_arguments_num(arguments.length, 2, \\'or\\'); \
@@ -200,42 +223,49 @@ let generate_js_func fname =
           __assert_type(\\'boolean\\', a2, \\'or\\', \\'2\\'); \
           return __box(\\'boolean\\', __unbox(a1) || __unbox(a2)); \
         }'", [TBool; TBool], TBool, [])
+
     | "__not" ->
       ("'function(a) { \
           __assert_arguments_num(arguments.length, 1, \\'not\\'); \
           __assert_type(\\'boolean\\', a, \\'not\\', \\'1\\'); \
           return __box(\\'boolean\\', !__unbox(a)); \
         }'", [TBool], TBool, [])
+
     | "string_of_int" ->
       ("'function(i) { \
           __assert_arguments_num(arguments.length, 1, \\'string_of_int\\'); \
           __assert_type(\\'int\\', i, \\'string_of_int\\', \\'1\\'); \
           return __box(\\'string\\', \\'\\' + __unbox(i)); \
         }'", [TInt], TString, [])
+
     | "int_of_string" ->
       ("'function(s) { \
           __assert_arguments_num(arguments.length, 1, \\'int_of_string\\'); \
           __assert_type(\\'string\\', s, \\'int_of_string\\', \\'1\\'); \
           return __box(\\'int\\', parseInt(__unbox(s))); \
         }'", [TString], TInt, [])
+
     | "string_of_float" ->
       ("'function(f) { \
           __assert_arguments_num(arguments.length, 1, \\'string_of_float\\'); \
           __assert_type(\\'float\\', f, \\'string_of_float\\', \\' 1\\'); \
           return __box(\\'string\\', \\'\\' + __unbox(f)); \
         }'", [TFloat], TString, [])
+
     | "float_of_string" ->
       ("'function(s) { \
           __assert_arguments_num(arguments.length, 1, \\'float_of_string\\'); \
           __assert_type(\\'string\\', s, \\'float_of_string\\', \\'1\\'); \
           return __box(\\'float\\', parseFloat(__unbox(s))); \
         }'", [TString], TFloat, [])
+
     | "string_of_boolean" ->
       ("'function(b) { \
           __assert_arguments_num(arguments.length, 1, \\'string_of_boolean\\'); \
           __assert_type(\\'boolean\\', b, \\'string_of_boolean\\', \\'1\\'); \
           return __box(\\'string\\', \\'\\' + __unbox(b)); \
         }'", [TBool], TString, [])
+
     | "__concat" ->
       ("'function() { \
           for(var i=0; i < arguments.length; i++) { \
@@ -244,69 +274,69 @@ let generate_js_func fname =
           return __box(\\'string\\', arguments.length === 0 ? \\'\\' : \
             Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a+b;})); \
         }'", [TString; TString], TString, [])
+
     | "evaluate" ->
       ("'function(l) { \
           __assert_arguments_num(arguments.length, 1, \\'eval\\'); \
           __assert_type(\\'list\\', l, \\'eval\\', \\'1\\');\
           return eval(\\'(\\' + __unbox(__unbox(l)[0]) + \\').apply(null, \\' + JSON.stringify(__unbox(l).slice(1)) + \\')\\'); \
         }'", [TSomeList(TSome)], TSome, [])
+
     | "module" ->
       ("'function(n) { \
           __assert_arguments_num(arguments.length, 1, \\'module\\'); \
           __assert_type(\\'string\\', n, \\'module\\', \\'1\\'); \
-          return __box(\\'module\\', require(__unbox(n))); \
+          var __t = require(__unbox(n));
+          return __box(\\'module\\', __t, __t); \
         }'", [TString], TJblob, [])
+
     | "list" ->
       ("'function(i) { \
           __assert_arguments_num(arguments.length, 1, \\'list\\'); \
-          if (__fcall(\\'type\\', __box(\\'list\\', [i])).__v !== \\'list\\') { \
-            throw new TypeError(\\'not a list!\\'); \
-          } else { \
+          if (__assert_type(\\'list\\', i, \\'list\\')) { \
             return i; \
-          } \
+          }\
         }'", [TSome], TSomeList(TSome), ["type"])
+
     | "int" ->
       ("'function(i) { \
           __assert_arguments_num(arguments.length, 1, \\'int\\'); \
-          if (__fcall(\\'type\\', __box(\\'list\\', [i])).__v !== \\'int\\') { \
-            throw new TypeError(\\'not an int!\\'); \
-          } else { \
-            return i; \
-          } \
+          if (__assert_type(\\'int\\', i, \\'int\\')) { \
+            return i;\
+          }\
         }'", [TSome], TInt, ["type"])
+
     | "string" ->
       ("'function(i) { \
           __assert_arguments_num(arguments.length, 1, \\'string\\'); \
-          if (__fcall(\\'type\\', __box(\\'list\\', [i])).__v !== \\'string\\') { \
-            throw new TypeError(\\'not a string!\\'); \
-          } else { \
-            return i; \
+          if (__assert_type(\\'string\\', i, \\'string\\')) { \
+            return i;
           } \
         }'", [TSome], TString, ["type"])
+
     | "float" ->
       ("'function(i) { \
           __assert_arguments_num(arguments.length, 1, \\'float\\'); \
-          if (__fcall(\\'type\\', __box(\\'list\\', [i])).__v !== \\'float\\') { \
-            throw new TypeError(\\'not a float!\\'); \
-          } else { \
+          if (__assert_type(\\'float\\', i, \\'float\\')) { \
             return i; \
           } \
         }'", [TSome], TFloat, ["type"])
+
     | "boolean" ->
       ("'function(i) { \
           __assert_arguments_num(arguments.length, 1, \\'boolean\\'); \
-          if (__fcall(\\'type\\', __box(\\'list\\', [i])).__v !== \\'boolean\\') { \
-            throw new TypeError(\\'not a boolean!\\'); \
-          } else { \
+          if (__assert_type(\\'boolean\\', i, \\'boolean\\')) { \
             return i; \
           } \
         }'", [TSome], TBool, ["type"])
+
     | "exception" ->
       ("'function(i) { \
           __assert_arguments_num(arguments.length, 1, \\'exception\\'); \
           __assert_type(\\'string\\', i, \\'exception\\', \\'1\\'); \
           throw new Error(i); \
         }'", [TString], TUnit, [])
+      
     | _ -> ("", [], TSome, [])
   in
     let (fstr, arg_types, ret_type, deps) = helper fname in
@@ -432,8 +462,8 @@ let generate_prog p =
         return result; \
       }"::
 
-      "function __box(t,v){ \
-        return ({ __t: t, __v: (t === 'module') ? v : __clone(v) }); \
+      "function __box(t,v,c){ \
+        return ({ __t: t, __v: (t === 'module') ? v : __clone(v), _ctxt: c }); \
       };"::
 
       "function __clone(o){\
@@ -474,26 +504,20 @@ let generate_prog p =
       };"::
 
       "function __call(args) { \
-        var __temp = !args.__v[0].__t ? args.__v[0] : __unbox(args.__v[0]); \
-        __temp[__unbox(args.__v[1])].apply(__temp, args.__v.slice(2).map(__tojs)); \
-      };"::
+        var module = args.__v[0]; \
+        if (args.__v.length === 1) { \
+          var module = args.__v[0].__v(); \
+          return __box('module', module, module); \
+        } else { \
+          return __box('module', args.__v[0].__v[args.__v[1].__v].apply(args.__v[0]._ctxt, args.__v[2].__v.map(__tojs))); \
+      }};"::
 
       "function __dot(args) { \
-        var __temp = args.__v; \
         var res; \
-        for(var i = 1; i < __temp.length; i++) { \
-          res = (i === 1 ? __temp[0] : res)[__unbox(__temp[i])]; \
+        for(var i = 0; i < args.__v[1].__v.length; i++) { \
+          res = (i === 0 ? args.__v[0].__v : res)[__unbox(args.__v[1].__v[i])]; \
         } \
-        return __box('json', res); \
+        return __box('module', res, args.__v[0]._ctxt);\
       };"::
-
-      "function __test() {};"::
-
-      "function __fcall(name,args){ \
-        var __temp = eval(name); \
-        return (__temp.__t === 'module') ? __box('module', __unbox(__temp).apply(null, __unbox(args).map(__unbox))) : \
-          name === 'dot' ? __dot(args) : name === 'call' ? __call(args) : \
-          eval('('+__unbox(__temp)+').apply(null,__unbox(args))'); \
-      };\n"::
 
       (generate_head p)::";\n"::(List.map wrap_exp p))

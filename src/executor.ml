@@ -119,13 +119,13 @@ let exec_file ctx (sysargs) =
 	if filename = "-s" then 
 		if Array.length sysargs != 3
 		  then
-		   raise(Failure "Usage: ./exss [file] or ./exss -s [input] ")
+		   raise(Failure "Usage: ./geb [file] or ./geb -s [input] ")
 		  else
 			sysargs.(2)
 	else
 		if Array.length sysargs != 2
 		  then
-		   raise(Failure "Usage: ./exss [file] or ./exss -s [input] ")
+		   raise(Failure "Usage: ./geb [file] or ./geb -s [input] ")
 		else
 			load_file filename
       in
@@ -155,6 +155,6 @@ let exec_file ctx (sysargs) =
 (** The main program. *)
 let main = 
 	if(Array.length Sys.argv < 2) then
-		raise(Failure "Usage: ./exss [file] or ./exss -s [input] ")
+		raise(Failure "Usage: ./geb [file] or ./geb -s [input] ")
 	else
 	     exec_file [] (Sys.argv)
