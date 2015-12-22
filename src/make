@@ -13,4 +13,4 @@ ocamlc -c finaltest.ml # compile the tester
 ocamlc -c type_infer.ml # compile type inference checker
 ocamlc -c executor.ml # compile the executor
 ocamlc -o tests unix.cma str.cma generator.cmo message.cmo scanner.cmo ast.cmo parser.cmo type_infer.cmo finaltest.cmo  # generate test runner
-ocamlc -o geb unix.cma str.cma generator.cmo message.cmo scanner.cmo ast.cmo parser.cmo type_infer.cmo executor.cmo # generate exss 
+ocamlc -o geb unix.cma str.cma generator.cmo message.cmo scanner.cmo ast.cmo parser.cmo type_infer.cmo executor.cmo # generate Godel, Escher, Bach Compiler 
