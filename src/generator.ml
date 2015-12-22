@@ -126,7 +126,7 @@ let generate_js_func fname =
       ("'function(i) { if (__fcall(\\'type\\', __box(\\'list\\', [i])).__v !== \\'boolean\\') { throw new TypeError(\\'not a boolean!\\'); } else { return i; } }'",
         [TSome], TBool, ["type"])
     | "exception" ->
-      ("'function(i) {  }'",
+      ("'function(i) { }'",
         [TString], TUnit, [])
     | _ -> ("", [], TSome, [])
   in
@@ -234,6 +234,7 @@ let generate_prog p =
       "function __box(t,v){ return ({ __t: t, __v: (t === 'module') ? v : __clone(v) }); };"::
       "function __clone(o){return JSON.parse(JSON.stringify(o));};"::
       "function __unbox(o){ return (o.__t === 'module') ? o.__v : __clone(o.__v); };"::
+      "function __assert_type(t, o, f) { if (o.__t !== t) { throw new TypeError('expected type ' + t + ' to ' + f + ' but found ' + o.__t); } else { return true; } }"::
       "function __tojs(o) { if (o.__t === 'function') { return function() { var __temp = Array.prototype.slice.call(arguments); return eval('(' + o.__v + ').apply(null, __temp)'); }; } else { return __unbox(o); } };"::
       "function __call(args) { var __temp = !args.__v[0].__t ? args.__v[0] : __unbox(args.__v[0]); __temp[__unbox(args.__v[1])].apply(__temp, args.__v.slice(2).map(__tojs)); };"::
       "function __dot(args) { var __temp = args.__v; var res; for(var i = 1; i < __temp.length; i++) { res = (i === 1 ? __temp[0] : res)[__unbox(__temp[i])]; } return __box('json', res); };"::
