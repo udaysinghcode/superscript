@@ -1,7 +1,21 @@
-/* ~&&~&*~ Superscript Standard Library ~&~&~*~~ */
+/* 
+**      *~*~ Superscript Standard Library ~*~*
+**                 ______ ______
+**                /  ___//  ___/
+**                \__  \ \__  \
+**               ___/  /___/  /
+**              /_____//_____/
+*/
+
 
 /* identity takes an expression e and returns it. */
 (= identity (fn (e) e));;
+
+/* * * * * * * * * * * * * * * * * * * * * 
+**
+**     List Manipulation Functions
+**
+** * * * * * * * * * * * * * * * * * * * */
 
 /* length takes a list l and returns its length. */
 (= length (fn (l)
@@ -177,6 +191,21 @@
     (fn (x y) '((cons (first x) (first y)) (cons (second x) (second y)))) 
     l 
     '(   '() '()   ))));;
+
+/* * * * * * * * * * * * * * * * * * * * * 
+**
+**     Printing / Stringify Functions
+**	  (including List printing)
+**
+** * * * * * * * * * * * * * * * * * * * */
+
+/* format_boolean returns a function which takes a boolean and returns a string;
+   it can be passed as the formatting function into print_list or stringify_list. */
+(= format_boolean (fn (x) (string_of_boolean (boolean x))));;
+
+/* format_int returns a function which takes an int and returns a string;
+   it can be passed as the formatting function into print_list or stringify_list. */
+(= format_int (fn (x) (string_of_int (int x))));;
 
 /* stringify_list takes a function f and list l. The function f should
    be an anonymous function declaration which can transform each element
