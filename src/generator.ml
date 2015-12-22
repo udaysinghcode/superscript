@@ -441,7 +441,9 @@ let generate_prog p =
     String.concat ";\n" (List.map get_def (get_generatable_fnames p)) in
   let wrap_exp e = cc [generate e; ";"] in
   cc (
-      "function getOwnPropertyDescriptors(object) {\
+      "
+      try {
+      function getOwnPropertyDescriptors(object) {\
         var keys = Object.getOwnPropertyNames(object), returnObj = {}; \
         keys.forEach(getPropertyDescriptor); \
         return returnObj; \
@@ -520,4 +522,7 @@ let generate_prog p =
         return __box('module', res, args.__v[0]._ctxt);\
       };"::
 
-      (generate_head p)::";\n"::(List.map wrap_exp p))
+      (generate_head p)::";\n"::(List.map wrap_exp p)@["}\
+      catch (e) {\
+        console.log('Runtime Error: ' + e.message);\
+      };"])
