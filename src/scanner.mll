@@ -5,7 +5,12 @@
 }
 
 rule token = parse
-  [' ' '\t' '\\''\\''\n' '\r'] { token lexbuf } (* Whitespace *)
+| "###ENDSTDLIB###"	{ ignore
+			    (lexbuf.lex_curr_p <- {(lexeme_start_p lexbuf) 
+			      with  pos_lnum = 0 ; }); 
+			 token lexbuf } 
+| [' ' '\t' '\\''\\'] { token lexbuf } (* Whitespace *)
+| [ '\n' '\r' ]		{ ignore(Lexing.new_line lexbuf); token lexbuf } 
 | "/*"      { comment lexbuf }      (* Comments *)
 | ";;"     { SEMI }
 | '('      { LPAREN }
