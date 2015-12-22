@@ -10,7 +10,7 @@ rule token = parse
 			     (lexbuf.lex_curr_p <- {(lexeme_start_p lexbuf) 
 			          with  pos_lnum = 0 ; }); 
 			     token lexbuf } 
-| [' ' '\t' '\\''\\'] { token lexbuf } (* Whitespace *)
+| [' ' '\t' '\\'] { token lexbuf } (* Whitespace *)
 | [ '\n' '\r' ]		{ ignore(Lexing.new_line lexbuf); token lexbuf } 
 | "/*"      { comment lexbuf }      (* Comments *)
 | ";;"     { SEMI }
