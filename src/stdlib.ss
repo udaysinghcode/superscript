@@ -47,44 +47,52 @@
 /* last takes a list and returns the last element. */
 (= last (fn (l) (nth (- (length l) 1) l)));;
 
-/* map takes a function f and a list l. It performs the function
+/* map takes a function f and a HOMOGENEOUS list l. It performs the function
    on each element of the list, and returns a list of the results. */
 (= map (fn (f l)
   (if (is l '()) '()
     (cons (f (head l)) (map f (tail l))))));;
 
-/* fold_left takes a function f, list a, and list l. It performs the
+/* fold_left takes a function f, HOMOGENEOUS list a, and list l. It performs the
    function f on each element of list l, starting from the left,
    and stores the results in the accumulator list a.  It returns a. */
 (= fold_left (fn (f a l) 
   (if (is l '()) a 
     (fold_left f (eval '(f a (head l))) (tail l)))));;
 
-/* fold_right takes a function f, list l, and list a. It performs
+/* fold_right takes a function f, HOMOGENEOUS list l, and list a. It performs
    the function f on each element of list l, starting from the right,
    and stores the results in the accumulator list a. It returns a. */
 (= fold_right (fn (f l a)
   (if (is l '()) (eval '(identity a))
     (eval '(f (head l) (fold_right f (tail l) a))))));;
 
+/* filter takes a predicate p and HOMOGENOUS list l. 
 (= filter (fn (p l)
   (list (fold_right (fn (x y) (if (p x) (cons x y) y)) l '()))));;
 
+/* partition takes a function f and HOMOEGENOUS list l. The function should
+   return a boolean when it is evaluated on an element of the list l.
+   The partition returns a list containing two lists: 
+   the first has elements of l where evaluating f on those elements
+   returns true; 
+   the second has elements of l where evaluating 
+   f on those elements returns false. */
 (= partition 
   (fn (f l) 
     (fold_right 
        (fn (x y) 
-	   '(
-		(if (f x) 
-		   (cons x (first y)) 
-		   (first y)) 
-		(if (f x) 
-		   (second y) 
-		   (cons x (second y)))
-	    )
+	 '(
+             (if (f x) 
+		(cons x (first y)) 
+		(first y)) 
+	     (if (f x) 
+		(second y) 
+		(cons x (second y)))
+	  )
 	) 
 	l 
-	'( '()  '()  )
+       '( '()  '()  )
     )
   )
 );;
@@ -123,6 +131,20 @@
   (if (or (is l '()) (is (tail l) '())) 
     l 
     (cons (head l) (cons e (intersperse e (tail l)))))));;
+
+/* member takes an expression e and list l. It returns true if
+   e is an element of l, or false if e is not an element of l. */
+(= member 
+  (fn (e l) 
+    (if (is l '()) 
+      false 
+      (if (boolean (eval '(is (head l) e))) 
+        true 
+        (member e (tail l))
+      )
+    )
+  )
+);;
 
 /* stringify_list takes a function f and list l. The function f should
    be an anonymous function declaration which can transform each element
