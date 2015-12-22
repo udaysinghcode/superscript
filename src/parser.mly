@@ -136,7 +136,7 @@ infix_expr:
 | infix_expr EQ infix_expr	{ Eval(Id("__equal"), [$1; $3]) }
 | infix_expr NEQ infix_expr	{ Eval(Id("__neq"), [$1; $3]) }
 | infix_expr LT infix_expr	{ Eval(Id("__less"), [$1; $3]) }
-| infix_expr LEQ infix_expr	{ Eval(Id("__less"), [$1; $3]) }
+| infix_expr LEQ infix_expr	{ Eval(Id("__leq"), [$1; $3]) }
 | infix_expr GT infix_expr	{ Eval(Id("__greater"), [$1; $3]) }
 | infix_expr GEQ infix_expr	{ Eval(Id("__geq"), [$1; $3]) }
 | infix_expr AND infix_expr	{ Eval(Id("__and"), [$1; $3]) }
