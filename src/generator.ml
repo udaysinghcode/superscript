@@ -84,7 +84,7 @@ let generate_js_func fname =
       ("'function(a1, a2) { return __box(\\'boolean\\', __unbox(a1) || __unbox(a2)); }'",
         [TBool; TBool], TBool, [])
     | "__not" ->
-      ("'function(a) { return __box(\\'boolean\\', !__unbox(a); }'",
+      ("'function(a) { return __box(\\'boolean\\', !__unbox(a)); }'",
         [TBool], TBool, [])
     | "string_of_int" ->
       ("'function(i) { return __box(\\'string\\', \\'\\' + __unbox(i)); }'",

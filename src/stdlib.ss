@@ -74,22 +74,20 @@
 /* partition takes a function f and HOMOEGENOUS list l. The function should
    return a boolean when it is evaluated on an element of the list l.
    The partition returns a list containing two lists: 
-   the first has elements of l where evaluating f on those elements
-   returns true; 
-   the second has elements of l where evaluating 
-   f on those elements returns false. */
+   the first has elements of l where f return true on those elements;
+   the second has elements of l where f returns false on those elements. */
 (= partition 
-  (fn (f l) 
+  (fn (p l) 
     (fold_right 
        (fn (x y) 
-	 '(
-             (if (f x) 
-		(cons x (first y)) 
-		(first y)) 
-	     (if (f x) 
-		(second y) 
-		(cons x (second y)))
-	  )
+	   '(
+		(if (p x) 
+		   (cons x (first y)) 
+		   (first y)) 
+		(if (p x) 
+		   (second y) 
+		   (cons x (second y)))
+	    )
 	) 
 	l 
        '( '()  '()  )
@@ -145,6 +143,13 @@
     )
   )
 );;
+
+/* zipwith takes a function f which should take 2 arguments, list a, and list b.
+   It returns a list where each element is the result of evaluating (f a b). */
+(= zipwith (fn (f a b) 
+  (if (or (is a '()) (is b '())) 
+    '() 
+    (cons (f (head a) (head b)) (zipwith f (tail a) (tail b))))));;
 
 /* stringify_list takes a function f and list l. The function f should
    be an anonymous function declaration which can transform each element
