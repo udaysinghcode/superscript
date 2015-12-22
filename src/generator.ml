@@ -128,7 +128,7 @@ let generate_js_func fname =
           for(var i=0; i < arguments.length; i++) { \
             __assert_type(\\'float\\', arguments[i], \\'-.\\', (i+1) + \\'\\');\
           } \
-          return __box(\\'float\\', arguments.length === 0 ? 0 : arguments.length === 1 ? -1 * __unbox(a1) : 
+          return __box(\\'float\\', arguments.length === 0 ? 0 : arguments.length === 1 ? -1 * __unbox(a1) : \
             Array.prototype.slice.call(arguments).map(__unbox).reduce(function(a,b){return a-b;})); \
         }'", [TFloat; TFloat], TFloat, [])
 
