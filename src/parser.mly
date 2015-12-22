@@ -47,7 +47,8 @@ program:
 expr_list:
 /* nothing */		{ [] }
 | expr_list expr SEMI	{ $2 :: $1 }
-| expr_list expr	{ (parse_error "Syntax error. Did you forget to terminate the expression using ;;?"); $1 }
+| expr_list expr	{ (parse_error ("Syntax error. Did you forget to terminate the expression with ;; " ^ 
+				"or forget a right paren?")); $1 }
 
 sexpr:
 | IF expr expr expr		{ If($2, $3, $4) }
