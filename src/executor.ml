@@ -141,12 +141,12 @@ let exec_file ctx (sysargs) =
      | Parsing.Parse_error -> print_position lexbuf "Syntax error occurs before"; exit (-1)
 
    in
-   (* Perform type checking. Print all identifiers & types *)
-            exec_cmds (
-		(* Add types for built-in functions to the context *)
+   (* Perform type checking, by executing exec_cmds. Print all identifiers & types *)
+       ignore(exec_cmds (
+	    (* Add types for built-in functions to the context *)
 		List.map (fun x -> (x, Generator.arrow_of(x))) 
-	         (Generator.get_generatable_fnames program)) 
-	        program; 
+	        (Generator.get_generatable_fnames program)) 
+	     program); 
 
        let prog = Generator.generate_prog program in
           write prog;
