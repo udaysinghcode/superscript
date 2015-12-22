@@ -125,6 +125,9 @@ let generate_js_func fname =
     | "boolean" ->
       ("'function(i) { if (__fcall(\\'type\\', __box(\\'list\\', [i])).__v !== \\'boolean\\') { throw new TypeError(\\'not a boolean!\\'); } else { return i; } }'",
         [TSome], TBool, ["type"])
+    | "exception" ->
+      ("'function(i) {  }'",
+        [TString], TUnit, [])
     | _ -> ("", [], TSome, [])
   in
     let (fstr, arg_types, ret_type, deps) = helper fname in
