@@ -345,7 +345,7 @@ let generate_js_func fname =
           __assert_type(\\'string\\', i, \\'exception\\', \\'1\\'); \
           throw new Error(i); \
         }'", [TString], TUnit, [])
-      
+
     | _ -> ("", [], TSome, [])
   in
     let (fstr, arg_types, ret_type, deps) = helper fname in
@@ -450,87 +450,89 @@ let generate_prog p =
     String.concat ";\n" (List.map get_def (get_generatable_fnames p)) in
   let wrap_exp e = cc [generate e; ";"] in
   cc (
-      "function getOwnPropertyDescriptors(object) {\
-        var keys = Object.getOwnPropertyNames(object), returnObj = {}; \
-        keys.forEach(getPropertyDescriptor); \
-        return returnObj; \
-        function getPropertyDescriptor(key) { \
-          var pd = Object.getOwnPropertyDescriptor(object, key); \
-          returnObj[key] = pd; \
-        } }"::
+        "try {
 
-      "Object.getOwnPropertyDescriptors = getOwnPropertyDescriptors;"::
+        function getOwnPropertyDescriptors(object) {\
+          var keys = Object.getOwnPropertyNames(object), returnObj = {}; \
+          keys.forEach(getPropertyDescriptor); \
+          return returnObj; \
+          function getPropertyDescriptor(key) { \
+            var pd = Object.getOwnPropertyDescriptor(object, key); \
+            returnObj[key] = pd; \
+          } }"::
 
-      "function __dup(o) { \
-        return Object.create(Object.getPrototypeOf(o), Object.getOwnPropertyDescriptors(o)); \
-      }"::
+        "Object.getOwnPropertyDescriptors = getOwnPropertyDescriptors;"::
 
-      "function __flatten(o) { \
-        var result = Object.create(o); \
-        for(var key in result) { result[key] = result[key]; } \
-        return result; \
-      }"::
+        "function __dup(o) { \
+          return Object.create(Object.getPrototypeOf(o), Object.getOwnPropertyDescriptors(o)); \
+        }"::
 
-      "function __box(t,v){ \
-        return ({ __t: t, __v: (t === 'module') ? v : __clone(v) }); \
-      };"::
+        "function __flatten(o) { \
+          var result = Object.create(o); \
+          for(var key in result) { result[key] = result[key]; } \
+          return result; \
+        }"::
 
-      "function __clone(o){\
-        return JSON.parse(JSON.stringify(o));\
-      };"::
+        "function __box(t,v){ \
+          return ({ __t: t, __v: (t === 'module') ? v : __clone(v) }); \
+        };"::
 
-      "function __unbox(o){ \
-        return (o.__t === 'module') ? o.__v : __clone(o.__v); \
-      };"::
+        "function __clone(o){\
+          return JSON.parse(JSON.stringify(o));\
+        };"::
 
-      "function __assert_type(t, o, f, nth) { \
-        if (o.__t !== t) { \
-          throw new TypeError('expected type of argument ' + nth + ' of function ' + f + \
-            ' to be ' + t + ' but found ' + o.__t); \
-        } else { \
-          return true; \
-        }\
-      }"::
+        "function __unbox(o){ \
+          return (o.__t === 'module') ? o.__v : __clone(o.__v); \
+        };"::
 
-      "function __assert_arguments_num(actual, expected, f) { \
-        if (actual !== expected) { \
-          throw new TypeError('expected ' + expected + ' arguments to function ' + f + \
-            ' but found ' + actual + ' arguments. '); \
-        } else { \
-          return true; \
-        } \
-      };"::
+        "function __assert_type(t, o, f, nth) { \
+          if (o.__t !== t) { \
+            throw new TypeError('expected type of argument ' + nth + ' of function ' + f + \
+              ' to be ' + t + ' but found ' + o.__t); \
+          } else { \
+            return true; \
+          }\
+        }"::
 
-      "function __tojs(o) { \
-        if (o.__t === 'function') { \
-          return function() { \
-            var __temp = Array.prototype.slice.call(arguments); \
-            return eval('(' + o.__v + ').apply(null, __temp)'); \
-          }; \
-        } else { \
-          return __unbox(o); \
-        } \
-      };"::
+        "function __assert_arguments_num(actual, expected, f) { \
+          if (actual !== expected) { \
+            throw new TypeError('expected ' + expected + ' arguments to function ' + f + \
+              ' but found ' + actual + ' arguments. '); \
+          } else { \
+            return true; \
+          } \
+        };"::
 
-      "function __call(args) { \
-        var __temp = !args.__v[0].__t ? args.__v[0] : __unbox(args.__v[0]); \
-        __temp[__unbox(args.__v[1])].apply(__temp, args.__v.slice(2).map(__tojs)); \
-      };"::
+        "function __tojs(o) { \
+          if (o.__t === 'function') { \
+            return function() { \
+              var __temp = Array.prototype.slice.call(arguments); \
+              return eval('(' + o.__v + ').apply(null, __temp)'); \
+            }; \
+          } else { \
+            return __unbox(o); \
+          } \
+        };"::
 
-      "function __dot(args) { \
-        var __temp = args.__v; \
-        var res; \
-        for(var i = 1; i < __temp.length; i++) { \
-          res = (i === 1 ? __temp[0] : res)[__unbox(__temp[i])]; \
-        } \
-        return __box('json', res); \
-      };"::
+        "function __call(args) { \
+          var __temp = !args.__v[0].__t ? args.__v[0] : __unbox(args.__v[0]); \
+          __temp[__unbox(args.__v[1])].apply(__temp, args.__v.slice(2).map(__tojs)); \
+        };"::
 
-      "function __fcall(name,args){ \
-        var __temp = eval(name); \
-        return (__temp.__t === 'module') ? __box('module', __unbox(__temp).apply(null, __unbox(args).map(__unbox))) : \
-          name === 'dot' ? __dot(args) : name === 'call' ? __call(args) : \
-          eval('('+__unbox(__temp)+').apply(null,__unbox(args))'); \
-      };\n"::
+        "function __dot(args) { \
+          var __temp = args.__v; \
+          var res; \
+          for(var i = 1; i < __temp.length; i++) { \
+            res = (i === 1 ? __temp[0] : res)[__unbox(__temp[i])]; \
+          } \
+          return __box('json', res); \
+        };"::
 
-      (generate_head p)::";\n"::(List.map wrap_exp p))
+        "function __fcall(name,args){ \
+          var __temp = eval(name); \
+          return (__temp.__t === 'module') ? __box('module', __unbox(__temp).apply(null, __unbox(args).map(__unbox))) : \
+            name === 'dot' ? __dot(args) : name === 'call' ? __call(args) : \
+            eval('('+__unbox(__temp)+').apply(null,__unbox(args))'); \
+        };\n"::
+
+      (generate_head p)::";\n"::(List.map wrap_exp p) @ ["} catch (e) { console.log('RuntimeError: ' + e.message); }"])
