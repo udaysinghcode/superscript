@@ -71,14 +71,14 @@
   (list (fold_right (fn (x y) (if (p x) (cons x y) y)) l '()))));;
 
 (= partition 
-  (fn (f l) 
+  (fn (p l) 
     (fold_right 
        (fn (x y) 
 	   '(
-		(if (f x) 
+		(if (p x) 
 		   (cons x (first y)) 
 		   (first y)) 
-		(if (f x) 
+		(if (p x) 
 		   (second y) 
 		   (cons x (second y)))
 	    )
@@ -115,6 +115,11 @@
   (if (or (not (> i 0)) (is l '())) 
     '() 
     (cons (head l) (take (- i 1) (tail l))))));;
+
+(= take1 (fn (lst num)
+             (if (> num 0)
+               (cons (head lst) (take1 (tail lst) (- num 1)))
+               '())));;
 
 /* intersperse takes an expression and a list. It inserts the
    expression between each pair of elements in the list,
