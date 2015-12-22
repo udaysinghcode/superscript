@@ -144,12 +144,39 @@
   )
 );;
 
-/* zipwith takes a function f which should take 2 arguments, list a, and list b.
+/* zipwith takes a function f which should take 2 arguments; list a; and list b.
    It returns a list where each element is the result of evaluating (f a b). */
 (= zipwith (fn (f a b) 
   (if (or (is a '()) (is b '())) 
     '() 
     (cons (f (head a) (head b)) (zipwith f (tail a) (tail b))))));;
+
+/* zipwith3 takes a function f which should take 3 arguments; list a; list b; and list c.
+   It returns a list where each element is the result of evaluating (f a b c). */
+(= zipwith3 (fn (f a b c) 
+	(if (or (or (is a '()) (is b '())) (is c '())) 
+	  '() 
+	  (cons (f (head a) (head b) (head c)) (zipwith3 f (tail a) (tail b) (tail c))))));;
+
+/* zip takes list a and list b.  It iterates through both lists and
+   returns  a new list of 'pairs' (2-element lists) 
+   where each pair has 1 element from a, and 1 from b. 
+    Example: (zip '(1 2 3) '(a b c)) ---> '( '(1 a) '(2 b) '(3 c) )   */
+(= zip (fn (a b) 
+  (zipwith 
+    (fn (x y) (cons x (cons y '()))) 
+    a b)));;
+
+/* unzip takes list l, which should be a list of pairs (2-element lists).
+   It returns a list of 2 lists, where the first sublist contains all the
+   first elements of each pair; and the second sublist contains all of the
+   second elements of each pair from the input list. 
+   Example: (unzip '( '(1 a) '(2 b) '(3 c) '(4 d) )) ---> '( '(1 2 3 4) '(a b c d) )   */ 
+(= unzip (fn (l) 
+  (fold_right 
+    (fn (x y) '((cons (first x) (first y)) (cons (second x) (second y)))) 
+    l 
+    '(   '() '()   ))));;
 
 /* stringify_list takes a function f and list l. The function f should
    be an anonymous function declaration which can transform each element
