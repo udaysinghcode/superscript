@@ -8,14 +8,16 @@
 */
 
 
-/* identity takes an expression e and returns it. */
-(= identity (fn (e) e));;
+/****
+***  identity takes an expression e and returns it.
+**/
+     (= identity (fn (e) e));;
 
-/* * * * * * * * * * * * * * * * * * * * * 
+/* * * * * * * * * * * * * * * * * * * * * * *
 **
-**     List Manipulation Functions
+**   ~*~* List Manipulation Functions *~*~
 **
-** * * * * * * * * * * * * * * * * * * * */
+** * * * * * * * * * * * * * * * * * * * * * */
 
 /* length takes a list l and returns its length. */
 (= length (fn (l)
@@ -194,27 +196,39 @@
     l 
     '(   '() '()   ))));;
 
-/* * * * * * * * * * * * * * * * * * * * * 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
 **
-**     Printing / Stringify Functions
-**	  (including List printing)
 **
-** * * * * * * * * * * * * * * * * * * * */
+**        *~*~  Printing / Stringify Functions ~*~*
+**
+**
+**   USAGE NOTE: stringify_list and print_list take as an argument
+**   a function that, when mapped onto a homogeneous list, stringifies 
+**   the elements of that list. 
+**
+**   For ease of use, several formatting functions are provided below:
+**
+**		format_[t] will stringify a list of atoms of type t.
+**		format_[t]2d will stringify a list of lists of type t.
+**
+**   These formatting functions may be passed as argument to
+**   stringify_list or print_list. 
+**
+**   Example: (print_list format_int '(1 2 3 4));;
+**   >>>>>> prints [1,2,3,4]
+**
+** * * * * * * * * * * * * * * * * * * * * * * * * * * * /
 
-/* format_boolean returns a function which stringifies a boolean value.
-   format_boolean can be passed as the formatting function into print_list or stringify_list. */
+/* format_boolean returns a function which stringifies a boolean value. */
 (= format_boolean (fn (x) (string_of_boolean (boolean x))));;
 
-/* format_int returns a function which stringifies an int value.
-   format_int can be passed as the formatting function into print_list or stringify_list. */
+/* format_int returns a function which stringifies an int value. */
 (= format_int (fn (x) (string_of_int (int x))));;
 
-/* format_string returns a function which takes a string and returns it.
-   format_string can be passed as the formatting function into print_list or stringify_list. */
+/* format_string returns a function which takes a string and returns it. */
 (= format_string (fn (x) (string x)));;
 
-/* format_float returns a function which stringifies a float.
-   format_float can be passed as the formatting function into print_list or stringify_list. */
+/* format_float returns a function which stringifies a float. */
 (= format_float (fn (x) (string_of_float (float x))));;
 
 
@@ -228,21 +242,16 @@
     (fold_left ++ "" (intersperse "," (map f l))) 
     "]")));;
 
-
-/* format_boolean2d returns a function that takes a HOMOGENEOUS list of BOOLEANS and stringifies it.
-   format_boolean2d can be passed as the formatting function into print_list or stringify_list. */
+/* format_boolean2d returns a function that takes a HOMOGENEOUS list of BOOLEANS and stringifies it. */
 (= format_boolean2d (fn (x) (stringify_list format_boolean x)));;
 
-/* format_int2d returns a function that takes a HOMOGENEOUS list of INTS and stringifies it.
-   format_int2d can be passed as the formatting function into print_list or stringify_list. */
+/* format_int2d returns a function that takes a HOMOGENEOUS list of INTS and stringifies it. */
 (= format_int2d (fn (x) (stringify_list format_int x)));;
 
-/* format_float2d returns a function that takes a HOMOGENEOUS list of FLOATS and stringifies it.
-   format_float2d can be passed as the formatting function into print_list or stringify_list. */
+/* format_float2d returns a function that takes a HOMOGENEOUS list of FLOATS and stringifies it. */
 (= format_float2d (fn (x) (stringify_list format_float x)));;
 
-/* format_string2d returns a function that takes a HOMOGENEOUS list of STRINGS and stringifies it.
-   format_string2d can be passed as the formatting function into print_list or stringify_list. */
+/* format_string2d returns a function that takes a HOMOGENEOUS list of STRINGS and stringifies it. */
 (= format_string2d (fn (x) (stringify_list format_string x)));;
 
 
