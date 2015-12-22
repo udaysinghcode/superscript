@@ -8,7 +8,7 @@
 
 /*
 (= nth (fn (n l)
-  (if {n < 0} (exception "nth: n must be non-negative.")
+  (if (or (is l '()) {n < 0}) (exception "nth: index out of bounds.")
     (if (is n 0) (head l)
       (nth {n - 1} (tail l))))));;*/
 
@@ -26,7 +26,7 @@
     (eval '(f (head l) (fold_right f (tail l) a))))));;
 
 (= filter (fn (p l)
-  (fold_right (fn (x y) (if (p x) (cons x y) y)) l '())));;
+  (list (fold_right (fn (x y) (if (p x) (cons x y) y)) l '()))));;
 
 
 
