@@ -32,7 +32,7 @@ open Unix;;
 let load_file f =
   let ic = open_in f in
   let n = in_channel_length ic in
-  let s = Bytes.create n in
+  let s = String.create n in
   really_input ic s 0 n;
   close_in ic;
   (s) ;;
@@ -52,59 +52,59 @@ let write stuff =
 ;;
 
 let tests = [
-  ("prn function should log to stdout", "(prn \"Hello World!\");;", [], "Hello World!") ;
-  ("string_of_int function should make string from int", "(prn (string_of_int 10));;", [], "10") ;
-  ("string_of_boolean function should make string from boolean", "(pr (string_of_boolean true));;(pr (string_of_boolean false));;", [], "truefalse") ;
-  ("type function should return type of string", "(prn (type \"Hello\"));;", [], "string") ;
-  ("type function should return type of int", "(prn (type 10));;", [], "int") ;
-  ("type function should return type of float", "(prn (type 2.2));;", [], "float") ;
-  ("type function should return type of boolean", "(prn (type true));;", [], "boolean") ;
-  ("type function should return type of list", "(prn (type '(10 20)));;", [], "list") ;
-  ("type function should return type of function", "(prn (type (fn (x) (prn x))));;", [], "function") ;
-  ("assignment operator", "(= foo \"Hello\");;(prn foo);;", [], "Hello") ;
-  ("user defined functions", "(= foo (fn (x) (prn x)));;(foo \"Bar\");;", [], "Bar") ;
-  ("curly infix arithmetic expression", "(prn (string_of_int {5 + 3}));;", [], "8") ;
-  ("+ operator with no args should return 0", "(prn (string_of_int (+)));;", [], "0") ;
-  ("* operator with no args should return 1", "(prn (string_of_int (*)));;", [], "1") ;
-  ("prefix integer add", "(prn (string_of_int (+ 1 2 3 4)));;", [], "10") ;
-  ("prefix integer sub", "(prn (string_of_int (- 10 2 3)));;", [], "5") ;
-  ("prefix integer mult", "(prn (string_of_int (* 1 2 3 4)));;", [], "24") ;
-  ("prefix integer div", "(prn (string_of_int (/ 10 2 (- 5))));;", [], "-1") ;
-  ("prefix float add", "(prn (string_of_int (+ .1 .2 .3 .4)));;", [], "1") ;
-  ("prefix float sub", "(prn (string_of_int (- 5.0 .2 .3)));;", [], "4.5") ;
-  ("prefix float mult", "(prn (string_of_int (* 1. 2. 3. 4.)));;", [], "24") ;
-  ("prefix float div", "(prn (string_of_int (/ 10. 2. (- 5.))));;", [], "-1") ;
-  ("comparing ints with is func", "(pr (string_of_boolean (is 1 1)));;(pr (string_of_boolean (is 1 2)));;", [], "truefalse") ;
-  ("comparing floats with is func", "(pr (string_of_boolean (is 1.0 1.)));;(pr (string_of_boolean (is .1 .2)));;", [], "truefalse") ;
-  ("comparing bools with is func", "(pr (string_of_boolean (is true true)));;(pr (string_of_boolean (is false true)));;", [], "truefalse") ;
-  ("comparing strings with is func", "(pr (string_of_boolean (is \"hello\" \"world\")));;(pr (string_of_boolean (is \"world\" \"world\")));;", [], "falsetrue") ;  
-  ("empty list should be nil", "(prn (string_of_boolean (is '() nil)));;", [], "true") ;
-  ("head function should return head of list", "(prn (head '(\"foo\" \"bar\")));;", [], "foo") ;
-  ("tail function should return tail of list", "(prn (head (tail '(\"foo\" \"bar\"))));;", [], "bar") ;
-  ("let function should make temp variable for current statement", "(let x \"foo\" (prn x));;", [], "foo") ;
-  ("let function should shield temp variable from other statements", "(= x \"bar\");;(let x \"foo\" (pr x));;(pr x);;", [], "foobar") ;
-  ("nested let function should override same outer temp variable", "(let x \"foo\" (let x \"bar\" (prn x)));;", [], "bar") ;
-  ("++ operator concatenates strings", "(prn (++ \"foo\" \"bar\" \"orange\"));;", [], "foobarorange") ;
+ ("prn function should log to stdout", "(prn \"Hello World!\");;", [], "Hello World!") ;
+ ("string_of_int function should make string from int", "(prn (string_of_int 10));;", [], "10") ;
+ ("string_of_boolean function should make string from boolean", "(pr (string_of_boolean true));;(pr (string_of_boolean false));;", [], "truefalse") ;
+ ("type function should return type of string", "(prn (type \"Hello\"));;", [], "string") ;
+ ("type function should return type of int", "(prn (type 10));;", [], "int") ;
+ ("type function should return type of float", "(prn (type 2.2));;", [], "float") ;
+ ("type function should return type of boolean", "(prn (type true));;", [], "boolean") ;
+ ("type function should return type of list", "(prn (type '(10 20)));;", [], "list") ;
+ ("type function should return type of function", "(prn (type (fn (x) (prn x))));;", [], "function") ;
+ ("assignment operator", "(= foo \"Hello\");;(prn foo);;", [], "Hello") ;
+ ("user defined functions", "(= foo (fn (x) (prn x)));;(foo \"Bar\");;", [], "Bar") ;
+ ("curly infix arithmetic expression", "(prn (string_of_int {5 + 3}));;", [], "8") ;
+ ("+ operator with no args should return 0", "(prn (string_of_int (+)));;", [], "0") ;
+ ("* operator with no args should return 1", "(prn (string_of_int (*)));;", [], "1") ;
+ ("prefix integer add", "(prn (string_of_int (+ 1 2 3 4)));;", [], "10") ;
+ ("prefix integer sub", "(prn (string_of_int (- 10 2 3)));;", [], "5") ;
+ ("prefix integer mult", "(prn (string_of_int (* 1 2 3 4)));;", [], "24") ;
+ ("prefix integer div", "(prn (string_of_int (/ 10 2 (- 5))));;", [], "-1") ;
+ ("prefix float add", "(prn (string_of_int (+ .1 .2 .3 .4)));;", [], "1") ;
+ ("prefix float sub", "(prn (string_of_int (- 5.0 .2 .3)));;", [], "4.5") ;
+ ("prefix float mult", "(prn (string_of_int (* 1. 2. 3. 4.)));;", [], "24") ;
+ ("prefix float div", "(prn (string_of_int (/ 10. 2. (- 5.))));;", [], "-1") ;
+ ("comparing ints with is func", "(pr (string_of_boolean (is 1 1)));;(pr (string_of_boolean (is 1 2)));;", [], "truefalse") ;
+ ("comparing floats with is func", "(pr (string_of_boolean (is 1.0 1.)));;(pr (string_of_boolean (is .1 .2)));;", [], "truefalse") ;
+ ("comparing bools with is func", "(pr (string_of_boolean (is true true)));;(pr (string_of_boolean (is false true)));;", [], "truefalse") ;
+ ("comparing strings with is func", "(pr (string_of_boolean (is \"hello\" \"world\")));;(pr (string_of_boolean (is \"world\" \"world\")));;", [], "falsetrue") ;  
+ ("empty list should be nil", "(prn (string_of_boolean (is '() nil)));;", [], "true") ;
+ ("head function should return head of list", "(prn (head '(\"foo\" \"bar\")));;", [], "foo") ;
+ ("tail function should return tail of list", "(prn (head (tail '(\"foo\" \"bar\"))));;", [], "bar") ;
+ ("let function should make temp variable for current statement", "(let x \"foo\" (prn x));;", [], "foo") ;
+ ("let function should shield temp variable from other statements", "(= x \"bar\");;(let x \"foo\" (pr x));;(pr x);;", [], "foobar") ;
+ ("nested let function should override same outer temp variable", "(let x \"foo\" (let x \"bar\" (prn x)));;", [], "bar") ;
+ ("++ operator concatenates strings", "(prn (++ \"foo\" \"bar\" \"orange\"));;", [], "foobarorange") ;
 
-  ("different outer temp variable should be available in nested let", "(let y \"foo\" (let x \"bar\" (prn (++ x y))));;", [], "barfoo") ;
-  ("< operator should compare ints", "(pr (string_of_boolean (< 9 10)));;(pr (string_of_boolean (< 11 10)));;", [], "truefalse") ;
-  ("if statements", "(if true (pr \"foo\") (pr \"bar\"));;(if false (pr \"foos\") (pr \"bars\"));;", [], "foobars") ;
-  ("prefix float sub without conversion", "(prn (- 5.0 .2 .3));;", [], "4.5") ;
-  ("prefix float mult without conversion", "(prn (* 1. 2. 3. 4.));;", [], "24") ;
-  ("prefix float div without conversion", "(prn (/. 10. 2. (-5.)));;", [], "-1") ;
-  ("use def to define factorial function", "(= bar (fn (x y) (+ x y))) ;;(= foo (fn (x) (baz x)));;(= baz (fn (z) (evaluate '(z 2 3))));;(prn (foo bar));;", [], "5" );
-  ("get first element (int) of list", "(prn (head \'(1 2 3 4 5 6 7 8 9 10)));;", [], "1");  
-  ("multiple expressions", "( prn \"hello\" );; ( prn \"world\" );;  ( prn \"people\");;", [], "hello\nworld\npeople");
-  ("set add equal to anon func then call it", "(= add (fn (x y) (+ x y) )) ;;(prn (add 1 3));; ", [],  "4");
-  ("print the 5 mod 6", "(prn (mod 5 6));;", [], "5");
-  ("logical AND of true and false","(prn (and true false));;", [], "false");
-  ("setting and testing inequality", "(= a \"a\");; (prn (is \"a\" a));;", [], "true");
-  ("trying to add float and int", "( + 1 2 3 3.5);;", [], "Fatal error: exception Executor.Fatal_error(\"The types float and int are incompatible\")");
-  ("testing relational comparison operators", "(prn (> 2 4));;", [], "false");
-  ("testing string concatenation", "(prn (++ \"hello\" \" \" \"world\" ));;", [], "hello world");
-  ("testing cons function", "(prn (head (cons \"a\" \'(\"b\" \"c\"))));;", [], "a");
-  ("testing if function", "(prn (if false \"b\" \"c\"));;", [], "c");
-  ("testing let function", "(prn (let x 1 (+ x (* x 2))));;", [], "3") ;
+ ("different outer temp variable should be available in nested let", "(let y \"foo\" (let x \"bar\" (prn (++ x y))));;", [], "barfoo") ;
+ ("< operator should compare ints", "(pr (string_of_boolean (< 9 10)));;(pr (string_of_boolean (< 11 10)));;", [], "truefalse") ;
+ ("if statements", "(if true (pr \"foo\") (pr \"bar\"));;(if false (pr \"foos\") (pr \"bars\"));;", [], "foobars") ;
+ ("prefix float sub without conversion", "(prn (- 5.0 .2 .3));;", [], "4.5") ;
+ ("prefix float mult without conversion", "(prn (* 1. 2. 3. 4.));;", [], "24") ;
+ ("prefix float div without conversion", "(prn (/. 10. 2. (-5.)));;", [], "-1") ;
+ ("use def to define factorial function", "(= bar (fn (x y) (+ x y))) ;;(= foo (fn (x) (baz x)));;(= baz (fn (z) (evaluate '(z 2 3))));;(prn (foo bar));;", [], "5" );
+ ("get first element (int) of list", "(prn (head \'(1 2 3 4 5 6 7 8 9 10)));;", [], "1");  
+ ("multiple expressions", "( prn \"hello\" );; ( prn \"world\" );;  ( prn \"people\");;", [], "hello\nworld\npeople");
+ ("set add equal to anon func then call it", "(= add (fn (x y) (+ x y) )) ;;(prn (add 1 3));; ", [],  "4");
+ ("print the 5 mod 6", "(prn (mod 5 6));;", [], "5");
+ ("logical AND of true and false","(prn (and true false));;", [], "false");
+ ("setting and testing inequality", "(= a \"a\");; (prn (is \"a\" a));;", [], "true");
+ ("trying to add float and int", "( + 1 2 3 3.5);;", [], "Fatal error: exception Executor.Fatal_error(\"The types float and int are incompatible\")");
+ ("testing relational comparison operators", "(prn (> 2 4));;", [], "false");
+ ("testing string concatenation", "(prn (++ \"hello\" \" \" \"world\" ));;", [], "hello world");
+ ("testing cons function", "(prn (head (cons \"a\" \'(\"b\" \"c\"))));;", [], "a");
+ ("testing if function", "(prn (if false \"b\" \"c\"));;", [], "c");
+ ("testing let function", "(prn (let x 1 (+ x (* x 2))));;", [], "3") ;
 
  ("print out float with string_of_float", "(prn (string_of_float 3.5));;", [], "3.5");
  ("print out result of infix expr","(prn (string_of_int {3+ 5}));;", [], "8");
@@ -154,6 +154,42 @@ let tests = [
  (*("trying to leave one branch blank in if statement", "(if false () (prn \"as\"));;", [], "daf"); *)
  ("def roundabout concat function, use in roundabout way", "(= concat (fn (x y) (if (is x '()) y (if (is (concat (tail x) y) y) (cons (head x) y) (cons (head x) (concat (tail x) y))))));;  (prn (string (head (tail (tail (tail (tail(concat '(\"1\" \"2\" \"3\") '(\"1\" \"LAST\")))))))));;", [], "LAST") 
 
+ (***************************************STANDARD LIBRARY TESTS **********************************************************************************************)
+
+(*)
+ ("Testing stdlib function: identity", "(= x '(1 2 3 4 ));; (prn (string_of_boolean (is x (identity x))));;", [], "true") ;
+ ("Testing stdlib function: length", "(= x '(1 2 3 4 ));; (prn (string_of_int (length x )));;", [], "4") ;
+ ("Testing stdlib function: nth", "(= x '(1 2 3 4 5 6 7 8 9 10));;  (prn (string_of_int (nth 5 x)));;", [], "5") ;
+ ("Testing stdlib function: first", "(= x '(1 2 3 4 5 6 7 8 9 10));;  (prn (string_of_int (first x)));;", [], "1") ;
+ ("Testing stdlib function: second", "(= x '(1 2 3 4 5 6 7 8 9 10));;  (prn (string_of_int (second x)));;", [], "2") ;
+ ("Testing stdlib function: third", "(= x '(1 2 3 4 5 6 7 8 9 10));;  (prn (string_of_int (third x)));;", [], "3") ;
+ ("Testing stdlib function: fourth", "(= x '(1 2 3 4 5 6 7 8 9 10));;  (prn (string_of_int (fourth x)));;", [], "4") ;
+ ("Testing stdlib function: fifth", "(= x '(1 2 3 4 5 6 7 8 9 10));;  (prn (string_of_int (fifth x)));;", [], "5") ;
+ ("Testing stdlib function: sixth", "(= x '(1 2 3 4 5 6 7 8 9 10));;  (prn (string_of_int (sixth x)));;", [], "6") ;
+ ("Testing stdlib function: seventh", "(= x '(1 2 3 4 5 6 7 8 9 10));;  (prn (string_of_int (seventh x)));;", [], "7") ;
+ ("Testing stdlib function: eigth", "(= x '(1 2 3 4 5 6 7 8 9 10));;  (prn (string_of_int (eigth x)));;", [], "8") ;
+ ("Testing stdlib function: ninth", "(= x '(1 2 3 4 5 6 7 8 9 10));;  (prn (string_of_int (ninth x)));;", [], "9") ;
+ ("Testing stdlib function: tenth", "(= x '(1 2 3 4 5 6 7 8 9 10));;  (prn (string_of_int (tenth x)));;", [], "10") ;
+ (***)("Testing stdlib function: make", "", [], "LAST") ;
+ ("Testing stdlib function: map", "(= x '(1 2 3 4 5 6 7 8 9 10));; (map prn x);;", [], "1\n2\n3\n4\n5\n6\n7\n8\n9\n10") ;
+ ("Testing stdlib function: fold_left", "(= x '(1 2 3 4 5 6 7 8 9 10));;  (fold_left + 0 x);;", [], "55") ;
+ ("Testing stdlib function: fold_right", "(= x '(1 2 3 4 5 6 7 8 9 10));;  (fold_right + x 0 );;", [], "55") ;
+ ("Testing stdlib function: filter", "(= x '(1 2 3 4 5 6 7 8 9 10));;  (prn (string_of_int (head (filter 1))));;", [], "2") ;
+ (***)("Testing stdlib function: partition", "(= x '(1 2 3 4 5 6 7 8 9 10));;  ", [], "LAST") ;
+ ("Testing stdlib function: append", "(= x '(1 2 3 4 5 6 7 8 9 10));;  (prn (string (head (tail (tail (tail (tail(append '(\"1\" \"2\" \"3\") '(\"1\" \"LAST\")))))))));;", [], "LAST") ;
+ (***)("Testing stdlib function: take", "(= x '(1 2 3 4 5 6 7 8 9 10));; (print_list (take 5 x));; ", [], "[1,2,3,4,5]") ;
+ (***)("Testing stdlib function: drop", "(= x '(1 2 3 4 5 6 7 8 9 10));;  (print_list (drop 5 x));;", [], "LAST") ;
+ (***)("Testing stdlib function: zipwith", "(= x '(1 2 3 4 5 6 7 8 9 10));;  ", [], "LAST") ;
+ (***)("Testing stdlib function: zipwith3", "(= x '(1 2 3 4 5 6 7 8 9 10));;  ", [], "LAST") ;
+ (***)("Testing stdlib function: zip", "(= x '(1 2 3 4 5 6 7 8 9 10));;  ", [], "LAST") ;
+ (***)("Testing stdlib function: unzip", "(= x '(1 2 3 4 5 6 7 8 9 10));;  ", [], "LAST") ;
+ ("Testing stdlib function: reverse", "(= x '(1 2 3 4 5 6 7 8 9 10));;  (print_list (reverse x));;", [], "[10,9,8,7,6,5,4,3,2,1]") ;
+ ("Testing stdlib function: member", "(= x '(1 2 3 4 5 6 7 8 9 10));; (print (string_of_boolean (member 10 x)));; ", [], "true") ;
+ (***)("Testing stdlib function: intersperse", "(= x '(1 2 3 4 5 6 7 8 9 10));;  (print_list (intersperse \"test\" x))", [], "[1,test,2,test,3,test,4,test,5,test,6,test,7,test,8,test,9,test,10]") ;
+ (***)("Testing stdlib function: stringify_list", "(= x '(1 2 3 4 5 6 7 8 9 10));;  ", [], "LAST") ;
+ ("Testing stdlib function: print_list", "(= x '(1 2 3 4 5 6 7 8 9 10));;  (print_list x);;", [], "[1,2,3,4,5,6,7,8,9,10]") 
+
+*)
 ] ;;
 
 let unsuccess = ref 0 ;;
@@ -176,16 +212,6 @@ List.iter (fun (desc, input, ast, expout) ->
 
 
 
-
-(*List.iter (fun (desc, input, ast, expout) -> 
-	let lexbuf = Lexing.from_string input in 
-  try 
-  	let expression = Parser.program Scanner.token lexbuf in
-  	if (ast = expression || ast = []) then 
-        print_endline "match!!!"
-  with 
-    | _ -> print_endline "parse error" ;;
-*)
 
 if !unsuccess = 0 then exit 0 else exit 1 ;;
 
