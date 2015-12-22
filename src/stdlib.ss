@@ -132,7 +132,7 @@
  */
 	(= partition 
   	  (fn (p l) 
-    	    (fold_right 
+    	    (list (fold_right 
                (fn (x y) 
 	         '(
 		    (if (p x) 
@@ -145,7 +145,7 @@
 	       ) 
 	       l 
                '( '()  '()  )
-            )
+            ))
  	  )
 	);;
 
