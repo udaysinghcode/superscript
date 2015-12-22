@@ -8,10 +8,16 @@ exception Unknown_variable of string * string
 
 (** [type_error msg] reports a type error by raising [Type_error msg]. *)
 let type_error msg = raise (Type_error msg)
+
 (** [invalid_args_error msg] reports invalid argument exceptions by raising [Invalid_args msg]. *)
 let invalid_args_error msg = raise (Invalid_args msg)
+
 (** [unknown_var_error msg] reports unknown variable exceptions by raising [Unknown_variable msg]. *)
 let unknown_var_error msg var = raise (Unknown_variable (msg, var))
+
+let remove_underscores input = 
+  let uscore = Str.regexp_string "_" in
+   Str.global_replace uscore "" input
 
 (** [fresh ()] returns an unused type parameter. *)
 let fresh =
@@ -204,7 +210,6 @@ let rec constraints_of gctx =
 
  	    | "__add" | "__sub" | "__mult"| "__div"
 	    | "__addf" | "__subf" | "__multf" | "__divf" 
-	    | "__and" | "__or" 
 	    | "__concat" -> ( 
 		let tarrow = Generator.arrow_of(e1) in
 		match tarrow with
@@ -250,15 +255,22 @@ let rec constraints_of gctx =
 			let e = List.hd e2 in
 			let ty, eq = cnstr ctx e in
 			TException, (ty, TString) :: eq
-	    | "mod" -> if (List.length e2 != 2) then (invalid_args_error("Invalid arguments error: " ^
-					"the modulo operation takes 2 ints as arguments. "))
-		else (
-			let hd = List.hd e2 in
-			let tl = List.nth e2 1 in
-			let ty1, eq1 = cnstr ctx hd in
-			let ty2, eq2 = cnstr ctx tl in		
-			TInt, (ty1, TInt) :: (ty2, TInt) :: eq1 @ eq2
+
+	    | "mod" | "__and" | "__or" -> if (List.length e2 != 2) then 
+	           (invalid_args_error("Invalid arguments error: the (" 
+		      ^ (remove_underscores e1) ^ ") operation takes 2 arguments. "))
+		else (  
+			let expected = match e1 with
+			  | "mod" -> TInt
+			  | _ -> TBool
+			in
+			  let hd = List.hd e2 in
+			  let tl = List.nth e2 1 in
+			    let ty1, eq1 = cnstr ctx hd in
+			    let ty2, eq2 = cnstr ctx tl in		
+			  expected, (ty1, expected) :: (ty2, expected) :: eq1 @ eq2
 		)
+
 	    | "__not" -> if (List.length e2 != 1) then (invalid_args_error("Invalid Arguments Error: " ^
 	    	"not takes 1 boolean expression as argument. "))
 		else (
@@ -268,8 +280,9 @@ let rec constraints_of gctx =
 		)
 	    | "__equal" | "__neq" | "__less" | "__leq" 
 	    | "__greater" | "__geq" ->
-		if (List.length e2 != 2) then (invalid_args_error("Invalid arguments error: " ^ 
-						e1 ^ "comparison takes 2 arguments. ")) 
+		if (List.length e2 != 2) then 
+		    (invalid_args_error("Invalid arguments error: the (" ^ 
+			(remove_underscores e1) ^ ") comparison takes 2 arguments. ")) 
 		else (
 		  let ty1, eq1 = cnstr ctx (List.hd e2) in
 		  let ty2, eq2 = cnstr ctx (List.nth e2 1) in
