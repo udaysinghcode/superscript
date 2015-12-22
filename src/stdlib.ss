@@ -81,7 +81,9 @@
   (if (is l '()) (eval '(identity a))
     (eval '(f (head l) (fold_right f (tail l) a))))));;
 
-/* filter takes a predicate p and HOMOGENOUS list l. 
+/* filter takes a function p and HOMOGENOUS list l. The function p should
+   take 1 argument and return a boolean.  Filter returns a list
+   of those elements of the list where the predicate evaluates to true. */
 (= filter (fn (p l)
   (list (fold_right (fn (x y) (if (p x) (cons x y) y)) l '()))));;
 
