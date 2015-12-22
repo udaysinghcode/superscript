@@ -409,7 +409,7 @@ let rec constraints_of gctx =
 	           )
         ) (* end pattern matching for Id *)
 
-	| _ as e-> invalid_args_error ("Invalid Arguments Error: In function call expression the first argument is invalid.")
+	| _ -> invalid_args_error ("Invalid Arguments Error: In function call expression the first argument is invalid.")
 
     ) (* end pattern matching for Eval *)
       in
@@ -435,11 +435,12 @@ let type_of ctx e =
 		  			|[] -> str
 		  			| hd::tl when (List.length tl) = 0 -> str^(printType hd)
 		  			| hd::tl when (List.length tl > 0) -> str^(printType hd)^" -> "
+            | _ -> raise(Failure "Exception: List.length is -1")
 		  		) in
 		  	print_types_list t_list ""
 		  )
-		  | _ as t -> "other case"
+		  | _ -> "other case"
 		in let printpairs p = 
-		 printType (snd p);()
+		 ignore(printType (snd p));()
 	in List.iter (printpairs) ans;
     tsubst (ans) ty
