@@ -310,7 +310,7 @@ let generate_js_func fname =
       ("'function(i) { \
           __assert_arguments_num(arguments.length, 1, \\'string\\'); \
           if (__assert_type(\\'string\\', i, \\'string\\')) { \
-            return i;
+            return i; \
           } \
         }'", [TSome], TString, ["type"])
 
