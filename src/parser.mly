@@ -1,4 +1,19 @@
-%{ open Ast %}
+%{ 
+   open Ast 
+   open Lexing
+   open Parsing
+   
+   let num_errors = ref 0
+
+   let parse_error msg = (* called by parser function on error *)
+	let start = symbol_start_pos() in
+	let final = symbol_end_pos() in
+	Printf.fprintf stdout "Line:%d char:%d..%d: %s\n"
+		 (start.pos_lnum) (start.pos_cnum - start.pos_bol) (final.pos_cnum - final.pos_bol) msg;
+        incr num_errors;
+	flush stdout 
+
+%}
 
 %token PLUS MINUS TIMES DIVIDE PLUSF MINUSF TIMESF DIVIDEF EOF
 %token ASSIGN QUOTE AND OR NOT EQ NEQ LT LEQ GT GEQ CONCAT
@@ -26,11 +41,13 @@
 %%
 
 program:
- expr_list EOF		{ List.rev $1 }
+ expr_list EOF		{ if(!num_errors == 0) then (List.rev $1)
+			  else (exit (-1)) }
 
 expr_list:
 /* nothing */		{ [] }
 | expr_list expr SEMI	{ $2 :: $1 }
+| expr_list expr	{ (parse_error "Syntax error. Did you forget to terminate the expression using ;;?"); $1 }
 
 sexpr:
 | IF expr expr expr		{ If($2, $3, $4) }
@@ -48,6 +65,7 @@ list:
 
 unquoted_list:
   LPAREN sexpr RPAREN		{ $2 }
+| LPAREN sexpr SEMI		{ (parse_error "Syntax error. Left paren is unmatched by right paren."); $2 }
 
 formals_opt:
 /* nothing */ 	{ [] }
@@ -100,6 +118,8 @@ call:
 | operator args_opt 		{ Eval(Id($1), List.rev $2) }
 | two_args_operators two_args 	{ Eval(Id($1), List.rev $2)}
 | ASSIGN assign_args		{ Assign($2) }
+| constant args_opt		{ (parse_error "Syntax error. Function call on inappropriate object."); $1 }
+;
 
 args_opt:
 /* nothing */ 		{ [] }
@@ -115,6 +135,7 @@ args:
 assign_args:
   ID expr		{ [Id($1); $2] }
 | ID expr assign_args   { Id($1) :: $2 :: $3 }
+| error			{ (parse_error "Syntax error. Assign usage is (= id1 e1 id2 e2...idn en)"); [] }
 
 infix_expr:
   constant			{ $1 }
