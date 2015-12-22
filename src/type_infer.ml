@@ -248,7 +248,7 @@ let rec constraints_of gctx =
 			    c, (ty1,a,e1) :: (ty2,b,e1) :: eq1 @ eq2)
 	        | _ -> raise(Failure "Error: Generation of typing for built-in function failed. ")
 	    )
-	    | "call" -> (let len = List.length e2 in  
+	    | "call" -> TJblob, [] (* (let len = List.length e2 in  
 			match len with 
 			   | 1 -> let ty1, eq1 = cnstr ctx (List.hd e2) in 
 			       		TJblob, (ty1, TJblob, e1) :: eq1
@@ -260,15 +260,15 @@ let rec constraints_of gctx =
 				  let ty3, eq3 = cnstr ctx (List.nth e2 2) in
 			       		TJblob, (ty1, TJblob, e1) :: (ty2, TString, e1) :: (ty3, TSomeList(TSome), e1) :: eq1 @ eq2 @ eq3
 			   | _ -> invalid_args_error ("Invalid arguments error: call takes at most 3 arguments. ")
-	 	)
-	   | "dot" -> if (List.length e2 != 2) then (invalid_args_error("Invalid arguments error: " ^
+	 	) *)
+	   | "dot" -> TJblob, [] (* if (List.length e2 != 2) then (invalid_args_error("Invalid arguments error: " ^
 							"dot takes 1 JBlob and 1 list as arguments. "))
 			else (
 			  let jblob = List.hd e2 in 
 			     let ty1, eq1 = cnstr ctx jblob in
 			     let ty2, eq2 = cnstr ctx (List.nth e2 1) in
 			  TJblob, (ty1, TJblob, e1) :: (ty2, TSomeList(TSome), e1) :: eq1 @ eq2
-			)		
+			) *)		
 	    | "module" ->
 			if (List.length e2 != 1) then (invalid_args_error ("Invalid arguments error: " ^ 
 							"module takes 1 String as argument. "))
