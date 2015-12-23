@@ -1,5 +1,3 @@
-(* Author: Samurdha Jayasinghe *)
-
 open Ast;;
 open Printf;;
 
