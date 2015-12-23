@@ -116,8 +116,7 @@ let solve eq =
 	      (List.map (fun (ty1,ty2,fn) -> (ts ty1, ts ty2, fn)) eq)
 	      ((k,t)::(List.map (fun (n, u) -> (n, ts u)) sbst))
 	      
-      | (TException, any, f) :: eq | (any, TException, f) :: eq -> 
-			solve ((any, any, f) :: (any, any, f)::eq) sbst
+      | (TException, _, f) :: eq | (_, TException, f) :: eq -> solve eq sbst 
       | (TArrow ty1, TArrow ty2, f) :: eq when (List.length ty1) = (List.length ty2) ->
       	let rec get_eq l1 l2 eq = 
       		match l1 with 
