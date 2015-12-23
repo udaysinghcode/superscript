@@ -39,8 +39,6 @@ let get_stdlib = String.concat "" [
 
   "(= filter (fn (f l) (fold_right (fn (x y) (if (f x) (cons x y) y)) l '())));;";
 
-  "(= partition (fn (f l) (fold_right (fn (x y) '((if (f x) (cons x (first y)) (first y)) (if (f x) (second y) (cons x (second y))))) l '('() '()))));;";
-
   "(= append (fn (a b) (if (is a '()) b (cons (head a) (append (tail a) b)))));;";
 
   "(= take (fn (i l) (if (or (not (> i 0)) (is l '())) '() (cons (head l) (take (- i 1) (tail l))))));;";
