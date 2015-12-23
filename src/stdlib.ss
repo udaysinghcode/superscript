@@ -133,33 +133,6 @@
     	    (cons (head a) (append (tail a) b)))));;
 
 /* 
- *  partition takes a function f and HOMOEGENOUS list l. The function
- *  must take 1 argument and return a BOOLEAN. The partition returns 
- *  a list containing two lists: 
- *  the first contains each element of l, on which f evlautes to true;
- *  the second contains each element of l, on which f evalutes to false.
- */
-/*	(= partition 
-  	  (fn (p l) 
-    	    (list (fold_right 
-               (fn (x y) 
-	         '(
-		    (if (p x) 
-		      (append x (cons (first y) '())) 
-		      (first y)) 
-		    (if (p x) 
-		      (second y) 
-		      (append x (cons (second y) '()))
-	          )
-	       ) 
-	       l 
-               '( '()  '()  )
-            ))
- 	  )
-	);;
-*/
-
-/* 
  *  reverse takes a list l. It returns the list reversed.
  */
 	(= reverse (fn (l) 
