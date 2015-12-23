@@ -151,10 +151,6 @@ let generate_js_func fname =
     | "__equal" ->
       ("'function(a1, a2) { \
           __assert_arguments_num(arguments.length, 2, \\'is\\'); \
-          if (a1.__t !== a2.__t) { \
-            throw new TypeError(\\'expected arguments of function is to be the same, \
-              but found \\' + a1.__t + \\' and \\' + a2.__t +\\'.\\'); \
-          } \
           return __box(\\'boolean\\', JSON.stringify(__unbox(a1)) === JSON.stringify(__unbox(a2))); \
         }'", [TParam 1; TParam 1], TBool, [])
 
@@ -191,10 +187,6 @@ let generate_js_func fname =
     | "__greater" ->
       ("'function(a1, a2) { \
           __assert_arguments_num(arguments.length, 2, \\'>\\'); \
-          if (a1.__t !== a2.__t) { \
-            throw new TypeError(\\'expected arguments of function > to be the same, \
-              but found \\' + a1.__t + \\' and \\' + a2.__t +\\'.\\'); \
-          } \
           return __box(\\'boolean\\', __unbox(a1) > __unbox(a2)); \
         }'", [TParam 1; TParam 1], TBool, [])
 
@@ -286,7 +278,7 @@ let generate_js_func fname =
       ("'function(n) { \
           __assert_arguments_num(arguments.length, 1, \\'module\\'); \
           __assert_type(\\'string\\', n, \\'module\\', \\'1\\'); \
-          var __t = require(__unbox(n));
+          var __t = require(__unbox(n));\
           return __box(\\'module\\', __t, __t); \
         }'", [TString], TJblob, [])
 
@@ -477,7 +469,7 @@ let generate_prog p =
       };"::
 
       "function __assert_type(t, o, f, nth) { \
-        if (o.__t !== t) { \
+        if (o.__t !== t && o.__t !== 'json') { \
           throw new TypeError('expected type of argument ' + nth + ' of function ' + f + \
             ' to be ' + t + ' but found ' + o.__t); \
         } else { \
@@ -505,22 +497,9 @@ let generate_prog p =
         } \
       };"::
 
-      "function __call(args) { \
-        var module = args.__v[0]; \
-        if (args.__v.length === 1) { \
-          var module = args.__v[0].__v(); \
-          return __box('module', module, module); \
-        } else { \
-          return __box('module', args.__v[0].__v[args.__v[1].__v].apply(args.__v[0]._ctxt, args.__v[2].__v.map(__tojs))); \
-      }};"::
+      "function __call(args) { if(args.__v.length === 1) { return __box('module', args.__v[0].__v(), args.__v[0].__v()); }; var __temp = !args.__v[0].__t ? args.__v[0] : __unbox(args.__v[0]); __temp[__unbox(args.__v[1])].apply(__temp, args.__v.slice(2).map(__tojs)); };"::
 
-      "function __dot(args) { \
-        var res; \
-        for(var i = 0; i < args.__v[1].__v.length; i++) { \
-          res = (i === 0 ? args.__v[0].__v : res)[__unbox(args.__v[1].__v[i])]; \
-        } \
-        return __box('module', res, args.__v[0]._ctxt);\
-      };"::
+      "function __dot(args) { var __temp = args.__v; var res; for(var i = 1; i < __temp.length; i++) { res = (i === 1 ? __temp[0] : res)[__unbox(__temp[i])]; } return __box('json', res); };"::
 
       (generate_head p)::";\n"::(List.map wrap_exp p)@["}\
       catch (e) {\
