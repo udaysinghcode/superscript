@@ -124,32 +124,6 @@
   	  (list (fold_right (fn (x y) (if (p x) (cons x y) y)) l '()))));;
 
 /* 
- *  partition takes a function f and HOMOEGENOUS list l. The function
- *  must take 1 argument and return a BOOLEAN. The partition returns 
- *  a list containing two lists: 
- *  the first contains each element of l, on which f evlautes to true;
- *  the second contains each element of l, on which f evalutes to false.
- */
-	(= partition 
-  	  (fn (p l) 
-    	    (list (fold_right 
-               (fn (x y) 
-	         '(
-		    (if (p x) 
-		      (cons x (first y)) 
-		      (first y)) 
-		    (if (p x) 
-		      (second y) 
-		      (cons x (second y)))
-	          )
-	       ) 
-	       l 
-               '( '()  '()  )
-            ))
- 	  )
-	);;
-
-/* 
  *  append takes an element a, and list b. It returns a list
  *  where a is appended onto the front of b.
  */ 
@@ -157,6 +131,33 @@
   	  (if (is a '()) 
     	    b 
     	    (cons (head a) (append (tail a) b)))));;
+
+/* 
+ *  partition takes a function f and HOMOEGENOUS list l. The function
+ *  must take 1 argument and return a BOOLEAN. The partition returns 
+ *  a list containing two lists: 
+ *  the first contains each element of l, on which f evlautes to true;
+ *  the second contains each element of l, on which f evalutes to false.
+ */
+/*	(= partition 
+  	  (fn (p l) 
+    	    (list (fold_right 
+               (fn (x y) 
+	         '(
+		    (if (p x) 
+		      (append x (cons (first y) '())) 
+		      (first y)) 
+		    (if (p x) 
+		      (second y) 
+		      (append x (cons (second y) '()))
+	          )
+	       ) 
+	       l 
+               '( '()  '()  )
+            ))
+ 	  )
+	);;
+*/
 
 /* 
  *  reverse takes a list l. It returns the list reversed.
@@ -252,7 +253,7 @@
  */ 
 	(= unzip (fn (l) 
 	  (fold_right 
-	    (fn (x y) '((cons (first x) (first y)) (cons (second x) (second y)))) 
+	    (fn (x y) '((append (first x) (cons (first y) '())) (append (second x) (cons(second y) '())))) 
 	    l 
 	    '(   '() '()   ))));;
 

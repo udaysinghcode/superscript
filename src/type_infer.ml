@@ -116,7 +116,8 @@ let solve eq =
 	      (List.map (fun (ty1,ty2,fn) -> (ts ty1, ts ty2, fn)) eq)
 	      ((k,t)::(List.map (fun (n, u) -> (n, ts u)) sbst))
 	      
-      | (TException, _, f) :: eq | (_, TException, f) :: eq -> solve eq sbst
+      | (TException, any, f) :: eq | (any, TException, f) :: eq -> 
+			solve ((any, any, f) :: (any, any, f)::eq) sbst
       | (TArrow ty1, TArrow ty2, f) :: eq when (List.length ty1) = (List.length ty2) ->
       	let rec get_eq l1 l2 eq = 
       		match l1 with 
@@ -165,6 +166,16 @@ let rec constraints_of gctx =
 	let ty1, eq1 = cnstr ctx e1 in
 	let ty2, eq2 = cnstr ctx e2 in
 	let ty3, eq3 = cnstr ctx e3 in
+	let ty2 = match ty2 with
+	| TException -> ty3
+	| _ -> ty2
+
+	in let ty3 = 
+	match ty3 with
+	| TException -> ty2
+	| _ -> ty3
+
+	in	
 	  ty2, ((ty1, TBool, "if")::(ty2, ty3, "if")::eq1@eq2@eq3)
 
     | Fdecl(x, e) ->
