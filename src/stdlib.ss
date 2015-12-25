@@ -98,18 +98,18 @@
     	    (cons (f (head l)) (map f (tail l))))));;
 
 /* 
- *  fold_left takes a function f, HOMOGENEOUS list a, and list l.
+ *  fold_left takes a function f, accumulator a, and HOMOGENEOUS list l.
  *  It evaluates f on each element of list l, starting from the left,
- *  and stores the results in the accumulator list a.  It returns a.
+ *  and stores the results in the accumulator a.  It returns a.
  */
 	(= fold_left (fn (f a l) 
   	  (if (is l '()) a 
     	    (fold_left f (eval '(f a (head l))) (tail l)))));;
 
 /* 
- *  fold_right takes a function f, HOMOGENEOUS list l, and list a.
+ *  fold_right takes a function f, HOMOGENEOUS list l, and accumlator a.
  *  It evaluates f on each element of list l, starting from the right,
- *  and stores the results in the accumulator list a. It returns a.
+ *  and stores the results in the accumulator a. It returns a.
  */
 	(= fold_right (fn (f l a)
   	  (if (is l '()) (eval '(identity a))
@@ -124,8 +124,8 @@
   	  (list (fold_right (fn (x y) (if (p x) (cons x y) y)) l '()))));;
 
 /* 
- *  append takes an element a, and list b. It returns a list
- *  where a is appended onto the front of b.
+ *  append takes a list a, and list b. It returns a list
+ *  where the list a is appended onto the front of the list b.
  */ 
 	(= append (fn (a b) 
   	  (if (is a '()) 
