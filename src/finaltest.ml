@@ -127,7 +127,6 @@ let tests = [
  ("Testing stdlib function: fold_left", "(= x '(1 2 3 4 5 6 7 8 9 10));;  (prn (string_of_int (int (fold_left + 0 x))));;", [], "55") ;
  ("Testing stdlib function: fold_right", "(= x '(1 2 3 4 5 6 7 8 9 10));; (prn (string_of_int (int (fold_right + x 0 ))));;", [], "55") ;
  ("Testing stdlib function: filter", "(= fx (fn (x) (> x 3)));;  (= x '(1 2 3 4 5 6 7 8 9 10));;  (prn (string_of_int (int (head (filter fx x)))));;", [], "4") ;
- ("Testing stdlib function: partition", "(= less (fn (x) (< x 5)) );; (= x '(1 2 3 4 5 6 7 8 9 10));; (print_list format_int2d  (list (partition less x)));;", [], "[[1,2,3,4],[5,6,7,8,9,10]]") ;   
  ("Testing stdlib function: append", "(= x '(1 2 3 4 5 6 7 8 9 10));;  (prn (string (head (tail (tail (tail (tail(append '(\"1\" \"2\" \"3\") '(\"1\" \"LAST\")))))))));;", [], "LAST") ; 
  ("Testing stdlib function: take", "(= x '(1 2 3 4 5 6 7 8 9 10));; (print_list format_int (list (take 5 x)));; ", [], "[1,2,3,4,5]") ;  
  ("Testing stdlib function: drop", "(= x '(1 2 3 4 5 6 7 8 9 10));;  (print_list format_int (list (drop 5 x)));;", [], "[6,7,8,9,10]") ;  
