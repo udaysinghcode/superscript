@@ -5,7 +5,7 @@ type token = EOF
 	     | Fparen of string 	(* foo(a) *)
 	     | Fdecl of string  	(* fn(a b) a + b;; def foo(a) a + 1 *)
 	     | Word of string   	(* other text in program *)
-	     | Comment 			(* comments look just like this *)
+	     | Comment 			(* comments are /* C-style */ *)
 	     | StdFn of string		(* if a 
 					      b 
 					      c *)
@@ -31,9 +31,9 @@ let rec closeExpression s stack =
 		if (top == -1) then (s ^ ";;\n")  (* keep -1 as bottom-of-stack marker *)
 		else (ignore (Stack.pop stack); closeExpression (")" ^ s) stack)
 }
-let fn_name = ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_' '-']*
+let fn_name = ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']*
 let binop =  "+" | "-" | "*" | "/" | "+." | "-." | "*." | "/." 
-	     | "and" | "or" | "is" | "isnt" | ">" | "<" | ">=" | "<=" | "="
+	     | "and" | "or" | "is" | "isnt" | ">" | "<" | ">=" | "<=" | "=" | "++"
 
 rule token = parse
 	 eof { EOF }
@@ -46,7 +46,7 @@ rule token = parse
 	
 	| "/*" { comment lexbuf }
 
-	| '\n'[' ' '\t']*("let" | "if" | "do" | "eval" ) as lxm 	(* Standard library functions *)
+	| '\n'[' ' '\t']*("if" | "do" | "eval" ) as lxm 	(* Standard library functions *)
 					{ let spaces = countSp lxm 0 1 in
 					   ignore(Stack.push spaces curIndent); 
 					 StdFn(lxm) }
@@ -70,11 +70,6 @@ rule token = parse
 	| "fn" ' '* '('	as lxm { let spaces = countSp lxm 0 1 in	(* Anonymous function declaration: "fn (" *)
  				ignore(Stack.push spaces curIndent); Fdecl(lxm) }
 	
-	| '\n'[' ' '\t']* "def" ' '* fn_name ' '* '(' 	(* Named function declaration: needs own regexp
-							   so that fn_name(args) does not get slurped into (fn_name args) *)			
-				as lxm { let spaces = countSp lxm 0 1 in
- 				ignore(Stack.push spaces curIndent); Fdecl(lxm) }
-
 	| (fn_name | binop)' '* '(' as lxm { Fparen(lxm) }	(* Function call as "f(args)" *)
 
 	| '\"'[^'\"']*'\"' as lxm { String(lxm) } 	(* Quoted strings: quoted function calls scan as strings, 
