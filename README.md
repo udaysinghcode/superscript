@@ -340,6 +340,137 @@ Braces can be used to wrap an infix expression and to explicitly indicate the or
 
 ### 3.3 Data Types
 
+#### 3.3.1 Type Inference
+
+Superscript uses static type inference, based on the Hindley-Milner algorithm[12], to evaluate the type and value of any legal expression and to check that expressions satisfy the proper data type in all function calls. Our compiler will flag any inconsistent data type in function calls as a type incompatibility error. Based on this type inference, the Superscript compiler implements error handling and prints the appropriate error messages to the user.
+
+Superscript’s standard library provides a set of functions to let user convert between different data types.
+
+#### 3.3.2 Atomic Data Types
+
+The following are atomic (non-list) data types in Superscript.
+
+##### 3.3.2.1 Numerical types
+
+We use type inference to avoid NaN errors common in Javascript, since non-numerical values cannot be used in arithmetic functions.
+
+###### Integers
+Superscript allows integers, which may be manipulated by integer arithmetic using the standard +, -, /, * operators. Integers are sequences of digits containing no decimals. Integers are considered accurate up to 15 digits.
+
+```clojure
+> 42;;
+>> 42
+
+> (type 42);;
+>> ‘int’
+```
+
+###### Floating Points
+Superscript allows floating point values and requires the use of floating point specific operators to perform floating point arithmetic. These operators are the int operators followed by ‘.’ (+., -., /., *.). Floating points must include at least one digit and a decimal, satisfying the regular expression: ['0'-'9']*'.'['0'-'9']+ | ['0'-'9']+'.'['0'-'9']*
+
+```clojure
+> 42.0;;
+42.0
+
+> (type 42.0);;
+‘float’
+```
+
+##### 3.3.2.2 Strings
+
+Superscript supports UTF-8 strings as a way to represent textual data. Like Javascript, a single character is treated as a single character String. There is no type for chars. Print always prints to console and returns the unit datatype.
+
+```clojure
+> “Hello, world!”;;
+>> “Hello, world!”
+
+> (type “Hello, world!”);;
+>> ‘string’
+```
+
+
+##### 3.3.2.3 Symbols
+
+Symbols, or identifiers, represent programmer-defined objects. They are containers for storing data values, and they return the value assigned to them. An identifier name must start with a letter, followed by any number of letters, digits, or underscores, and is defined by the regular expression: ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_' ]*
+
+```clojure
+> (= a 42);;
+42
+
+> a;;
+42
+```
+
+3.3.2.4 True/False/Nil
+
+Superscript has a boolean true and false value.
+
+```clojure
+> (type true);;
+‘boolean’
+
+> (type false);;
+‘boolean’
+```
+
+Superscript also has a nil value which is the null datatype.  It is equivalent to the empty list.
+
+```clojure
+> nil;;
+nil
+
+> ‘();;
+nil
+```
+
+#### 3.3.3 Non-atomic Data Types
+
+##### 3.3.3.1 Lists
+
+Multiple atoms enclosed parentheses are also called lists. An unquoted list is a function call, where the first element is the function name, and the other values are the parameters (See 3.3.2). For instance, `(a b c d e)` calls the function a with the arguments b, c, d, and e. It is a syntax error to write an expression that is an unquoted list, such as `(5 4 8)`, where the first element is not a function name.
+
+In order to use `(a b c d e)` as a list, rather than function call, you must quote the list:  `‘(a b c d e)`  is a list of the elements a, b, c, d, and e.
+
+```clojure
+> ‘(1 2 3);;
+‘(1 2 3)
+
+> (type ‘(1 2 3));;
+‘(sometype) list ’
+```
+
+##### 3.3.3.2 Functions
+
+Call a function using an unquoted list, where the first argument is the function name, the following arguments are the parameters passed into the function call, and all the parameters are passed in by value, in the format of `( function_name arg1 arg2 arg3…)`:
+
+```clojure
+> (+ 1 2 3 4);;
+10
+```
+
+Define an anonymous function in the following way, using the ‘fn’ keyword: `(fn (optional_args) expression)`, where optional_args is 0 or more formal arguments separated by spaces, and enclosed by parentheses; the body of the function is a single expression enclosed by parentheses; and the entire expression is surrounded by parentheses. A function definition returns a function data type. In Superscript, functions are a data type much like lists and atoms.
+
+```clojure
+> (fn (x y) (/(+ x y) 2));;
+- : int -> int -> int
+```
+
+We can bind an anonymous function declaration to a name using the `=` function, which evaluates right-to-left. Don’t be scared by the prefix notation, as the same may be expressed using infix notation, covered in Section 8, Syntax Modifications.
+
+Anonymous function declaration, which is then bound to the name `average`:
+
+```clojure
+> (= average (fn (x y) (/ (+ x y) 2)));;
+val average : int -> int -> int
+```
+Function call:
+
+```clojure
+> (average 20 10);;
+15
+```
+
+
 
 ### Footnotes
 
