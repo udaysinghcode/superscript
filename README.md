@@ -5,108 +5,56 @@ Passing](https://circleci.com/gh/udaysinghcode/superscript.svg?style=shield&circ
 ![Build
 Passing](https://circleci.com/gh/udaysinghcode/superscript.svg?circle-token=c4a7fd27027a5be7c2f8d8295c088c97a8946692)
 
-### Motivation
->"JS is the x86 of the web" - Brandon Eich
+## 1. Introduction
 
-Why compile to Javascript? As Brandon Eich said, [“JS is the x86 of the web”][0] . 
-Today Javascript is used not only to govern interactions on the front end of the internet, 
-but also to prototype systems on the backend of the web.
+### 1.1 Welcome to Superscript
 
-In recent years, the web has transformed in terms of interaction design and web browser 
-functionality. The modern web has progressed from static pages and now demands a [system][1]
-that provides reactions based on data changes. This necessity for real-time interaction 
-has led to a shift in the world of rapid prototyping, from monolithic web frameworks, to a 
-clear separation between single-page applications and APIs.
+Superscript is a type-inferred Lisp with syntax, focused on rapid development, that compiles into Javascript. Superscript is a compiled language with static type inference, using the Lisp core, that allows the user to write robust, yet concise programs.  It is heavily influenced by both Arc and Clojure, two new languages introduced to the Lisp community, and OCaml.
 
-The development of Node.js has led to more developers embracing Javascript as a viable 
-language for backend development. Despite its popularity however, Javascript’s verbose syntax, 
-mutable objects, illogical equality comparisons, and complex callbacks make it difficult for 
-developers be completely aware of their code’s [side effects][2]. 
+Unlike Javascript, the functional-first nature of Superscript encourages users to think more before they code. Using static type inference based on the Hindley-Milner algorithm, our compiler tells users when their functions break due to type inconsistency. Similar to OCaml, it discourages users from thinking in terms of objects, and encourages clean data transformations through the use of S-expressions, which may be written using either Lisp-like, or imperative syntax (refer to Section 8, for Syntax Modifications to the Lisp core). This, combined with the flexibility of the Lisp family of languages, where functions and data are equivalent, gives users of Superscript a level of power unavailable in languages like Javascript.
 
-Developers should understand the full semantic structure of their code, especially when 
-prototyping web servers and RESTful APIs, and dealing with callbacks and Node.js requests. 
-However, closures and anonymous functions in Javascript are often confusing to write and 
-understand. The number of lines of code is also directly correlated with the number of bugs 
-generated. 
+Superscript enables sharp programmers to think and express clear functional ideas in a language that is slowly becoming the backbone of the web.
 
-Despite Javascript treating functions as first class objects, Javascript is typically 
-used as an imperative programming language. Its lack of structure has encouraged programmers 
-to think of Javascript objects in terms of state, instead of attempting to transform data. 
-Javascript is a product of rapid evolution, and thus for many people from the functional 
-programming school of thought, it seems broken. Although its core library is small, 
-Javascript’s weak typing and object construction system create a broken mix, where functions
- are first class, yet objects are used imperatively. 
+### 1.2 Program Structure
 
-Our solution is Superscript, a type-inferred language, inspired by a mix of Lisp, Clojure and 
-Arc that compiles to Javascript.
+Superscript programs are built with expressions, and a program can be viewed as a single expression or a list of expressions executed in sequence. In Superscript, functions are data and data are functions.
 
+In the following examples, the indicated result is what the expression would evaluate to, in the executable JavaScript produced by the Superscript compiler.
 
-### Language Description
+```lisp
+; Function call that prints Hello, world!
+> (prn “Hello, world!”);;
+Hello, world!
 
-> "Lisp isn't a language, it's a building material." - Alan Kay
+; Addition function applied to all integers from 1 to 10
+> (+ 1 2 3 4 5 6 7 8 9 10);;
 
-Superscript is a Lisp focused on rapid development to compile to Javascript. Primarily being 
-heavily influenced from both Arc and Clojure, two very new languages introduced to the Lisp 
-community. Superscript is a Lisp designed to have very intentional syntax, allowing the user 
-to know very little to write very large programs. 
-
-Unlike Javascript, Superscript encourages users to write in a functional first language 
-thinking more before they code. Using an inferred type system, similar to Ocaml, our compiler 
-tells users when their functions break for particular type and strongly encourages functional 
-thinking over imperative thinking. This breaks users from thinking in terms of objects as many 
-new programmers do when looking at Javascript and encourages clean data transformations which 
-the user is aware of through s-expressions. This, combined with the flexibility of the Lisp 
-family of languages, where functions and data are equivalent, gives users of Superscript a 
-level of power unavailable in languages like Javascript.
-
-Object-oriented programming tends to be written with a lack of discipline on the developer's 
-part, by preventing them from doing much damage by abstracting everything. Superscript’s focus 
-on power and brevity encourages users for rapid prototyping to write succinct code, which 
-results in clean, type-inferred functions in Javascript. Additionally, another shortcoming 
-of Object-Oriented programming is that often times due to the lack of power provided by 
-object-oriented languages, users tend to believe they are doing more work than they are 
-actually outputting. Superscript encourages thoughtful programming, translated to Javascript that 
-is performant, functional, and well typed.
-
-Superscript uses syntax based on Lisp and will translate to Javascript. It builds upon the 
-primary Lisp functions[3], and in addition, it allows for user-defined functions, recursion, 
-and type inference with seven data types. Superscript’s syntax is based on closure, and is 
-built from multiple nested S-expressions. Similar to OCaml, it is functional. Unlike 
-languages like Scheme, it is type inferred.  Expressions are evaluated in prefix order. 
-Superscript supports the typical arithmetic and logical operations. 
-
-Superscript intends to provide sharp programmers a language to think and express clear 
-functional ideas in a language which is slowly becoming the backbone of the web.
-
-### Syntax Examples
-
-A syntax example below:
-
-```arc
-; Superscript source code for GCD 
-
-(def gcd (a b)
-	(if (is 0 b) a
-		(gcd b (mod a b))))
+; Function call, applying the ‘head’ function to a list
+; that consists of ‘+’ and the integers 1 through 10.
+> (head ‘(+ 1 2 3 4 5 6 7 8 9 10));;
 ```
 
-```js
-// GCD in resulting Javscript
+The idea that both functions and data are one and the same allows for rapid expression of ideas in Superscript that would otherwise be more difficult to express in Javascript. The above examples show not only how functions are executed, but how comments work (using the semicolon), and the power of code and data being one.
 
-var gcd = function(a, b) {
-	if (b === 0) {
-		return a;
-	}
-	return gcd(b, a % b);
-};
-```
+### 1.3 Related Work and Inspiration
+
+There are actually a number of related works to Superscript, a lot of which we noticed when we were hunting for names - SLisp, LispyScript, Parenscript, and more. We did not actually consult any of them when designing Superscript, except Clojurescript. Clojurescript, however, is focused on covering many of the syntax ideas of Clojure in a Lisp which compiles to Javascript. Clojure involves many syntactic differences that Superscript does not have such as the notation for sets, maps, and vectors.
+
+Our work is inspired by a Lisp called Arc developed by Paul Graham prior to Clojure as a response to the lack of Lisp development since the 1980s. We focused on Arc’s obsession of brevity (as in shortening the required amount of tokens to write a program, thus effectively decreasing the number of bugs). We tried not to fall into the Perl trap of requiring too few characters, but reducing the number of tokens so that programs remain transparent and short. We included an alternate syntax which preserves the semantics of Lisp, yet is very approachable for those who might be alarmed by the number of parentheses. Caramel can be preprocessed into Superscript which is then run by GEB (our compiler named after Hofstadter’s seminal work Gödel, Escher, Bach). Caramel allows Superscript to be more appealing to a more mainstream audience, switching out parentheses for indentation, as well as a few more syntactic features. Superscript still allows s-expressions as much like how John McCarthy worked on designing a syntax structure for Lisp, programmers preferred the untouched s-expressions.
+
+We looked at Poly and Haskell for type inference to prevent classic type errors that plague Lisp, utilizing Hindley Milner’s Algorithm W. We strayed away from Arc’s function overloading as this would break Algorithm W and instead focused on implementing the best of the safety that comes from type inference with a mix between terse Lisp code which is readable and short that can be picked up easily by beginners to Lisp and safe enough to prevent many of the classic bugs that hurt Javascript.
+
+We also utilized Node.js to evaluate Javascript on a cross-platform runtime environment so that Superscript could be extremely powerful for developing server-side web applications.
+
+All in all, Superscript could not have developed without the open source community, and for that we are indebted.
+
 
 ### Footnotes
 
 [0]: http://www.hanselman.com/blog/JavaScriptIsAssemblyLanguageForTheWebPart2MadnessOrJustInsanity.aspx
 [1]: http://rauchg.com/2014/7-principles-of-rich-web-applications
 [2]: https://www.destroyallsoftware.com/talks/wat
-[3]: http://languagelog.ldc.upenn.edu/myl/ldc/llog/jmc.pdf 
-[4]: ttp://www.paulgraham.com/arc.html 
+[3]: http://languagelog.ldc.upenn.edu/myl/ldc/llog/jmc.pdf
+[4]: ttp://www.paulgraham.com/arc.html
 [5]: http://cs.princeton.edu/courses/archive/spr11/cos333/lectures/17paradigms/sort.lisp
 [6]: http://www.braveclojure.com/
