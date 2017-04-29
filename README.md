@@ -261,6 +261,86 @@ And there you have it, you can now define and create your own functions in Super
 
 Happy hacking! (John McCarthy is probably smiling)
 
+## 3. Language Reference Manual
+
+### 3.1 Introduction
+
+This is a language reference manual updated to reflect the current state of Superscript at the first release plus the geb compiler.
+
+### 3.2 Lexical Convention
+
+#### 3.2.1 Reserved Keywords
+
+Superscript has a set of reserved keywords, which cannot be used as identifiers. Superscript also comes with built-in functions which generate specific Javascript code when invoked. It also has a standard library, written in Superscript, which is automatically imported (concatenated into the beginning of any user-defined code).
+
+
+
+| Reserved Keywords | Built-in functions | Standard Library Functions  |
+| ------------- |:-------------:| -----:|
+| true, false, fn, if, eval, do      | +, -, *, /, +., -., *., /., mod, is, isnt, <, <=, >, >=, and, or, not, ++, do, eval, call, dot, module, cons, head, tail, pr, prn, int_of_string, string_of_float, float_of_string, string_of_boolean, boolean_of_string, string_of_int, int, float, boolean, string, list, type | identity, length, nth, first, second, third, fourth, fifth, sixth, seventh, eighth, ninth, tenth, last, map, fold_left, fold_right, filter,  append, reverse, drop, take, intersperse, member, zipwith, zipwith3, zip, unzip, format_boolean, format_int, format_string, format_float, stringify_list, format_boolean2d, format_int2d, format_float2d, format_string2d, print_list |
+
+#### 3.2.2 Punctuation
+
+##### 3.2.2.1 Comments
+Comments in Superscript are C-style:
+
+```clojure
+>/* this is a comment */
+```
+
+##### 3.2.2.2 Double semicolon
+A program in Superscript is a list of expressions, and the expressions are separated by double semicolons:
+```clojure
+> ( prn "hello" );; ( prn "world" );;  ( prn "people");;
+hello
+world
+people
+```
+
+##### 3.2.2.3 Parentheses
+
+Parentheses must enclose the representation of a list, which must be quoted if it is not intended to be a function call:
+
+```clojure
+> '( 1 2 3 );;
+>> ‘(1 2 3)
+```
+
+Parentheses must be used to wrap a function definition, to wrap its arguments, and to wrap the function body. We used the Scheme lambda construction but removed the keyword lambda and replaced it with fn similar to Arc to encourage constant use of lambda functions, similar to Javascript function assignment:
+
+```clojure
+> (fn (x y) (+ x y));;
+```
+
+Parentheses must be used to wrap any function call, including a standard library function call or built-in operation.
+
+```clojure
+> (average 2 4);;	/*average is a function that returns the average value of its parameters*/
+3
+
+> (if true 1 2);;
+1
+```
+
+All unquoted lists are interpreted as function calls. Hence, parentheses cannot be used to wrap an unquoted list that is not a function call. The following is a syntax error, and cannot be evaluated as you are trying to evaluate the operator 1 on the arguments 2 and 3:
+
+```clojure
+> (1 2 3);;
+Line:1 char:1..6: Syntax error. Function call on inappropriate object.
+```
+
+##### 3.2.2.4 Curly Braces
+
+Braces can be used to wrap an infix expression and to explicitly indicate the order of operations and associativity. See Section 3.8 for more information about syntactic sugar and Syntax Modifications that allow a more imperative programming  syntax. Infix expressions can be used in both Superscript and  Caramel syntax. See the section on Infix Expressions below.
+
+```clojure
+> {1 + 2};;
+>> 3
+```
+
+### 3.3 Data Types
+
+
 ### Footnotes
 
 [0]: http://www.hanselman.com/blog/JavaScriptIsAssemblyLanguageForTheWebPart2MadnessOrJustInsanity.aspx
