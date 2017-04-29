@@ -21,7 +21,7 @@ Superscript programs are built with expressions, and a program can be viewed as 
 
 In the following examples, the indicated result is what the expression would evaluate to, in the executable JavaScript produced by the Superscript compiler.
 
-```lisp
+```clojure
 ; Function call that prints Hello, world!
 > (prn “Hello, world!”);;
 Hello, world!
@@ -48,6 +48,218 @@ We also utilized Node.js to evaluate Javascript on a cross-platform runtime envi
 
 All in all, Superscript could not have developed without the open source community, and for that we are indebted.
 
+## 2. Tutorial
+
+This is a tutorial on Superscript that is for all users. Our Language Reference Manual is also designed like a tutorial, but this is more of a conversational attempt to get you into using Superscript. You do not have to know Lisp to walk through our tutorial. We will use the following syntax to cover code. When you see text in this typeface, it is in reference to command line functions.
+
+Let’s start by introducing the three characters important to understanding our tutorial. The % character is used to symbolize your Unix shell input. Make sure you have Node.js installed, if not, it can be downloaded from the Node.js site. In order to get started and print
+
+```bash
+% ./make
+%  ./geb -s "(prn \"Hello, world!\");;"
+```
+
+This allows you to run individual lines of Superscript. Remember when using quotes to escape them in the command line, and to include the double semicolon for concluding statements.
+
+``` bash
+% vim hello.ss
+/* Type (prn "Hello, world!");; */
+% ./geb hello.ss
+```
+
+If you want to run a program, you can use this method of compiling the file using geb, and you will see the output. We also used a `/* */` to symbolize a comment. This is how you comment as well in Superscript files. We will sometimes use the comment notation to provide extra information for the user.
+
+Our second to last symbol we will introduce is the > which is short for any line of Superscript which can be run. Rather than writing for either compiling files, or running individual lines, we will use this character to display lines of Superscript code. Feel free to provide appropriate spacing for writing Superscript files or bringing everything into one line to run with the ./geb -s command.
+
+```clojure
+> (prn "Hello, world!");;
+"Hello, world!"
+```
+
+Our last symbol is >> which stands for the return value of the expression. This will not be explicitly printed, but is useful to show for certain expressions. We will usually show the printed output below the returned value.
+
+```clojure
+> (prn "Hello, world!");;
+>> unit
+"Hello, world!"
+```
+
+So let’s start with the classic “Hello, World!” program. Wait, we’ve actually done that before and we had no build up to it. Instead, we will try something different.
+
+So here we will try it again, but instead do it with Devanagari script in Hindi. Let’s say hello, or better yet, “namaste” much like you do before a Yoga class.
+
+```clojure
+> (prn "नमस्ते")
+```
+
+So that was terribly easy, and you’ll note that Superscript can print all Unicode characters allowed by Javascript. Essentially when you run when hello.ss has the line above in it:
+
+```bash
+% ./geb hello.ss
+```
+
+This creates a file called a.js which is then run by the Node.js runtime. If Javascript can do it, we can do it too. You can run the file for the same output by running:
+
+```bash
+% node a.js
+```
+
+You will notice a number of functions and respective types printed above the output, this is Superscript showing you the types of all available functions as it is run. You can see what functions are available when and their types, and the process of Algorithm W; this is by design to assist with debugging.
+
+Superscript programs are built out of expressions such as integers, floats, strings, and booleans.
+
+```clojure
+> 25;;
+>> 25
+
+> "foo";;
+>> "foo"
+
+> 24.4;;
+>> 24.4
+
+> true;;
+>> true
+```
+
+Most expressions enclosed within multiple parentheses are also an expression. Many expressions together within parentheses are also known as an expression or actually, an s-expression, we also call these lists.
+
+```clojure
+> (+ 2 3);;
+
+>> 5
+```
+
+There are two types of lists. Quoted and unquoted lists. We understand this doesn’t mean much right now, but all will be clear very soon.
+
+```clojure
+/* Unquoted lists */
+(+ 2 3)
+
+/* Quoted lists */
+'(+ 2 3)
+```
+
+The list above, or the unquoted list, is technically a function or is evaluated from left to right with the values of the tail being passed as arguments to the values of the head. The first, unquoted list returns 5. The second quoted list is a list with a +, a 2, and a 3 in it. In other words, lists with quotes are not evaluated, lists with quotes are evaluated as function calls. All s-expressions will return something. So what does this return?
+
+```clojure
+> (+ (* 1 3) (+ 3 (+ 4 5)));;
+```
+
+If you said, 15, you would be correct, but as you are probably noticing, Superscript is not printing your values. So let’s see what’s happening  behind the madness.
+
+In order to print something, you have to use the prn function, however, prn requires a string for it to produce a string. This is an intentional strength of Superscript as the static type inference of Superscript requires functions to have the appropriate types for it to run a successful type check of the expression. The prn function requires a string and outputs a string. In order to do this we can use one of our many cast functions.
+
+```clojure
+> (string_of_int (+ (* 1 3) (+ 3 (+ 4 5))));;
+>> "15"
+> (prn (string_of_int (+ (* 1 3) (+ 3 (+ 4 5)))));;
+>> "15"
+15
+```
+
+All casts are listed in the Language Reference Manual and will be used below. The format is pretty straight forward, string_of_int, string_of_float, string_of_boolean, and more.
+
+So to go back to the expression, we notice that prefix notation, or putting the + before the elements in the unquoted list may seem a little odd compared to standard infix notation (if you want standard infix notation, we offer that. See the Infix Expression section in the Language Reference Manual or just put the operation within curly brackets. Prefix notation, however, has its benefits as we can keep adding arguments to the function.
+
+```clojure
+> (+);;
+>> 0
+
+> (+ 1);;
+>> 1
+
+> (+ 1 1);;
+>> 2
+
+> (+ 1 1 1);;
+>> 3
+```
+
+If we want to assign to foo the value of 42, the entire assignment expression will return 42 when evaluated.
+
+```clojure
+> (= foo 42);;
+>> 42
+
+> (prn (string_of_int 42));;
+>> 42
+42
+```
+
+Although most operators evaluate from left to right, this is an exception which stores the value of 42 into foo. Now let’s add 42 to an unquoted list.
+
+```clojure
+> (cons 4 '(8 15 16 23 42));;
+>> ‘(4 8 15 16 23 42)
+```
+
+The cons function appends the first argument to the list in the second argument. You’ll note that we are using a quoted list as a data structure inside, and an unquoted list as a function expression. This allows Superscript to be a homoiconic language and allows the user to very clearly note the applicative order of Superscript and even compute Superscript expressions by hand similar to lambda calculus.
+
+Similarly to cons, we have have two functions to take lists apart: head and tail. Although more traditional Lisps use the terms car and cdr respectively. We found that head and tail made more sense to new users as “Contents of the Address part of Register number” did not have the same ring as “head”. To use these functions try this:
+
+```clojure
+> (head '(4 8 15 16 23 42));;
+>> 4
+
+> (prn (string_of_int (int (head '(4 8 15 16 23 42)))));;
+4
+
+> (tail ‘(4 8 15 16 23 42));;
+>> '(8 15 16 23 42)
+
+
+> (print_list format_int (tail '(4 8 15 16 23 42))));;
+[8,15,16,23,42]
+```
+
+You’ll note that the standard Lisp formatting gives us 4 right parentheses at the end of this list may seem cumbersome. How is this dealt with in Lisp? As Paul Graham says, “we don’t.” Lisp programmers don’t count parentheses and let their editors do the work for them. As for readability, we use indentation. If you write in Caramel, our preprocessor allows you to skip parentheses for indentation. Use the print_list function with format_int (or format_string or format_float, you get the idea), to print a list.
+
+```clojure
+> (= x ‘(4 8 15 16 23 42));;
+> (= y (tail x));;
+> (= z y);;
+> (print_list format_int (tail z));;
+[15,16,23,42]
+```
+
+By allowing heterogeneous lists, Superscript allows exploratory programming with the strength of static type inference. All lists are lists of type SomeList of SomeType. In order to use the head of a list (or any individual element) in another computation, the result of calling head on the list must be annotated with a specific type (or dynamic cast) in order for type inference to work. In the below example, the result of head must be annotated to be an “int” in order to be passed to string_of_int, and to print the resulting string.
+
+```clojure
+> (prn (string_of_int (int (head '(4 8 15 16 23 42)))));;
+4
+```
+
+So the last few things we will teach you how to go through before we send you off to the language reference manual are booleans and lists.
+
+So let’s try a simple if statement.
+
+```clojure
+> (if (is 0 0) 1 2);;
+>> 1
+
+> (if (isnt 0 0) 1 2);;
+>> 2
+```
+
+We can use is and isnt for returning a boolean value which is fed into the if statement, we can also use standard comparable functions as well (<, >, <=, >=). These equality and comparison operators take 2 arguments which must be of the same type, such as int and int, or string and string. We also have logical operators such as and, or & not.
+
+Now before we send you off into the language reference manual, we want to cover the last thing. Throughout this tutorial, we have been introducing you to the function and the very simple syntax behind Superscript. Most of the elements you see in Superscript are functions, and as such are easy to create yourself. To create a function, much like Javascript, all you have to do is assign an anonymous function to an identifier, and then you can call the identifier to run the function.
+
+```clojure
+> (= function_name (fn (arg1 arg2 … argn) (function_body));;
+```
+
+```clojure
+> /* Note the use of infix below */
+> (= fib (fn (x) (if (is x 0) 0 (if (is x 1) 1 (+ (fib {x - 1}) (fib {x -2} ))))));;
+> (prn (string_of_int (fib 8)));;
+21
+```
+
+And there you have it, you can now define and create your own functions in Superscript and run them like the way you learned. We have all sorts of more cute tricks and goodies inside the Language Reference Manual, but don’t want to inundate you now, and instead would love to see you start writing programs. The LRM is also written as a semi-tutorial, so don’t hesitate to just go through it section by section.
+
+Happy hacking! (John McCarthy is probably smiling)
 
 ### Footnotes
 
