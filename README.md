@@ -470,7 +470,160 @@ Function call:
 15
 ```
 
+### 3.4. Operators and Built-in Functions
 
+#### 3.4.1. Basic Assignment
+
+The ‘=’ operator takes an even number of arguments, and assigns to the first of each pair the value of the second of each pair. This is a basic assignment that sets the value of a to 5, c to 6, and d to 7:
+
+```clojure
+> (= a 5 c 6 d 7);;
+val a : int
+val c : int
+val d : int
+
+> (= x 5);;
+val x : int
+```
+
+Basic assignment is applicable to all datatypes.
+
+#### 3.4.2. Arithmetic Operators
+
+Before we go into arithmetic operators, note that we will be using prefix notation here. Superscript allows infix notation as well under the Infix Expression section.
+
+Superscript offers several Standard Library arithmetic functions. These include both integral and floating addition, subtraction, multiplication, division; as well as the modulo of two ints. These functions are used as follows.
+
+###### Addition, Subtraction, Multiplication, Division
+
+You can add at least 2 arguments, a to b, or add an unlimited amount of arguments together. The following examples show function calls to arithmetic operations.
+
+```clojure
+(+ a b)
+
+(+. a b c d e f g h i j k l m n o p …)
+```
+
+Both of the above expressions are unquoted lists where the first element is a function call to the addition function, done on the other elements in the list. The first example uses the integer operator (+), and the second, the floating operator (+.). Addition, Subtraction, Multiplication, and Division can be applied to two or more arguments.
+
+All arguments to arithmetic functions must be numerical. They will be evaluated left to right.
+
+###### Modulo
+
+You can call a modulus function between TWO integers a and b, this will return the remainder of a / b.
+
+```clojure
+> (mod 5 6)
+5
+```
+
+#### 3.4.3. Boolean Operators
+
+Superscript’s Standard Library contains logical functions to evaluate boolean expressions.  
+
+##### 3.4.3.1. Logical NOT Function
+
+‘not’ is a Standard-Library function that takes one boolean expression as its argument, and negates the value of that expression.
+
+```clojure
+> (not true);;
+false
+
+> (not false);;
+true
+```
+
+##### 3.4.3.2 Logical AND / OR
+
+Superscript’s Standard Library supports logical AND/OR functions, using ‘and’ and ‘or’ keywords. AND/OR must be used with two boolean expressions as arguments.
+
+```clojure
+> (and true false);;
+false
+
+(or true true);;
+> true
+```
+
+##### 3.4.3.3 Equality and Inequality
+
+The ‘is’ function is an equality comparison that may be applied on atomic constants: ints, floats, and strings. The ‘isnt’ function compares two ints, floats, or strings for inequality. The arguments must be of the same type, for instance, string and string, or int and int.
+
+```clojure
+> (is “a” “b”);;
+false
+
+> (is 1 1);;
+true
+
+> (is 1 2);;
+false
+
+> (isnt “a” “b”);;
+true
+```
+
+#### 3.4.4 Relational Comparison operators
+
+ These relational comparison operators can be used for ints, floats, and strings. They take two expressions, which must be of the same type, as arguments:
+
+Examples:
+```clojure
+(> a b);;
+(< a b);;
+(>= a b);;
+(<= a b);;
+```
+
+Try it out:
+```clojure
+> (> 5 4);;
+true
+```
+
+#### 3.4.5 String concatenation
+
+String concatenation is done using the “++”’ function. It operates on a list of strings and concatenates them all from left to right.
+
+```clojure
+> (++ “hello” “ ” “world” “ superscript” “ is” “ here”);;
+“hello world superscript is here”
+```
+
+#### 3.4.6 prn/pr Function
+
+Print always prints to console. Its type is string -> unit. Hence you must pass it one or more  strings as argument.
+
+```clojure
+> (prn “Hello, world” “!”);;
+Hello, world!
+
+> (prn (string_of_int 5));;
+5
+
+> (type (prn 5));;
+- : string -> unit
+```
+
+#### 3.4.7 Infix Expressions
+
+Infix expressions may be used in Superscript if you enclose them in curly braces: {expression};; Example usage is below:
+
+
+1. Basic arithmetic in infix expressions will be evaluated in the standard order of operations. To parenthesize within infix expressions, use curly braces:
+```clojure
+    { 1 * {2 - 4} / 4 };;
+```
+
+2. To call a function with an infix expression as argument, use parentheses around the entire function call, as per standard Superscript function calling syntax:
+```clojure
+		( foo {1 + 3 + 3 * 4} );;
+```
+
+3. To call functions from within an infix expression and manipulate its return values, call the functions as you would normally and remember to enclose all infix  expression in curly braces.
+```clojure
+		{ 1 + 2 + (foo 3) + ( baz {3 + 4} ) };;
+```
 
 ### Footnotes
 
